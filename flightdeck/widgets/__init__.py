@@ -3,7 +3,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from flightdeck.config import KNOWN_WIDGETS, ConfigError
-from flightdeck.widgets import banner, empty
+from flightdeck.widgets import (activity, architecture, banner, cluster, decisions, empty, merges, metrics,
+                                priorities, settled, steps, streams)
 
 
 @dataclass
@@ -16,6 +17,16 @@ class RenderContext:
 REGISTRY = {
     'empty': empty.render,
     'banner.image': banner.render,
+    'cluster.gpu': cluster.render,
+    'metrics.generic': metrics.render,
+    'activity.github': activity.render,
+    'streams.table': streams.render,
+    'decisions.cards': decisions.render,
+    'steps.checklist': steps.render,
+    'merges.table': merges.render,
+    'priorities.list': priorities.render,
+    'settled.list': settled.render,
+    'architecture.diagrams': architecture.render,
 }
 
 

@@ -60,11 +60,10 @@ class WidgetTests(unittest.TestCase):
             render_slot('nope.widget', self.ctx())
         self.assertIn('nope.widget', str(cm.exception))
 
-    def test_known_but_unimplemented_widget_raises(self):
-        with self.assertRaises(ConfigError) as cm:
-            render_slot('streams.table', self.ctx())
-        self.assertIn('streams.table', str(cm.exception))
-
+    def test_every_known_widget_is_registered(self):
+        from flightdeck.config import KNOWN_WIDGETS
+        from flightdeck.widgets import REGISTRY
+        self.assertEqual(set(REGISTRY), set(KNOWN_WIDGETS))
 
 if __name__ == '__main__':
     unittest.main()
