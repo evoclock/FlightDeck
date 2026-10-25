@@ -11,7 +11,7 @@
 ## Global Constraints
 
 - Public product name is **flightdeck**; private instance is **flock-master**. Never brand the public product as “flock”.
-- Banner asset for public demo is Claude-generated flightdeck art (Julen supplies the file). Private ADHD neuromancer `banner.webp` never ships in flightdeck.
+- Banner asset for public demo is flightdeck art created by GPT Astra (the file shipped in the repo). Private ADHD neuromancer `banner.webp` never ships in flightdeck.
 - Ten locked slots: `banner`, `cluster`, `activity`, `streams`, `decisions`, `steps`, `merges`, `priorities`, `settled`, `architecture`.
 - Banner pane never shrunk/cropped to fit other panes (`banner.webp` / default banner natural aspect).
 - Instance→template link is **git submodule**.
@@ -39,7 +39,7 @@
 | `flightdeck/css_layout.py` (or section in render) | Locked top-row / pane grid CSS |
 | `examples/demo/config.json` | Scrubbed demo config |
 | `examples/demo/data.json` | Fake streams/decisions/merges only |
-| `examples/demo/assets/banner.webp` | Julen’s Claude default banner |
+| `examples/demo/assets/banner.webp` | Demo banner created by GPT Astra |
 | `examples/demo/fonts/` | Geist subset (same as today) |
 | `collectors/activity.py` | GitHub activity (env token) |
 | `collectors/metrics_generic.py` | CPU/RAM/disk stub for no-GPU |
@@ -71,7 +71,7 @@
 
 - [x] **Step 1:** Julen creates `https://github.com/evoclock/FlightDeck` (public, empty, no README).
 - [x] **Step 2:** Julen creates `https://github.com/evoclock/flock-master` (private, empty, no README).
-- [ ] **Step 3:** Julen drops Claude default banner at a known path (e.g. Desktop `flightdeck-banner.webp`) and tells Flockmate.
+- [ ] **Step 3:** Julen drops the GPT Astra demo banner at a known path (e.g. Desktop `flightdeck-banner.webp`) and tells Flockmate.
 
 **Done when:** both remotes exist; banner file path known.
 
@@ -309,7 +309,7 @@ echo "Local build at $OUT"
 | Submodule | 8 |
 | Ten slots + config.json | 1–3 |
 | Widgets incl. metrics.generic | 2, 3, 5 |
-| Scrubbed demo + Claude default banner | 4 (banner file from Julen) |
+| Scrubbed demo + GPT Astra banner | 4 (banner file from Julen) |
 | CF + local deploy | 6 |
 | No real details in public | 4 scrub tests |
 | Banner never shrunk | 3 layout test |

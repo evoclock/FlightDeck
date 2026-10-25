@@ -1,0 +1,14 @@
+{
+  "worker_name": "flightdeck-demo",
+  "hostname": "example.workers.dev",
+  "zone_id": "ZONE_ID",
+  "account_id": "ACCOUNT_ID",
+  "compatibility_date": "2026-10-25",
+  "access_team_domain": "TEAM.cloudflareaccess.com",
+  "access_aud": "ACCESS_AUD",
+  "allowed_emails": [
+    "you@example.com"
+  ],
+  "responses_kv_id": "RESPONSES_KV_ID",
+  "spark_kv_id": "SPARK_KV_ID"
+}
