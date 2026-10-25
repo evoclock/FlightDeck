@@ -1,7 +1,7 @@
 {
   "assets_dir": "assets",
   "timezone": "Europe/London",
-  "banner": {"alt": "FlightDeck demo banner (placeholder)"},
+  "banner": {"alt": "FlightDeck demo banner"},
   "slots": {
     "banner": "banner.image",
     "cluster": "metrics.generic",

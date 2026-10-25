@@ -102,7 +102,7 @@ Later (not v1): prompt-generated widgets; voice for accept/refuse on decisions.
 
 - Core renderer, slot layout CSS rules (banner never shrunk), widget packages
 - `examples/demo/` with **scrubbed** fake streams, no real PR titles, hostnames, or decisions
-- Default public banner: a flightdeck-inspired asset (Claude-generated), not the private ADHD neuromancer `banner.webp`
+- Default public banner: a flightdeck-inspired asset created by GPT Astra, kept separate from the private ADHD neuromancer `banner.webp`
 - Deploy recipes for Cloudflare and local
 - Docs and tests for config/widgets
 
