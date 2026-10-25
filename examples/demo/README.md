@@ -1,6 +1,6 @@
 # FlightDeck demo
 
-Static illustration of public evoclock repos. Counts in `data.json` are examples.
+Static illustration of public evoclock repos. The page title is FlightDeck. Counts in `data.json` are examples. The cluster slot is the GPU card, with demo nodes `demo-a` and `demo-b`.
 
 - Walkthrough: [assets/flightdeck-demo.mp4](assets/flightdeck-demo.mp4)
 - Still: [demo-still.png](demo-still.png)

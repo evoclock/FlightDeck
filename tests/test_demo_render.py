@@ -44,6 +44,9 @@ class DemoRenderTests(unittest.TestCase):
         self.assertIn('https://github.com/evoclock/OpenMausBot/pull/48', self.doc)
         self.assertIn('Static illustration of public evoclock repos', self.doc)
         self.assertNotIn('api.github.com', self.doc)
+        self.assertIn('<title>FlightDeck</title>', self.doc)
+        self.assertIn('<h1>FlightDeck</h1>', self.doc)
+        self.assertNotIn('<h1>FlightDeck demo</h1>', self.doc)
 
     def test_no_private_strings(self):
         for bad in FORBIDDEN:
@@ -67,15 +70,29 @@ class DemoRenderTests(unittest.TestCase):
         b = (DEMO / 'assets' / 'banner.webp').read_bytes()
         self.assertEqual((b[:4], b[8:12]), (b'RIFF', b'WEBP'))
 
-    def test_demo_uses_generic_metrics_not_cluster(self):
+    def test_demo_uses_filled_gpu_cluster(self):
         cfg = json.loads((DEMO / 'config.json').read_text())
-        self.assertEqual(cfg['slots']['cluster'], 'metrics.generic')
-        self.assertIn('<section class="spark metrics"', self.doc)
+        data = json.loads((DEMO / 'data.json').read_text())
+        self.assertEqual(cfg['slots']['cluster'], 'cluster.gpu')
+        self.assertEqual(data['title'], 'FlightDeck')
+        self.assertTrue(data['spark']['sample'])
+        self.assertEqual([n['name'] for n in data['spark']['nodes']], ['demo-a', 'demo-b'])
+        self.assertGreaterEqual(len(data['spark']['history']), 12)
+        self.assertNotIn('metrics', data)
+        self.assertIn('demo cluster', self.doc)
+        self.assertIn('2 online', self.doc)
+        self.assertIn('data-node="demo-a"', self.doc)
+        self.assertIn('data-node="demo-b"', self.doc)
+        self.assertIn('<path class="tl" data-node="demo-a"', self.doc)
+        self.assertIn('class="tr-empty" hidden', self.doc)
+        self.assertNotIn('<section class="spark metrics"', self.doc)
+        self.assertNotIn('Example host', self.doc)
+        self.assertIn('"sample": true', self.doc)
 
     def test_walkthrough_video_is_the_attached_file(self):
         video = DEMO / 'assets' / 'flightdeck-demo.mp4'
         self.assertTrue(video.is_file())
-        self.assertEqual(video.stat().st_size, 2939944)
+        self.assertEqual(video.stat().st_size, 2049379)
         self.assertIn(b'ftyp', video.read_bytes()[:32])
         self.assertFalse((DEMO / 'assets' / 'flock-tracker-demo.mp4').exists())
         demo_doc = (DEMO / 'README.md').read_text()

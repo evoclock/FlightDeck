@@ -4,7 +4,7 @@
   "banner": {"alt": "FlightDeck demo banner"},
   "slots": {
     "banner": "banner.image",
-    "cluster": "metrics.generic",
+    "cluster": "cluster.gpu",
     "activity": "activity.github",
     "streams": "streams.table",
     "decisions": "decisions.cards",

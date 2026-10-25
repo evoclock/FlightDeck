@@ -1,5 +1,5 @@
 {
-  "title": "FlightDeck demo",
+  "title": "FlightDeck",
   "summary": "Static illustration of public evoclock repos. Example counts only. This page does not collect live data.",
   "bot_colors": {
     "FlightDeck": "#3f6f70",
@@ -171,38 +171,70 @@
       "stream": "FlightDeck",
       "area": "Template",
       "items": [
-        {"text": "Sync hooks are in the template. This demo is a static page.", "state": "current", "src": "stream"}
+        {
+          "text": "Sync hooks are in the template. This demo is a static page.",
+          "state": "current",
+          "src": "stream"
+        }
       ]
     },
     {
       "stream": "OpenMausBot",
       "area": "App",
       "items": [
-        {"text": "Two draft pull requests are open on the public repo.", "state": "current", "src": "stream"},
-        {"text": "Read the drafts.", "state": "next", "src": "stream"}
+        {
+          "text": "Two draft pull requests are open on the public repo.",
+          "state": "current",
+          "src": "stream"
+        },
+        {
+          "text": "Read the drafts.",
+          "state": "next",
+          "src": "stream"
+        }
       ]
     },
     {
       "stream": "pi-agentic-driver",
       "area": "Driver",
       "items": [
-        {"text": "3.0.0 is marked released in the public README.", "state": "current", "src": "stream"},
-        {"text": "Mark 3.0.0 released in the README", "state": "done", "src": "ladder"}
+        {
+          "text": "3.0.0 is marked released in the public README.",
+          "state": "current",
+          "src": "stream"
+        },
+        {
+          "text": "Mark 3.0.0 released in the README",
+          "state": "done",
+          "src": "ladder"
+        }
       ]
     },
     {
       "stream": "pi-bowerbird",
       "area": "Diagrams",
       "items": [
-        {"text": "Two pull requests are open on the public repo.", "state": "current", "src": "stream"},
-        {"text": "Review both open pull requests.", "state": "next", "src": "stream"}
+        {
+          "text": "Two pull requests are open on the public repo.",
+          "state": "current",
+          "src": "stream"
+        },
+        {
+          "text": "Review both open pull requests.",
+          "state": "next",
+          "src": "stream"
+        }
       ]
     },
     {
       "stream": "Demeter",
       "area": "Populations",
       "items": [
-        {"text": "The public fieldnotes describe multilevel selection for populations of agents.", "state": "current", "src": "stream"}
+        {
+          "text": "The public fieldnotes describe multilevel selection for populations of agents.",
+          "state": "current",
+          "src": "stream"
+        }
       ]
     }
   ],
@@ -223,14 +255,123 @@
       "detail": "- evoclock/pi-agentic-driver#125 merged.\n- The public README marks the 3.0.0 tools as released."
     }
   ],
-  "metrics": {
-    "title": "Example host",
-    "at": "2026-10-25T11:40:00+00:00",
-    "note": "Example readings for this illustration.",
-    "items": [
-      {"key": "cpu", "label": "CPU", "pct": 23.0},
-      {"key": "mem", "label": "Memory", "pct": 61.5, "detail": "9.8 / 16 GB"},
-      {"key": "disk", "label": "Disk", "pct": 44.0}
+  "spark": {
+    "sample": true,
+    "cluster": "demo",
+    "nodes": [
+      {
+        "name": "demo-a",
+        "status": "online",
+        "read_at": "2026-10-25T16:20:00+00:00",
+        "gpu_util_pct": 64,
+        "mem_used_bytes": 52000000000,
+        "mem_total_bytes": 80000000000,
+        "temp_c": 61,
+        "power_w": 42
+      },
+      {
+        "name": "demo-b",
+        "status": "online",
+        "read_at": "2026-10-25T16:20:00+00:00",
+        "gpu_util_pct": 47,
+        "mem_used_bytes": 39000000000,
+        "mem_total_bytes": 80000000000,
+        "temp_c": 58,
+        "power_w": 38
+      }
+    ],
+    "history": [
+      {
+        "at": "2026-10-25T15:20:00+00:00",
+        "gpu": {
+          "demo-a": 55,
+          "demo-b": 56
+        }
+      },
+      {
+        "at": "2026-10-25T15:25:00+00:00",
+        "gpu": {
+          "demo-a": 64,
+          "demo-b": 53
+        }
+      },
+      {
+        "at": "2026-10-25T15:30:00+00:00",
+        "gpu": {
+          "demo-a": 71,
+          "demo-b": 46
+        }
+      },
+      {
+        "at": "2026-10-25T15:35:00+00:00",
+        "gpu": {
+          "demo-a": 73,
+          "demo-b": 38
+        }
+      },
+      {
+        "at": "2026-10-25T15:40:00+00:00",
+        "gpu": {
+          "demo-a": 70,
+          "demo-b": 31
+        }
+      },
+      {
+        "at": "2026-10-25T15:45:00+00:00",
+        "gpu": {
+          "demo-a": 64,
+          "demo-b": 28
+        }
+      },
+      {
+        "at": "2026-10-25T15:50:00+00:00",
+        "gpu": {
+          "demo-a": 55,
+          "demo-b": 31
+        }
+      },
+      {
+        "at": "2026-10-25T15:55:00+00:00",
+        "gpu": {
+          "demo-a": 46,
+          "demo-b": 37
+        }
+      },
+      {
+        "at": "2026-10-25T16:00:00+00:00",
+        "gpu": {
+          "demo-a": 39,
+          "demo-b": 46
+        }
+      },
+      {
+        "at": "2026-10-25T16:05:00+00:00",
+        "gpu": {
+          "demo-a": 37,
+          "demo-b": 53
+        }
+      },
+      {
+        "at": "2026-10-25T16:10:00+00:00",
+        "gpu": {
+          "demo-a": 40,
+          "demo-b": 56
+        }
+      },
+      {
+        "at": "2026-10-25T16:15:00+00:00",
+        "gpu": {
+          "demo-a": 46,
+          "demo-b": 54
+        }
+      },
+      {
+        "at": "2026-10-25T16:20:00+00:00",
+        "gpu": {
+          "demo-a": 56,
+          "demo-b": 47
+        }
+      }
     ]
   },
   "activity": {

@@ -98,7 +98,23 @@ def trend_paths(history, colors, now):
     return "".join(out)
 
 
-def trends(nodes, history, now=None):
+def _parsed(at):
+    try:
+        return datetime.datetime.fromisoformat(at) if at else None
+    except ValueError:
+        return None
+
+
+def anchor_now(spark, now):
+    """Sample decks keep the chart on the newest stored reading. Live decks use wall clock."""
+    if not spark.get("sample"):
+        return now
+    times = [t for t in (_parsed(h.get("at")) for h in spark.get("history") or []) if t]
+    times += [t for t in (_parsed(n.get("read_at")) for n in spark.get("nodes") or []) if t]
+    return max(times) if times else now
+
+
+def trends(nodes, history, now=None, sample=False):
     now = now or datetime.datetime.now().astimezone()
     colors = trend_colors(nodes, history)
     lines = trend_paths(history, colors, now)
@@ -107,8 +123,10 @@ def trends(nodes, history, now=None):
     legend = "".join(f'<span class="tk"><i style="background:{c}"></i><svg class="tk-l" viewBox="0 0 24 6" aria-hidden="true">'
                      f'<line x1="0" x2="24" y1="3" y2="3" stroke="{c}"{dash(i)}/></svg>{e(k)}</span>'
                      for i, (k, c) in enumerate(colors.items()))
-    blob = json.dumps({"history": history, "colors": colors, "palette": TREND_COLORS, "dash": TREND_DASH},
-                      ensure_ascii=False).replace("</", "<\\/")
+    payload = {"history": history, "colors": colors, "palette": TREND_COLORS, "dash": TREND_DASH}
+    if sample:
+        payload["sample"] = True
+    blob = json.dumps(payload, ensure_ascii=False).replace("</", "<\\/")
     yl = "".join(f'<span style="top:{100 - v}%">{v}%</span>' for v in (100, 75, 50, 25, 0))
     return (f'<div class="trends" id="trends"><div class="tr-head"><h3>Trends</h3><span class="tr-pill">GPU Utilization (%)</span>'
             f'<span class="tr-win">Last hour</span></div>'
@@ -123,6 +141,7 @@ def trends(nodes, history, now=None):
 
 def render(ctx, now=None):
     s = ctx.data.get("spark") or {}
+    now = anchor_now(s, now or datetime.datetime.now().astimezone())
     nodes = s.get("nodes") or []
     live = [n for n in nodes if node_state(n, now) == "online"]
     summary = ""
@@ -135,4 +154,4 @@ def render(ctx, now=None):
     rows_ = "".join(node_row(n, now) for n in nodes) or "<p class=muted>No nodes configured.</p>"
     return (f'<section class="spark" aria-labelledby="spark-h"><div class="sp-head"><h2 id="spark-h">{e(s.get("cluster", "Local"))} cluster</h2>'
             f'<span class="online{" none" if not live else ""}"><span class="sdot" aria-hidden="true"></span>{len(live)} online</span>{summary}</div>'
-            f'<div class="sp-body">{trends(nodes, s.get("history") or [], now) if nodes else ""}<div class="nodes">{rows_}</div></div></section>')
+            f'<div class="sp-body">{trends(nodes, s.get("history") or [], now, sample=bool(s.get("sample"))) if nodes else ""}<div class="nodes">{rows_}</div></div></section>')
