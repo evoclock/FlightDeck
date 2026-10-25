@@ -1,0 +1,15 @@
+# Product CI for the public FlightDeck template.
+# The Buildkite org pipeline uploads this file on queue mac-mini:
+#   buildkite-agent pipeline upload .buildkite/pipeline.yml
+# Python 3.11+ standard library. No secrets. No GitHub Actions workflow.
+env:
+  PYTHONDONTWRITEBYTECODE: "1"
+
+steps:
+  - label: "Tests and demo render"
+    agents: { queue: mac-mini }
+    timeout_in_minutes: 10
+    command:
+      - ".buildkite/host.sh"
+      - "python3 -m unittest discover -s tests -v"
+      - "python3 -m flightdeck.render examples/demo/config.json examples/demo/data.json dist/local/index.html"
