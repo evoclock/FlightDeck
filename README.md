@@ -6,7 +6,7 @@ Python 3.11 or newer is enough. The renderer and collectors use the standard lib
 
 ## Render the demo
 
-The public demo is an illustration of one crew layout, so you can choose a setup like it. Harbor, Lumen, Quill, and Nimbus are fictional bots on `example/` repos. Decisions, the merge queue, steps, priorities, settled items, host bars, and activity counts are made up and stored in `examples/demo/data.json`. That file is static. Rendering it does not collect from GitHub, and this repo has no path to a private tracker. The architecture slot stays empty until you add your own diagrams.
+The public demo is a static illustration of publicly released evoclock work. Streams are FlightDeck, OpenMausBot, pi-agentic-driver, pi-bowerbird, and Demeter. Pull requests and notes link to public GitHub pages. Activity counts and host bars are examples stored in `examples/demo/data.json`. That file is static. Rendering it does not collect from GitHub. The architecture slot stays empty until you add your own diagrams.
 
 The banner is `examples/demo/assets/banner.webp`, created by GPT Astra. Keep that file for the public demo. Swap in your own `banner.webp` beside your config when you leave the demo. The banner keeps its natural aspect.
 

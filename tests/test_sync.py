@@ -430,7 +430,7 @@ class PublishTests(unittest.TestCase):
             self.assertIn("pre-render: 90-pin-ids", proc.stdout)
             self.assertIn("tracker_evidence: offline", proc.stdout)
             html = (Path(tmp) / "out" / "index.html").read_text()
-            self.assertIn("Harbor", html)
+            self.assertIn("OpenMausBot", html)
         self.assertEqual((ROOT / "examples" / "demo" / "data.json").read_bytes(), demo)
 
     def test_hook_table_matches_files(self):

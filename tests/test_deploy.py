@@ -55,7 +55,7 @@ class PublishTests(unittest.TestCase):
             subprocess.check_call(['bash', str(ROOT / 'scripts' / 'publish_local.sh'), str(out)], cwd=ROOT)
             html = _text(out / 'index.html')
             self.assertIn('<!doctype html>', html)
-            self.assertIn('Harbor', html)
+            self.assertIn('OpenMausBot', html)
             self.assertIn('alt="FlightDeck demo banner"', html)
             self.assertTrue((out / 'assets' / 'banner.webp').is_file())
 
@@ -74,7 +74,7 @@ class PublishTests(unittest.TestCase):
             worker = _text(dist / 'worker.js')
             wrangler = json.loads(_text(dist / 'wrangler.json'))
             self.assertIn(json.dumps(html), worker)
-            self.assertIn('Harbor', worker)
+            self.assertIn('OpenMausBot', worker)
             # The page is embedded as a JSON string, so attribute quotes are escaped.
             self.assertIn(json.dumps('alt="FlightDeck demo banner"')[1:-1], worker)
             self.assertEqual(wrangler['name'], 'flightdeck-demo')

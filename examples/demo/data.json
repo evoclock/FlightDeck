@@ -1,216 +1,232 @@
 {
   "title": "FlightDeck demo",
-  "summary": "Illustration of one crew layout. Fictional bots and example repos. Static data, not a live tracker.",
+  "summary": "Static illustration of public evoclock repos. Example counts only. This page does not collect live data.",
   "bot_colors": {
-    "Harbor": "#3f6f70",
-    "Lumen": "#76536b",
-    "Quill": "#52705f",
-    "Nimbus": "#a77c2e"
+    "FlightDeck": "#3f6f70",
+    "OpenMausBot": "#76536b",
+    "pi-agentic-driver": "#52705f",
+    "pi-bowerbird": "#a77c2e",
+    "Demeter": "#617082"
   },
   "repo_colors": {
-    "example/board": "#617082",
-    "example/notes": "#8a6a3b",
-    "example/charts": "#9c5f45",
-    "example/lib": "#6e7354"
+    "evoclock/FlightDeck": "#3f6f70",
+    "evoclock/OpenMausBot": "#76536b",
+    "evoclock/pi-agentic-driver": "#52705f",
+    "evoclock/pi-bowerbird": "#a77c2e",
+    "evoclock/fieldnotes": "#617082"
   },
   "streams": [
     {
-      "bot": "Harbor",
-      "project": "In flight",
-      "now": "5 open pull requests. 1 repo active on main.",
-      "waiting": "2 ready to merge."
-    },
-    {
-      "bot": "Lumen",
-      "project": "Search",
-      "now": "Writing tests for the search page.",
+      "bot": "FlightDeck",
+      "project": "Template",
+      "now": "Sync hooks are in the template. This demo is a static page.",
       "waiting": "Nothing"
     },
     {
-      "bot": "Quill",
-      "project": "Guide",
-      "now": "Updating the local publish guide.",
-      "waiting": "Approve the outline"
+      "bot": "OpenMausBot",
+      "project": "App",
+      "now": "Two draft pull requests are open on the public repo.",
+      "waiting": "Read the drafts."
     },
     {
-      "bot": "Nimbus",
-      "project": "Charts",
-      "now": "Sketching the weekly chart.",
+      "bot": "pi-agentic-driver",
+      "project": "Driver",
+      "now": "3.0.0 is marked released in the public README.",
+      "waiting": "Nothing"
+    },
+    {
+      "bot": "pi-bowerbird",
+      "project": "Diagrams",
+      "now": "Two pull requests are open on the public repo.",
+      "waiting": "Review both open pull requests."
+    },
+    {
+      "bot": "Demeter",
+      "project": "Populations",
+      "now": "The public fieldnotes describe multilevel selection for populations of agents.",
       "waiting": "Nothing"
     }
   ],
   "decisions": [
     {
-      "id": "dec-merge-board-18",
+      "id": "dec-bowerbird-2",
       "state": "open",
-      "title": "Merge example/board#18?",
-      "meta": "ready to merge",
-      "src": "ready",
-      "text": "- example/board#18 is ready to merge.\n- [Add the search page](https://github.com/example/board/pull/18)",
+      "title": "Review evoclock/pi-bowerbird#2?",
+      "meta": "open on GitHub",
+      "text": "- evoclock/pi-bowerbird#2 is open on the public repo.\n- [Fit iso node focus border to the node outline](https://github.com/evoclock/pi-bowerbird/pull/2)",
+      "recommendation": "Read it on GitHub.",
+      "why": "- It is a public pull request.\n- This page does not read check status."
+    },
+    {
+      "id": "dec-bowerbird-3",
+      "state": "open",
+      "title": "Review evoclock/pi-bowerbird#3?",
+      "meta": "open on GitHub",
+      "text": "- evoclock/pi-bowerbird#3 is open on the public repo.\n- [Fix render test paths on Windows](https://github.com/evoclock/pi-bowerbird/pull/3)",
+      "recommendation": "Read it on GitHub.",
+      "why": "- It is a public pull request.\n- This page does not read check status."
+    },
+    {
+      "id": "dec-static-demo",
+      "state": "open",
+      "title": "Keep the FlightDeck demo static?",
+      "meta": "template",
+      "text": "- The demo lists public evoclock repos.\n- It is a file in the template.",
       "recommendation": "Yes.",
-      "why": "- The merge state is clean.\n- Checks are green."
+      "why": "- A shareable page can stay a static illustration.\n- Collectors refuse to write this file."
     },
     {
-      "id": "dec-merge-notes-7",
-      "state": "open",
-      "title": "Merge example/notes#7?",
-      "meta": "ready to merge",
-      "src": "ready",
-      "text": "- example/notes#7 is ready to merge.\n- [Publish guide outline](https://github.com/example/notes/pull/7)",
-      "recommendation": "Yes.",
-      "why": "- The merge state is clean.\n- Checks are green."
-    },
-    {
-      "id": "dec-new-charts",
-      "state": "open",
-      "title": "New repo example/charts",
-      "meta": "new repo",
-      "src": "new-repo",
-      "text": "- example/charts was created.\n- It is on Merges.",
-      "recommendation": "Say if it should stay on the tracker.",
-      "why": "- It showed up in the repo list."
-    },
-    {
-      "id": "dec-local-folder",
+      "id": "dec-driver-300",
       "state": "settled",
-      "title": "Keep the local folder publish",
-      "meta": "settled in the example",
-      "text": "- The example board stays a folder of HTML.\n- It does not need a Worker."
+      "title": "Mark pi-agentic-driver 3.0.0 released",
+      "meta": "merged",
+      "text": "- evoclock/pi-agentic-driver#125 merged.\n- [Mark shipped 3.0.0 tools as released in the README](https://github.com/evoclock/pi-agentic-driver/pull/125)"
     }
   ],
   "steps": [
     {
-      "id": "step-merge-board-18",
-      "text": "Merge example/board#18",
-      "url": "https://github.com/example/board/pull/18",
-      "meta": "ready",
+      "id": "step-bowerbird-2",
+      "text": "Review evoclock/pi-bowerbird#2",
+      "url": "https://github.com/evoclock/pi-bowerbird/pull/2",
+      "meta": "open on GitHub",
       "done": false,
-      "src": "ready",
-      "pr": "example/board#18"
+      "pr": "evoclock/pi-bowerbird#2"
     },
     {
-      "id": "step-merge-notes-7",
-      "text": "Merge example/notes#7",
-      "url": "https://github.com/example/notes/pull/7",
-      "meta": "ready",
+      "id": "step-bowerbird-3",
+      "text": "Review evoclock/pi-bowerbird#3",
+      "url": "https://github.com/evoclock/pi-bowerbird/pull/3",
+      "meta": "open on GitHub",
       "done": false,
-      "src": "ready",
-      "pr": "example/notes#7"
+      "pr": "evoclock/pi-bowerbird#3"
     },
     {
-      "id": "step-sample-key",
-      "text": "Add a sample API key for the demo service",
-      "meta": "blocks Lumen",
+      "id": "step-omb-48",
+      "text": "Read evoclock/OpenMausBot#48",
+      "url": "https://github.com/evoclock/OpenMausBot/pull/48",
+      "meta": "draft",
+      "done": false,
+      "pr": "evoclock/OpenMausBot#48"
+    },
+    {
+      "id": "step-omb-47",
+      "text": "Read evoclock/OpenMausBot#47",
+      "url": "https://github.com/evoclock/OpenMausBot/pull/47",
+      "meta": "draft",
+      "done": false,
+      "pr": "evoclock/OpenMausBot#47"
+    },
+    {
+      "id": "step-demeter-note",
+      "text": "Read the Demeter note in public fieldnotes",
+      "url": "https://github.com/evoclock/fieldnotes/blob/main/drafts/2026-10-23-weekly-recap-linkedin.md",
+      "meta": "public note",
       "done": false
     },
     {
-      "id": "step-release-notes",
-      "text": "Read the release notes",
-      "meta": "done in the example",
+      "id": "step-driver-300",
+      "text": "Read the pi-agentic-driver 3.0.0 release note",
+      "url": "https://github.com/evoclock/pi-agentic-driver/pull/125",
+      "meta": "merged 25 Oct",
       "done": true
     }
   ],
   "merges": [
     {
-      "title": "Add the search page",
-      "repo": "example/board",
-      "bot": "Harbor",
-      "state": "Ready to merge",
-      "number": 18,
-      "url": "https://github.com/example/board/pull/18"
+      "title": "Accept skill:poteto-mode-pi in Pi readiness",
+      "repo": "evoclock/OpenMausBot",
+      "bot": "OpenMausBot",
+      "state": "Draft",
+      "number": 48,
+      "url": "https://github.com/evoclock/OpenMausBot/pull/48"
     },
     {
-      "title": "Publish guide outline",
-      "repo": "example/notes",
-      "bot": "Quill",
-      "state": "Ready to merge",
-      "number": 7,
-      "url": "https://github.com/example/notes/pull/7"
+      "title": "Connect coding runs to reviewed GitHub drafts",
+      "repo": "evoclock/OpenMausBot",
+      "bot": "OpenMausBot",
+      "state": "Draft",
+      "number": 47,
+      "url": "https://github.com/evoclock/OpenMausBot/pull/47"
     },
     {
-      "title": "Weekly chart axes",
-      "repo": "example/charts",
-      "bot": "Nimbus",
-      "state": "Building",
-      "number": 3,
-      "url": "https://github.com/example/charts/pull/3"
-    },
-    {
-      "title": "Sample CSV loader",
-      "repo": "example/charts",
-      "bot": "Nimbus",
-      "state": "In progress",
-      "number": 4,
-      "url": "https://github.com/example/charts/pull/4"
-    },
-    {
-      "title": "Parser notes",
-      "repo": "example/lib",
-      "bot": "Lumen",
-      "state": "In progress",
+      "title": "Fit iso node focus border to the node outline",
+      "repo": "evoclock/pi-bowerbird",
+      "bot": "pi-bowerbird",
+      "state": "Open",
       "number": 2,
-      "url": "https://github.com/example/lib/pull/2"
+      "url": "https://github.com/evoclock/pi-bowerbird/pull/2"
     },
     {
-      "title": "charts · active on main",
-      "repo": "example/charts",
-      "bot": "Harbor",
-      "state": "Active on main",
-      "synthetic": true
+      "title": "Fix render test paths on Windows",
+      "repo": "evoclock/pi-bowerbird",
+      "bot": "pi-bowerbird",
+      "state": "Open",
+      "number": 3,
+      "url": "https://github.com/evoclock/pi-bowerbird/pull/3"
     }
   ],
-  "merge_note": "Merge example/notes first, then example/board. A pull request moves to Your steps once it is ready and checks are green.",
+  "merge_note": "Drafts stay on the queue. This page does not collect live check status.",
   "priorities": [
     {
-      "stream": "Harbor",
-      "area": "In flight",
+      "stream": "FlightDeck",
+      "area": "Template",
       "items": [
-        {"text": "5 open pull requests. 1 repo active on main.", "state": "current", "src": "stream"},
-        {"text": "2 ready to merge.", "state": "next", "src": "stream"}
+        {"text": "Sync hooks are in the template. This demo is a static page.", "state": "current", "src": "stream"}
       ]
     },
     {
-      "stream": "Lumen",
-      "area": "Search",
+      "stream": "OpenMausBot",
+      "area": "App",
       "items": [
-        {"text": "Writing tests for the search page.", "state": "current", "src": "stream"},
-        {"text": "Wire the sample API key", "state": "blocked", "src": "ladder"},
-        {"text": "Sketch the search layout", "state": "done", "src": "ladder"}
+        {"text": "Two draft pull requests are open on the public repo.", "state": "current", "src": "stream"},
+        {"text": "Read the drafts.", "state": "next", "src": "stream"}
       ]
     },
     {
-      "stream": "Quill",
-      "area": "Guide",
+      "stream": "pi-agentic-driver",
+      "area": "Driver",
       "items": [
-        {"text": "Updating the local publish guide.", "state": "current", "src": "stream"},
-        {"text": "Approve the outline", "state": "next", "src": "stream"}
+        {"text": "3.0.0 is marked released in the public README.", "state": "current", "src": "stream"},
+        {"text": "Mark 3.0.0 released in the README", "state": "done", "src": "ladder"}
       ]
     },
     {
-      "stream": "Nimbus",
-      "area": "Charts",
+      "stream": "pi-bowerbird",
+      "area": "Diagrams",
       "items": [
-        {"text": "Sketching the weekly chart.", "state": "current", "src": "stream"},
-        {"text": "Load the sample CSV", "state": "next", "src": "ladder"}
+        {"text": "Two pull requests are open on the public repo.", "state": "current", "src": "stream"},
+        {"text": "Review both open pull requests.", "state": "next", "src": "stream"}
+      ]
+    },
+    {
+      "stream": "Demeter",
+      "area": "Populations",
+      "items": [
+        {"text": "The public fieldnotes describe multilevel selection for populations of agents.", "state": "current", "src": "stream"}
       ]
     }
   ],
   "settled": [
     {
-      "meta": "Fri 17:40",
-      "title": "Local publish",
-      "detail": "- The example board stays a local HTML file.\n- No Worker is part of this demo."
+      "meta": "14:19",
+      "title": "OpenMausBot run checks",
+      "detail": "- evoclock/OpenMausBot#46 merged.\n- [Add host-observed run checks](https://github.com/evoclock/OpenMausBot/pull/46)"
     },
     {
-      "meta": "Fri 16:10",
-      "title": "Sample key",
-      "detail": "- The demo service key is a placeholder.\n- It is not a real credential."
+      "meta": "11:39",
+      "title": "FlightDeck sync hooks",
+      "detail": "- evoclock/FlightDeck#6 merged.\n- [Own tracker sync hooks in the FlightDeck template](https://github.com/evoclock/FlightDeck/pull/6)"
+    },
+    {
+      "meta": "01:30",
+      "title": "pi-agentic-driver 3.0.0",
+      "detail": "- evoclock/pi-agentic-driver#125 merged.\n- The public README marks the 3.0.0 tools as released."
     }
   ],
   "metrics": {
-    "title": "This machine (node-a)",
+    "title": "Example host",
     "at": "2026-10-25T11:40:00+00:00",
-    "note": "Example readings. Not this computer.",
+    "note": "Example readings for this illustration.",
     "items": [
       {"key": "cpu", "label": "CPU", "pct": 23.0},
       {"key": "mem", "label": "Memory", "pct": 61.5, "detail": "9.8 / 16 GB"},
@@ -219,21 +235,21 @@
   },
   "activity": {
     "window": "1h",
-    "commits": 4,
+    "commits": 3,
     "prs_opened": 1,
-    "prs_merged": 2,
+    "prs_merged": 1,
     "at": "2026-10-25T11:40:00+00:00",
-    "note": "Example counts for the fictional crew. Not a live GitHub total.",
+    "note": "Example counts for this illustration. Not a live GitHub total.",
     "sample": true
   },
   "activity_weekly": {
     "window": "week",
     "since": "2026-10-23T17:00:00+01:00",
-    "commits": 28,
-    "prs_opened": 6,
-    "prs_merged": 4,
+    "commits": 18,
+    "prs_opened": 4,
+    "prs_merged": 3,
     "at": "2026-10-25T11:40:00+00:00",
-    "note": "Example counts for the fictional crew. Not a live GitHub total.",
+    "note": "Example counts for this illustration. Not a live GitHub total.",
     "sample": true
   }
 }
