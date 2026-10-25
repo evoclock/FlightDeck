@@ -369,6 +369,155 @@ class PaneTests(unittest.TestCase):
         self.assertEqual(again, 0)
         self.assertEqual(len(data["settled"]), 1)
 
+    def test_nonempty_comment_settles_open_decision_as_alternative(self):
+        decision = {
+            "id": "dec-1",
+            "state": "open",
+            "title": "Adopt?",
+            "meta": "asked",
+            "text": "- Yes\n- Your alternative at 09:15: hold the merge.\n- Your alternative at 09:16: again.",
+            "recommendation": "Yes, ship it.",
+        }
+        data = {"decisions": [decision], "settled": []}
+        resp = {
+            "id": "dec-1",
+            "type": "decision",
+            "value": "comment",
+            "comment": "Ship the parser first.",
+            "timestamp": "2026-10-25T12:00:00Z",
+        }
+        applied = apply_responses(data, [resp], set(), NOW)
+        self.assertEqual(applied, ["dec-1"])
+        self.assertEqual(resp["value"], "comment")
+        self.assertEqual(decision["state"], "settled")
+        self.assertEqual(decision["meta"], "Alternative 12:00")
+        self.assertEqual(decision["recommendation"], "Yes, ship it.")
+        self.assertEqual(decision["text"].count("You authorised this alternative"), 1)
+        self.assertIn("- You authorised this alternative at 12:00.", decision["text"])
+        self.assertNotIn("Your alternative at", decision["text"])
+        self.assertIn("- Yes", decision["text"])
+        self.assertEqual(data["settled"][0]["title"], "Adopt? (alternative)")
+        self.assertEqual(data["settled"][0]["detail"], "- Ship the parser first.")
+        self.assertNotIn("Yes, ship it.", data["settled"][0]["detail"])
+        self.assertNotIn("Yes, ship it.", data["settled"][0]["title"])
+        again = apply_responses(data, [resp], set(), NOW)
+        self.assertEqual(again, [])
+        self.assertEqual(decision["text"].count("You authorised this alternative"), 1)
+        self.assertEqual(len(data["settled"]), 1)
+
+    def test_empty_comment_is_a_noop(self):
+        decision = {"id": "dec-1", "state": "open", "title": "Adopt?", "meta": "asked", "text": "- Yes"}
+        data = {"decisions": [decision], "settled": []}
+        resp = {"id": "dec-1", "type": "decision", "value": "comment", "comment": "  \n"}
+        self.assertEqual(apply_responses(data, [resp], set(), NOW), [])
+        self.assertEqual(resp["value"], "comment")
+        self.assertEqual(decision["state"], "open")
+        self.assertEqual(decision["meta"], "asked")
+        self.assertEqual(decision["text"], "- Yes")
+        self.assertEqual(data["settled"], [])
+
+    def test_accept_and_reject_stay_unlabelled(self):
+        accept = {"id": "dec-a", "state": "open", "title": "Ship?", "meta": "asked", "text": "- Yes"}
+        reject = {"id": "dec-r", "state": "open", "title": "Wait?", "meta": "asked", "text": "- No"}
+        data = {"decisions": [accept, reject], "settled": []}
+        apply_responses(data, [
+            {"id": "dec-a", "type": "decision", "value": "accepted", "comment": ""},
+            {"id": "dec-r", "type": "decision", "value": "rejected", "comment": "not this"},
+        ], set(), NOW)
+        self.assertEqual(accept["state"], "settled")
+        self.assertEqual(accept["meta"], "asked")
+        self.assertEqual(accept["text"], "- Yes")
+        self.assertEqual(reject["meta"], "asked")
+        self.assertEqual(reject["text"], "- No")
+        self.assertEqual([row["detail"] for row in data["settled"]], ["- Accepted.", "- Rejected."])
+        self.assertNotIn("(alternative)", " ".join(row["title"] for row in data["settled"]))
+
+    def test_comment_does_not_rewrite_accept_settled_decision(self):
+        decision = {
+            "id": "dec-1",
+            "state": "settled",
+            "title": "Ship?",
+            "meta": "asked",
+            "text": "- Yes",
+            "recommendation": "Yes, ship it.",
+        }
+        data = {"decisions": [decision], "settled": [
+            {"meta": "Sun 12:00", "title": "Ship?", "detail": "- Accepted.", "src_id": "dec-1"},
+        ]}
+        resp = {"id": "dec-1", "type": "decision", "value": "comment", "comment": "Do the other thing."}
+        self.assertEqual(apply_responses(data, [resp], set(), NOW), [])
+        self.assertEqual(resp["value"], "comment")
+        self.assertEqual(decision["state"], "settled")
+        self.assertEqual(decision["meta"], "asked")
+        self.assertEqual(decision["text"], "- Yes")
+        self.assertEqual(data["settled"][0]["detail"], "- Accepted.")
+        self.assertEqual(data["settled"][0]["title"], "Ship?")
+
+    def test_reapply_handled_response_when_decision_still_open(self):
+        loaded = cfg(self.tmp)
+        data = {
+            "decisions": [
+                {"id": "dec-a", "state": "open", "title": "Ship?", "text": "- Yes"},
+                {"id": "dec-r", "state": "open", "title": "Wait?", "text": "- No"},
+                {"id": "dec-c", "state": "open", "title": "Adopt?", "meta": "asked", "text": "- Yes",
+                 "recommendation": "Yes, ship it."},
+            ],
+            "settled": [],
+        }
+        responses = [
+            {"id": "dec-a", "type": "decision", "value": "accepted", "comment": ""},
+            {"id": "dec-r", "type": "decision", "value": "rejected", "comment": ""},
+            {"id": "dec-c", "type": "decision", "value": "comment", "comment": "Ship the parser first."},
+        ]
+        write(Path(loaded["cache_dir"]) / "responses.json", {"responses": responses})
+        write(Path(loaded["cache_dir"]) / "responses-handled.json", {"ids": ["dec-a", "dec-c", "dec-r"]})
+        self.assertEqual(reconcile_responses(data, loaded, now=NOW), 0)
+        by_id = {row["id"]: row for row in data["decisions"]}
+        self.assertEqual(by_id["dec-a"]["state"], "settled")
+        self.assertEqual(by_id["dec-r"]["state"], "settled")
+        self.assertEqual(by_id["dec-c"]["state"], "settled")
+        self.assertEqual(by_id["dec-c"]["meta"], "Alternative 12:00")
+        self.assertEqual(responses[2]["value"], "comment")
+        self.assertEqual(
+            {row["src_id"]: row["detail"] for row in data["settled"]},
+            {"dec-a": "- Accepted.", "dec-r": "- Rejected.", "dec-c": "- Ship the parser first."},
+        )
+        self.assertEqual(
+            next(row["title"] for row in data["settled"] if row["src_id"] == "dec-c"),
+            "Adopt? (alternative)",
+        )
+
+    def test_comment_does_not_act_as_ready_merge_accept(self):
+        loaded = cfg(self.tmp, public_repos=["app"])
+        decision = {
+            "id": "dec-1",
+            "state": "open",
+            "title": "Merge acme/app#7?",
+            "src": "ready",
+            "meta": "ready to merge",
+            "text": "- acme/app#7 is ready to merge.\n- [Add](https://github.com/acme/app/pull/7)",
+            "recommendation": "Yes.",
+        }
+        data = {
+            "decisions": [decision],
+            "settled": [],
+            "merges": [{
+                "title": "Add",
+                "repo": "acme/app",
+                "state": "Ready to merge",
+                "number": 7,
+                "url": "https://github.com/acme/app/pull/7",
+            }],
+        }
+        resp = {"id": "dec-1", "type": "decision", "value": "comment", "comment": "Wait for the notes."}
+        apply_responses(data, [resp], set(), NOW)
+        self.assertEqual(resp["value"], "comment")
+        self.assertNotEqual(data["settled"][0]["detail"], "- Accepted.")
+        self.assertEqual(reconcile_ready_decisions(data, loaded), 0)
+        opened = [row for row in data["decisions"] if row.get("state") == "open"]
+        self.assertEqual(len(opened), 1)
+        self.assertIn("acme/app#7", opened[0]["text"])
+
     def test_responses_skip_without_cache(self):
         data = {"decisions": [{"id": "dec-1", "state": "open", "title": "A", "text": "- A"}]}
         self.assertEqual(reconcile_responses(data, cfg(self.tmp), now=NOW), 0)
