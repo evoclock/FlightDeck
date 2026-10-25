@@ -57,6 +57,18 @@ python3 -m collectors.metrics_generic --data data.json
 
 `FLIGHTDECK_GH_OWNER` has no default. Unset, the activity collector writes nothing, which is how the demo stays offline.
 
+## Sync hooks
+
+`./publish.sh` and `scripts/publish_local.sh` run `hooks/pre-render.d` before they render. Each hook calls a collector or a script in `scripts/`. The scripts reconcile `data.json` from files in `.cache/`. They do not invent counts, ready state, or activity.
+
+Copy `config/sync.example.json` to `config/sync.json` (gitignored). Set the GitHub owner, the public repos you merge, the primary stream label, and the responses KV ids there, or set the same values in the environment (`FLIGHTDECK_GH_OWNER`, `FLIGHTDECK_PUBLIC_REPOS`, `FLIGHTDECK_STREAM_LABEL`, `FLIGHTDECK_RESPONSES_KV_ID`, `CLOUDFLARE_API_TOKEN`). The field list is in the sync skill at `docs/skills/`.
+
+With `FLIGHTDECK_GH_OWNER` unset and no `data.json` in the repo root, every hook skips. `examples/demo/data.json` stays as it is in git, and the render still works offline.
+
+`FLIGHTDECK_CLUSTER=metrics` collects CPU, memory, and disk. `FLIGHTDECK_CLUSTER=spark` copies `.cache/spark.json` into `data.json` `spark`. It does not open SSH. Unset, the cluster hook skips. The demo keeps the readings already in the demo data file.
+
+`./publish.sh --build` is the local render. `./publish.sh --deploy` uploads a Worker and needs `site/site.json` on that machine. Do not point it at the public demo placeholders.
+
 ## Deploy
 
 Local folder: [docs/deploy-local.md](docs/deploy-local.md). `scripts/publish_local.sh` writes `dist/local/index.html`.

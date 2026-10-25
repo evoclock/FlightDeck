@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+# Activity counts. No owner, or no data file: skip. Token from the environment, else gh.
+set -euo pipefail
+ROOT=$(cd "$(dirname "$0")/../.." && pwd)
+cd "$ROOT"
+if [[ -z "${FLIGHTDECK_GH_OWNER:-}" ]]; then
+  echo "00-collect-activity: FLIGHTDECK_GH_OWNER not set, skipping" >&2
+  exit 0
+fi
+if [[ -z "${FLIGHTDECK_DATA:-}" && ! -f "$ROOT/data.json" ]]; then
+  echo "00-collect-activity: no data file, skipping" >&2
+  exit 0
+fi
+if [[ -z "${GITHUB_TOKEN:-}" && -z "${GH_TOKEN:-}" && -z "${GITHUB_PAT:-}" ]]; then
+  if [[ "${FLIGHTDECK_GH_DISABLE:-}" != "1" ]] && command -v gh >/dev/null 2>&1; then
+    tok=$(gh auth token 2>/dev/null || true)
+    if [[ -n "${tok}" ]]; then
+      export GITHUB_TOKEN="$tok"
+    fi
+    unset tok
+  fi
+fi
+exec python3 -m collectors.activity

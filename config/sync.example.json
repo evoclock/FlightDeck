@@ -1,0 +1,27 @@
+{
+  "owner": "",
+  "cache_dir": ".cache",
+  "public_repos": [],
+  "primary_stream": {
+    "agent": "",
+    "area": "",
+    "label": ""
+  },
+  "responses": {
+    "account_id": "",
+    "kv_namespace_id": "",
+    "key": ""
+  },
+  "inflight": {
+    "pushed_within_hours": 48,
+    "created_within_days": 7,
+    "new_repo_within_hours": 48
+  },
+  "closed_within_hours": 24,
+  "guards": [],
+  "omb": {
+    "repo": "",
+    "install_step_contains": ""
+  },
+  "assets_dir": ""
+}

@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+# FLIGHTDECK_CLUSTER=metrics|spark. Unset or skip: do nothing (the demo path).
+set -euo pipefail
+ROOT=$(cd "$(dirname "$0")/../.." && pwd)
+cd "$ROOT"
+mode="${FLIGHTDECK_CLUSTER:-}"
+if [[ -z "$mode" || "$mode" == "skip" || "$mode" == "off" ]]; then
+  echo "02-collect-cluster: FLIGHTDECK_CLUSTER unset, skipping" >&2
+  exit 0
+fi
+if [[ -z "${FLIGHTDECK_DATA:-}" && ! -f "$ROOT/data.json" ]]; then
+  echo "02-collect-cluster: no data file, skipping" >&2
+  exit 0
+fi
+case "$mode" in
+  metrics) exec python3 -m collectors.metrics_generic ;;
+  spark) exec python3 -m collectors.spark ;;
+  *) echo "02-collect-cluster: unknown FLIGHTDECK_CLUSTER" >&2; exit 2 ;;
+esac
