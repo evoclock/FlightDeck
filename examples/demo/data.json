@@ -1,0 +1,46 @@
+{
+  "title": "FlightDeck demo",
+  "summary": "Two fake agents working on a fake app. All data here is made up.",
+  "bot_colors": {"Alpha": "#3f6f70", "Beta": "#76536b"},
+  "repo_colors": {"example/app": "#617082", "example/lib": "#8a6a3b"},
+  "streams": [
+    {"bot": "Alpha", "project": "example/app", "now": "Writing tests for the settings page", "waiting": "Nothing"},
+    {"bot": "Beta", "project": "example/lib", "now": "Reviewing the parser refactor", "waiting": "Approve the plan"}
+  ],
+  "decisions": [
+    {"id": "demo-dec-1", "state": "open", "title": "Adopt the new parser?",
+     "meta": "asked by Beta",
+     "text": "- Faster on large inputs\n- Changes one public error message",
+     "recommendation": "Yes, see [example PR](https://github.com/example/lib/pull/1)",
+     "why": "Benchmarks show a 2x speedup on the sample corpus."},
+    {"id": "demo-dec-2", "state": "settled", "title": "Keep SQLite for local dev", "text": "Settled last week."}
+  ],
+  "steps": [
+    {"text": "Add an API key for the demo service", "meta": "blocks Alpha"},
+    {"text": "Read the release notes", "done": true}
+  ],
+  "merges": [
+    {"title": "Add settings page", "repo": "example/app", "bot": "Alpha", "state": "Ready to merge"},
+    {"title": "Refactor parser", "repo": "example/lib", "bot": "Beta", "state": "In progress"}
+  ],
+  "merge_note": "Merge example/lib first, then example/app.",
+  "priorities": [
+    {"stream": "Alpha", "area": "Settings", "items": [
+      {"text": "Write tests", "state": "current"},
+      {"text": "Wire the API key", "state": "blocked"},
+      {"text": "Sketch the layout", "state": "done"}]},
+    {"stream": "Beta", "area": "Parser", "items": [
+      {"text": "Address review comments", "state": "current"},
+      {"text": "Update docs", "state": "next"}]}
+  ],
+  "settled": [
+    {"meta": "Mon", "title": "Picked a name", "detail": "FlightDeck"},
+    {"meta": "Tue", "title": "Chose the colour palette", "detail": "Earthy tones, light mode only."}
+  ],
+  "metrics": {"title": "This machine (node-a)", "items": [
+    {"key": "cpu", "label": "CPU", "pct": 23.0},
+    {"key": "mem", "label": "Memory", "pct": 61.5, "detail": "9.8 / 16 GB"},
+    {"key": "disk", "label": "Disk", "pct": 44.0}
+  ]},
+  "activity": {"window": "1h", "commits": 5, "prs_opened": 1, "prs_merged": 2}
+}
