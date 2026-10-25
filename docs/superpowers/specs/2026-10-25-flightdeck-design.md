@@ -8,8 +8,8 @@ Ship a **public** agent-ops tracker template people can customise (banner, widge
 
 | Role | GitHub repo | Visibility |
 |------|-------------|------------|
-| Product template + scrubbed demo | `evoclock/flightdeck` | Public |
-| Live Flockmate instance | `evoclock/flockmate-tracker` | Private |
+| Product template + scrubbed demo | `evoclock/FlightDeck` | Public |
+| Live Flockmate instance | `evoclock/flock-master` | Private |
 
 - Avoid “flock” as a product brand (Flock Safety door-cam association).
 - Instance depends on template via **git submodule** (pin a commit; update when wanted).
@@ -106,7 +106,7 @@ Later (not v1): prompt-generated widgets; voice for accept/refuse on decisions.
 - Deploy recipes for Cloudflare and local
 - Docs and tests for config/widgets
 
-**Private `flockmate-tracker` includes:**
+**Private `flock-master` includes:**
 
 - Real `data.json`, ADHD neuromancer `banner.webp`, Nvidia/Spark collectors
 - Cloudflare project wiring for crew.flockmate.dev
@@ -114,7 +114,7 @@ Later (not v1): prompt-generated widgets; voice for accept/refuse on decisions.
 - Submodule pin of `flightdeck`
 - Sync skill / routines stay private or live in agents repos as today
 
-Move path: extract from current `/workspace/crew-tracker` (and Mac `~/frontend-work/crew-tracker`) into `flightdeck` (cleaned) + `flockmate-tracker` (live overlay). Remove the mistaken home inside `frontend-work` / `tessellate-gorget` after the move.
+Move path: extract from current `/workspace/crew-tracker` (and Mac `~/frontend-work/crew-tracker`) into `flightdeck` (cleaned) + `flock-master` (live overlay). Remove the mistaken home inside `frontend-work` / `tessellate-gorget` after the move.
 
 ## Testing (v1)
 
@@ -133,9 +133,9 @@ Move path: extract from current `/workspace/crew-tracker` (and Mac `~/frontend-w
 
 ## Implementation order (after this spec is approved)
 
-1. Julen creates empty `evoclock/flightdeck` (public) and `evoclock/flockmate-tracker` (private).
+1. Julen creates empty `evoclock/FlightDeck` (public) and `evoclock/flock-master` (private).
 2. Cloud agent extracts cleaned template into `flightdeck` with demo example + both deploy recipes.
-3. Cloud agent creates `flockmate-tracker` with submodule + live assets/data; point publish at it.
+3. Cloud agent creates `flock-master` with submodule + live assets/data; point publish at it.
 4. Retire `crew-tracker` under frontend-work (no further commits on tessellate-gorget for tracker).
 5. Open tracker Decision for any public visibility or DNS change that still needs a yes.
 

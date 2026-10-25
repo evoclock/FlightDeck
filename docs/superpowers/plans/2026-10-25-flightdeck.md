@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Extract the live crew-tracker into public `evoclock/flightdeck` (config-driven slots + widgets, scrubbed demo, Cloudflare + local deploy) and private `evoclock/flockmate-tracker` (real data, neuromancer banner, Nvidia collectors, submodule of flightdeck).
+**Goal:** Extract the live crew-tracker into public `evoclock/FlightDeck` (config-driven slots + widgets, scrubbed demo, Cloudflare + local deploy) and private `evoclock/flock-master` (real data, neuromancer banner, Nvidia collectors, submodule of flightdeck).
 
 **Architecture:** Fixed ten slots filled by widget ids from `config.json`. Collectors write `data.json`; `render.py` loads config + widgets + data and emits static HTML. Public tree has no real work details. Instance pins flightdeck via git submodule.
 
@@ -10,7 +10,7 @@
 
 ## Global Constraints
 
-- Public product name is **flightdeck**; private instance is **flockmate-tracker**. Never brand the public product as “flock”.
+- Public product name is **flightdeck**; private instance is **flock-master**. Never brand the public product as “flock”.
 - Banner asset for public demo is Claude-generated flightdeck art (Julen supplies the file). Private ADHD neuromancer `banner.webp` never ships in flightdeck.
 - Ten locked slots: `banner`, `cluster`, `activity`, `streams`, `decisions`, `steps`, `merges`, `priorities`, `settled`, `architecture`.
 - Banner pane never shrunk/cropped to fit other panes (`banner.webp` / default banner natural aspect).
@@ -28,7 +28,7 @@
 
 ## File map (target)
 
-### `evoclock/flightdeck` (public)
+### `evoclock/FlightDeck` (public)
 
 | Path | Responsibility |
 |------|----------------|
@@ -49,11 +49,11 @@
 | `tests/` | Config, widgets, banner invariant, demo render |
 | `docs/` | Spec, this plan, user README |
 
-### `evoclock/flockmate-tracker` (private)
+### `evoclock/flock-master` (private)
 
 | Path | Responsibility |
 |------|----------------|
-| `flightdeck/` | git submodule → evoclock/flightdeck |
+| `flightdeck/` | git submodule → evoclock/FlightDeck |
 | `config.json` | Live slot map (cluster.gpu enabled) |
 | `data.json` | Real tracker state |
 | `assets/banner.webp` | Neuromancer banner |
@@ -69,8 +69,8 @@
 
 **Files:** none in-repo
 
-- [ ] **Step 1:** Julen creates `https://github.com/evoclock/flightdeck` (public, empty, no README).
-- [ ] **Step 2:** Julen creates `https://github.com/evoclock/flockmate-tracker` (private, empty, no README).
+- [x] **Step 1:** Julen creates `https://github.com/evoclock/FlightDeck` (public, empty, no README).
+- [x] **Step 2:** Julen creates `https://github.com/evoclock/flock-master` (private, empty, no README).
 - [ ] **Step 3:** Julen drops Claude default banner at a known path (e.g. Desktop `flightdeck-banner.webp`) and tells Flockmate.
 
 **Done when:** both remotes exist; banner file path known.
@@ -267,22 +267,22 @@ echo "Local build at $OUT"
 - Move design/plan under `docs/superpowers/`
 
 - [ ] **Step 1: README written in plain language**
-- [ ] **Step 2: `git remote add origin git@github.com:evoclock/flightdeck.git && git push -u origin main`**
+- [ ] **Step 2: `git remote add origin git@github.com:evoclock/FlightDeck.git && git push -u origin main`**
 - [ ] **Step 3: Confirm GitHub shows public repo with demo path**
 
 ---
 
-### Task 8: Private flockmate-tracker instance
+### Task 8: Private flock-master instance
 
 **Files:** (new repo)
 
-- [ ] **Step 1:** `git clone` empty private repo; `git submodule add https://github.com/evoclock/flightdeck flightdeck`
+- [ ] **Step 1:** `git clone` empty private repo; `git submodule add https://github.com/evoclock/FlightDeck flightdeck`
 - [ ] **Step 2:** Copy live `data.json`, neuromancer `banner.webp`, `collect_spark.py`, `reconcile_ready_decisions.py`, hooks, `site/site.json` (real Access), architecture diagrams from `/workspace/crew-tracker`
 - [ ] **Step 3:** Root `config.json` points slots at live widgets; `cluster` → `cluster.gpu`
 - [ ] **Step 4:** Thin `render_wrapper` or PATH that calls `python3 -m flightdeck.render` with instance paths
 - [ ] **Step 5:** `publish.sh` updated; deploy crew.flockmate.dev once; verify Access still on
 - [ ] **Step 6:** Commit + push private repo
-- [ ] **Step 7:** Point Flockmate routines/skills at `flockmate-tracker` paths (box + Mac); stop writing tracker files under `frontend-work/crew-tracker`
+- [ ] **Step 7:** Point Flockmate routines/skills at `flock-master` paths (box + Mac); stop writing tracker files under `frontend-work/crew-tracker`
 
 ---
 
@@ -290,7 +290,7 @@ echo "Local build at $OUT"
 
 - [ ] **Step 1:** On Mac, remove or replace `~/frontend-work/crew-tracker` with a short README pointing at the two repos (do this on a **new branch off main**, not `tessellate-gorget`)
 - [ ] **Step 2:** Open PR; Decision on tracker for Julen to merge
-- [ ] **Step 3:** Box `/workspace/crew-tracker` becomes a checkout of `flockmate-tracker` or a symlink — document in skill
+- [ ] **Step 3:** Box `/workspace/crew-tracker` becomes a checkout of `flock-master` or a symlink — document in skill
 
 ---
 
@@ -305,7 +305,7 @@ echo "Local build at $OUT"
 
 | Spec item | Task |
 |-----------|------|
-| Public flightdeck + private flockmate-tracker | 0, 7, 8 |
+| Public flightdeck + private flock-master | 0, 7, 8 |
 | Submodule | 8 |
 | Ten slots + config.json | 1–3 |
 | Widgets incl. metrics.generic | 2, 3, 5 |
