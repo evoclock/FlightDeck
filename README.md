@@ -6,11 +6,30 @@ Python 3.11 or newer is enough. The renderer and collectors use the standard lib
 
 ## Render the demo
 
+The public demo is an illustration of one crew layout, so you can choose a setup like it. Harbor, Lumen, Quill, and Nimbus are fictional bots on `example/` repos. Decisions, the merge queue, steps, priorities, settled items, host bars, and activity counts are made up and stored in `examples/demo/data.json`. That file is static. Rendering it does not collect from GitHub, and this repo has no path to a private tracker. The architecture slot stays empty until you add your own diagrams.
+
+The banner is `examples/demo/assets/banner.webp`, created by GPT Astra. Keep that file for the public demo. Swap in your own `banner.webp` beside your config when you leave the demo. The banner keeps its natural aspect.
+
+```bash
+./publish.sh
+```
+
+That runs the pre-render hooks, then writes `dist/local/index.html` and copies the demo assets beside it. With no GitHub owner and no root `data.json`, the hooks skip and `examples/demo/data.json` stays as it is in git. Open `dist/local/index.html` in a browser. The same render is `scripts/publish_local.sh`.
+
 ```bash
 python3 -m flightdeck.render examples/demo/config.json examples/demo/data.json dist/local/index.html
 ```
 
-Or `scripts/publish_local.sh`, which does that and copies the demo assets next to the file. The demo banner is `examples/demo/assets/banner.webp`, created by GPT Astra. Swap in your own `banner.webp` beside your config when you leave the demo. The banner keeps its natural aspect.
+Do not deploy a Worker for this public demo.
+
+![FlightDeck demo illustration](examples/demo/demo-still.png)
+
+The still is this static page in a browser. A motion recording is not in the repo. To capture one, render locally and record `http://127.0.0.1:8765/` (leave the file offline; do not upload a Worker):
+
+```bash
+./publish.sh
+python3 -m http.server --directory dist/local 8765
+```
 
 ## Config
 
@@ -46,7 +65,9 @@ Copy `config.example.json` to `config.json`. Every slot is required. An unknown 
 | `architecture.diagrams` | Architecture embeds |
 | `empty` | Hide the slot |
 
-The demo sets `cluster` to `metrics.generic`. Use `cluster.gpu` when you have cluster readings, or `empty` to leave the slot out.
+The demo sets `cluster` to `metrics.generic` and `architecture` to `empty`. Use `cluster.gpu` when you have cluster readings. Use `architecture.diagrams` when you have diagrams. `empty` leaves a slot out.
+
+Weekly activity in the demo sets `activity_weekly.sample` so the example counts stay on the page after Friday 17:00. A live collector does not set `sample`. A weekly block from an earlier week, without `sample`, shows zeros and Collecting.
 
 Refresh `data.json` before rendering again:
 
@@ -55,7 +76,7 @@ FLIGHTDECK_GH_OWNER=you GITHUB_TOKEN=... python3 -m collectors.activity --data d
 python3 -m collectors.metrics_generic --data data.json
 ```
 
-`FLIGHTDECK_GH_OWNER` has no default. Unset, the activity collector writes nothing, which is how the demo stays offline.
+`FLIGHTDECK_GH_OWNER` has no default. Unset, the activity collector writes nothing. Collectors and sync hooks also refuse to write `examples/demo/data.json`, so the illustration stays static even if that path is passed as `--data`. Point collectors at your own `data.json`.
 
 ## Sync hooks
 

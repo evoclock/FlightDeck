@@ -1,46 +1,239 @@
 {
   "title": "FlightDeck demo",
-  "summary": "Two fake agents working on a fake app. All data here is made up.",
-  "bot_colors": {"Alpha": "#3f6f70", "Beta": "#76536b"},
-  "repo_colors": {"example/app": "#617082", "example/lib": "#8a6a3b"},
+  "summary": "Illustration of one crew layout. Fictional bots and example repos. Static data, not a live tracker.",
+  "bot_colors": {
+    "Harbor": "#3f6f70",
+    "Lumen": "#76536b",
+    "Quill": "#52705f",
+    "Nimbus": "#a77c2e"
+  },
+  "repo_colors": {
+    "example/board": "#617082",
+    "example/notes": "#8a6a3b",
+    "example/charts": "#9c5f45",
+    "example/lib": "#6e7354"
+  },
   "streams": [
-    {"bot": "Alpha", "project": "example/app", "now": "Writing tests for the settings page", "waiting": "Nothing"},
-    {"bot": "Beta", "project": "example/lib", "now": "Reviewing the parser refactor", "waiting": "Approve the plan"}
+    {
+      "bot": "Harbor",
+      "project": "In flight",
+      "now": "5 open pull requests. 1 repo active on main.",
+      "waiting": "2 ready to merge."
+    },
+    {
+      "bot": "Lumen",
+      "project": "Search",
+      "now": "Writing tests for the search page.",
+      "waiting": "Nothing"
+    },
+    {
+      "bot": "Quill",
+      "project": "Guide",
+      "now": "Updating the local publish guide.",
+      "waiting": "Approve the outline"
+    },
+    {
+      "bot": "Nimbus",
+      "project": "Charts",
+      "now": "Sketching the weekly chart.",
+      "waiting": "Nothing"
+    }
   ],
   "decisions": [
-    {"id": "demo-dec-1", "state": "open", "title": "Adopt the new parser?",
-     "meta": "asked by Beta",
-     "text": "- Faster on large inputs\n- Changes one public error message",
-     "recommendation": "Yes, see [example PR](https://github.com/example/lib/pull/1)",
-     "why": "Benchmarks show a 2x speedup on the sample corpus."},
-    {"id": "demo-dec-2", "state": "settled", "title": "Keep SQLite for local dev", "text": "Settled last week."}
+    {
+      "id": "dec-merge-board-18",
+      "state": "open",
+      "title": "Merge example/board#18?",
+      "meta": "ready to merge",
+      "src": "ready",
+      "text": "- example/board#18 is ready to merge.\n- [Add the search page](https://github.com/example/board/pull/18)",
+      "recommendation": "Yes.",
+      "why": "- The merge state is clean.\n- Checks are green."
+    },
+    {
+      "id": "dec-merge-notes-7",
+      "state": "open",
+      "title": "Merge example/notes#7?",
+      "meta": "ready to merge",
+      "src": "ready",
+      "text": "- example/notes#7 is ready to merge.\n- [Publish guide outline](https://github.com/example/notes/pull/7)",
+      "recommendation": "Yes.",
+      "why": "- The merge state is clean.\n- Checks are green."
+    },
+    {
+      "id": "dec-new-charts",
+      "state": "open",
+      "title": "New repo example/charts",
+      "meta": "new repo",
+      "src": "new-repo",
+      "text": "- example/charts was created.\n- It is on Merges.",
+      "recommendation": "Say if it should stay on the tracker.",
+      "why": "- It showed up in the repo list."
+    },
+    {
+      "id": "dec-local-folder",
+      "state": "settled",
+      "title": "Keep the local folder publish",
+      "meta": "settled in the example",
+      "text": "- The example board stays a folder of HTML.\n- It does not need a Worker."
+    }
   ],
   "steps": [
-    {"text": "Add an API key for the demo service", "meta": "blocks Alpha"},
-    {"text": "Read the release notes", "done": true}
+    {
+      "id": "step-merge-board-18",
+      "text": "Merge example/board#18",
+      "url": "https://github.com/example/board/pull/18",
+      "meta": "ready",
+      "done": false,
+      "src": "ready",
+      "pr": "example/board#18"
+    },
+    {
+      "id": "step-merge-notes-7",
+      "text": "Merge example/notes#7",
+      "url": "https://github.com/example/notes/pull/7",
+      "meta": "ready",
+      "done": false,
+      "src": "ready",
+      "pr": "example/notes#7"
+    },
+    {
+      "id": "step-sample-key",
+      "text": "Add a sample API key for the demo service",
+      "meta": "blocks Lumen",
+      "done": false
+    },
+    {
+      "id": "step-release-notes",
+      "text": "Read the release notes",
+      "meta": "done in the example",
+      "done": true
+    }
   ],
   "merges": [
-    {"title": "Add settings page", "repo": "example/app", "bot": "Alpha", "state": "Ready to merge"},
-    {"title": "Refactor parser", "repo": "example/lib", "bot": "Beta", "state": "In progress"}
+    {
+      "title": "Add the search page",
+      "repo": "example/board",
+      "bot": "Harbor",
+      "state": "Ready to merge",
+      "number": 18,
+      "url": "https://github.com/example/board/pull/18"
+    },
+    {
+      "title": "Publish guide outline",
+      "repo": "example/notes",
+      "bot": "Quill",
+      "state": "Ready to merge",
+      "number": 7,
+      "url": "https://github.com/example/notes/pull/7"
+    },
+    {
+      "title": "Weekly chart axes",
+      "repo": "example/charts",
+      "bot": "Nimbus",
+      "state": "Building",
+      "number": 3,
+      "url": "https://github.com/example/charts/pull/3"
+    },
+    {
+      "title": "Sample CSV loader",
+      "repo": "example/charts",
+      "bot": "Nimbus",
+      "state": "In progress",
+      "number": 4,
+      "url": "https://github.com/example/charts/pull/4"
+    },
+    {
+      "title": "Parser notes",
+      "repo": "example/lib",
+      "bot": "Lumen",
+      "state": "In progress",
+      "number": 2,
+      "url": "https://github.com/example/lib/pull/2"
+    },
+    {
+      "title": "charts · active on main",
+      "repo": "example/charts",
+      "bot": "Harbor",
+      "state": "Active on main",
+      "synthetic": true
+    }
   ],
-  "merge_note": "Merge example/lib first, then example/app.",
+  "merge_note": "Merge example/notes first, then example/board. A pull request moves to Your steps once it is ready and checks are green.",
   "priorities": [
-    {"stream": "Alpha", "area": "Settings", "items": [
-      {"text": "Write tests", "state": "current"},
-      {"text": "Wire the API key", "state": "blocked"},
-      {"text": "Sketch the layout", "state": "done"}]},
-    {"stream": "Beta", "area": "Parser", "items": [
-      {"text": "Address review comments", "state": "current"},
-      {"text": "Update docs", "state": "next"}]}
+    {
+      "stream": "Harbor",
+      "area": "In flight",
+      "items": [
+        {"text": "5 open pull requests. 1 repo active on main.", "state": "current", "src": "stream"},
+        {"text": "2 ready to merge.", "state": "next", "src": "stream"}
+      ]
+    },
+    {
+      "stream": "Lumen",
+      "area": "Search",
+      "items": [
+        {"text": "Writing tests for the search page.", "state": "current", "src": "stream"},
+        {"text": "Wire the sample API key", "state": "blocked", "src": "ladder"},
+        {"text": "Sketch the search layout", "state": "done", "src": "ladder"}
+      ]
+    },
+    {
+      "stream": "Quill",
+      "area": "Guide",
+      "items": [
+        {"text": "Updating the local publish guide.", "state": "current", "src": "stream"},
+        {"text": "Approve the outline", "state": "next", "src": "stream"}
+      ]
+    },
+    {
+      "stream": "Nimbus",
+      "area": "Charts",
+      "items": [
+        {"text": "Sketching the weekly chart.", "state": "current", "src": "stream"},
+        {"text": "Load the sample CSV", "state": "next", "src": "ladder"}
+      ]
+    }
   ],
   "settled": [
-    {"meta": "Mon", "title": "Picked a name", "detail": "FlightDeck"},
-    {"meta": "Tue", "title": "Chose the colour palette", "detail": "Earthy tones, light mode only."}
+    {
+      "meta": "Fri 17:40",
+      "title": "Local publish",
+      "detail": "- The example board stays a local HTML file.\n- No Worker is part of this demo."
+    },
+    {
+      "meta": "Fri 16:10",
+      "title": "Sample key",
+      "detail": "- The demo service key is a placeholder.\n- It is not a real credential."
+    }
   ],
-  "metrics": {"title": "This machine (node-a)", "items": [
-    {"key": "cpu", "label": "CPU", "pct": 23.0},
-    {"key": "mem", "label": "Memory", "pct": 61.5, "detail": "9.8 / 16 GB"},
-    {"key": "disk", "label": "Disk", "pct": 44.0}
-  ]},
-  "activity": {"window": "1h", "commits": 5, "prs_opened": 1, "prs_merged": 2}
+  "metrics": {
+    "title": "This machine (node-a)",
+    "at": "2026-10-25T11:40:00+00:00",
+    "note": "Example readings. Not this computer.",
+    "items": [
+      {"key": "cpu", "label": "CPU", "pct": 23.0},
+      {"key": "mem", "label": "Memory", "pct": 61.5, "detail": "9.8 / 16 GB"},
+      {"key": "disk", "label": "Disk", "pct": 44.0}
+    ]
+  },
+  "activity": {
+    "window": "1h",
+    "commits": 4,
+    "prs_opened": 1,
+    "prs_merged": 2,
+    "at": "2026-10-25T11:40:00+00:00",
+    "note": "Example counts for the fictional crew. Not a live GitHub total.",
+    "sample": true
+  },
+  "activity_weekly": {
+    "window": "week",
+    "since": "2026-10-23T17:00:00+01:00",
+    "commits": 28,
+    "prs_opened": 6,
+    "prs_merged": 4,
+    "at": "2026-10-25T11:40:00+00:00",
+    "note": "Example counts for the fictional crew. Not a live GitHub total.",
+    "sample": true
+  }
 }

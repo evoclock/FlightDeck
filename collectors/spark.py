@@ -15,7 +15,7 @@ import os
 import sys
 from pathlib import Path
 
-from collectors import data_path, load, save
+from collectors import data_path, load, refuse_demo_write, save
 
 
 def source_path():
@@ -30,6 +30,9 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--data", help="data.json to update (default $FLIGHTDECK_DATA or ./data.json)")
     args = parser.parse_args(argv)
+    path = data_path(args.data)
+    if refuse_demo_write(path):
+        return 2
     src = source_path()
     if not src.is_file():
         print("collectors.spark: no spark cache, skipping", file=sys.stderr)
@@ -39,7 +42,6 @@ def main(argv=None):
         print("collectors.spark: cache has no nodes list, not writing", file=sys.stderr)
         return 2
     explicit = bool(args.data or os.environ.get("FLIGHTDECK_DATA"))
-    path = data_path(args.data)
     if not explicit and not Path(path).is_file():
         print("collectors.spark: no data file, skipping", file=sys.stderr)
         return 0

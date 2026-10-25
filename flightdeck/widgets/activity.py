@@ -3,6 +3,8 @@
 data.json `activity` (last hour) and `activity_weekly` (since the latest Friday 17:00 in config `timezone`,
 default Europe/London), each {window, commits, prs_opened, prs_merged, at, note}; weekly adds `since`.
 Collectors fill these; the widget only prints. Missing, or a weekly count from an earlier week: zeros + Collecting.
+`activity_weekly.sample` true keeps the stored example counts after that Friday, labelled Example week.
+Live collectors do not set `sample`.
 """
 import datetime
 
@@ -25,20 +27,26 @@ def render(ctx, now=None):
     note = f'<p class="anote">{e(a["note"])}</p>' if a.get("note") else ""
     start = week_start(now or local_now(zone), zone)
     w = ctx.data.get("activity_weekly") or {}
+    sample = bool(w.get("sample"))
     try:
         current = bool(w.get("at")) and datetime.datetime.fromisoformat(w.get("since") or "") == start
     except ValueError:
         current = False
-    if not current:
+    if not current and not sample:
         w = {}
-    wwhen = f'Refreshed {hm_zone(w["at"], zone).split(" ")[0]}' if w else "Collecting…"
-    if w and at and wwhen in when:
-        wwhen = ""   # same collection run as the hourly row: say the time once
+    if sample and w:
+        week_head, week_line, wwhen = "Example", "Example week", ""
+    else:
+        week_head = "This week"
+        week_line = f"Week since Fri {start.day} {start.strftime('%b')} 17:00"
+        wwhen = f'Refreshed {hm_zone(w["at"], zone).split(" ")[0]}' if w else "Collecting…"
+        if w and at and wwhen in when:
+            wwhen = ""   # same collection run as the hourly row: say the time once
     win = e(a.get("window") or "1h")
     return (f'<section class="activity" aria-labelledby="act-h"><h2 id="act-h">Activity</h2>'
             f'<table class="a-tab"><thead><tr><th scope="col"><span class="sr">Metric</span></th><th scope="col">Last {win}</th>'
-            f'<th scope="col">This week</th></tr></thead><tbody>{activity_rows(a, w)}</tbody></table>'
+            f'<th scope="col">{e(week_head)}</th></tr></thead><tbody>{activity_rows(a, w)}</tbody></table>'
             f'<div class="a-foot"><p class="a-meta">Last {win} · {e(when)}</p>'
-            f'<p class="a-meta a-week" data-since="{e(start.isoformat(timespec="seconds"))}">Week since Fri {start.day} {start.strftime("%b")} 17:00'
+            f'<p class="a-meta a-week" data-since="{e(start.isoformat(timespec="seconds"))}">{e(week_line)}'
             f'{" · " + e(wwhen) if wwhen else ""}</p>'
             f'{note}</div></section>')

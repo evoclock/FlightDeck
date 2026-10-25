@@ -13,7 +13,7 @@ import sys
 import time
 from pathlib import Path
 
-from collectors import data_path, load, save
+from collectors import data_path, load, refuse_demo_write, save
 
 PROC = Path("/proc")
 
@@ -100,6 +100,8 @@ def main(argv=None):
     ap.add_argument("--title", help='panel title (default "This machine")')
     args = ap.parse_args(argv)
     path = data_path(args.data)
+    if refuse_demo_write(path):
+        return 2
     d = load(path)
     d["metrics"] = collect(disk_path=args.disk, title=args.title)
     save(path, d)
