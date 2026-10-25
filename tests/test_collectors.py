@@ -83,6 +83,11 @@ class ActivityTests(unittest.TestCase):
         self.assertEqual(op.calls[0].get_header("Authorization"), "Bearer tok")
         self.assertFalse(list(Path(self.tmp.name).glob("*.tmp")))
 
+    def test_pat_is_accepted_as_a_token(self):
+        op = opener_returning({"commits": 1, "opened": 0, "merged": 0})
+        self.assertEqual(self.run_main({"FLIGHTDECK_GH_OWNER": "acme", "GITHUB_PAT": "pat"}, op), 0)
+        self.assertEqual(op.calls[0].get_header("Authorization"), "Bearer pat")
+
     def test_no_token_fills_zeros_with_note(self):
         self.assertEqual(self.run_main({"FLIGHTDECK_GH_OWNER": "acme"}), 0)
         d = json.loads(self.data.read_text())

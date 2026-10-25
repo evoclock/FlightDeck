@@ -25,15 +25,19 @@ Scripts write pane prose in this style. If a script's output is dense or unclear
 Never claim AI;DR or `/bro` ran unless that tool or skill was actually invoked.
 
 ## Repo home
-This skill lives in-repo at `docs/skills/crew-tracker-sync/` (mirrored in `evoclock/flock-master` and `evoclock/FlightDeck`). Publish from the git checkout — for the private instance that is `~/flock-master` → `./publish.sh` → Cloudflare Worker — never from a box-only tree.
+This skill lives in FlightDeck at `docs/skills/crew-tracker-sync/`. FlightDeck owns the hooks, the scripts, and the collectors. A private instance stays a thin overlay: its config, `data.json`, assets, and `site/` Worker. It does not keep a second copy of the hooks.
+
+Publish from the git checkout. `./publish.sh` (or `scripts/publish_local.sh`) runs `hooks/pre-render.d` before render. `./publish.sh --build` refreshes the tracker and writes local HTML. `./publish.sh --deploy` also uploads a Worker, and only from a machine that has `site/site.json`. Never publish from a box-only tree.
 
 ## Inputs (set by the routine or repo config, not here)
-- `tracker_data`: path to the tracker's data file, e.g. `data.json`.
-- `publish_cmd`: the build and deploy command(s) for the tracker site.
-- `agents`: the agents/bots whose work the tracker covers, and how to read their latest reports.
-- `scm_query`: the source-control search for the owner's open and recently merged PRs (must cover every owned repo, not a shortlist).
-- `responses_store`: where the human's tracker answers are saved.
-- `snapshot_dir`: where dated snapshots of the data file are committed.
+Copy `config/sync.example.json` to `config/sync.json` (gitignored). Environment variables override the file.
+- `tracker_data`: `FLIGHTDECK_DATA`, or `./data.json` when that file exists. The demo file is not the default.
+- `owner`: `FLIGHTDECK_GH_OWNER` or `owner` in the sync config. Unset: hooks that need GitHub skip.
+- `public_repos`: `FLIGHTDECK_PUBLIC_REPOS` (comma-separated) or `public_repos`. Every public repo the human merges. A missing name means no ready-merge decision.
+- `primary_stream`: `label` (else `agent`) is the stream row name. `FLIGHTDECK_STREAM_LABEL`, `FLIGHTDECK_PRIMARY_AGENT`, `FLIGHTDECK_PRIMARY_AREA`. Empty label: inflight does not write a stream row.
+- `responses`: `account_id`, `kv_namespace_id`, `key`, or `FLIGHTDECK_ACCOUNT_ID` / `CLOUDFLARE_ACCOUNT_ID`, `FLIGHTDECK_RESPONSES_KV_ID`, `FLIGHTDECK_RESPONSES_KEY`. Token: `CLOUDFLARE_API_TOKEN`.
+- `agents`: `.cache/bot-reports.json`, fields copied from each bot's own report.
+- `publish_cmd`: `./publish.sh --build` or `./publish.sh --deploy`.
 
 ## Data shape (tracker_data)
 - `streams`: one row per agent: `[agent, area, current work (with time), next for the human]`. **Streams are agent work, not a repo inventory.** Never paste a comma-separated list of every loose GitHub repo into a stream area or current line.
@@ -47,40 +51,44 @@ Julen: "I do not want things done manually … otherwise you always have to inte
 - An agent's only job is to refresh the **evidence caches** in `.cache/`, as structured JSON copied from the source (not reworded), then run `./publish.sh`.
 - If a pane is wrong, fix the script or the cache writer. Do not patch the pane.
 
-Hooks, in order:
+Hooks, in order. The hook file name is what `hooks/run-pre-render.sh` runs:
 
 | Hook | Script | Writes | Evidence |
 |---|---|---|---|
-| 00 | `collectors/activity.py` (via `00-collect-activity`) | `activity`, `activity_weekly` | `GITHUB_TOKEN` / `GH_TOKEN` / `GITHUB_PAT`, else `gh auth token` |
-| 01 | `refresh_pr_cache.py` | `.cache/prs.json`, `prs-closed.json`, `omb-releases.json` | `gh`, else GitHub token, else unauthenticated REST (public repos only) |
-| 03 | `reconcile_responses.py` | Decisions → settled, Settled entries, step ticks | KV `CREW_RESPONSES` (`CLOUDFLARE_API_TOKEN`), else `.cache/responses.json` |
-| 05 | `reconcile_inflight.py` | Merges (open PRs + synthetic rows), Flockmate stream, New-repo Decisions, Architecture stubs | `.cache/repos.json`, `.cache/prs.json` |
-| 07 | `reconcile_merges_lifecycle.py` | Drops open rows for merged/closed PRs, ticks steps, settles Decisions, Settled entries | `.cache/prs-closed.json` |
-| 10 | `reconcile_ready_decisions.py` | Ready-merge Decisions | merges rows in state `Ready…` |
-| 30 | `reconcile_steps_evidence.py` | Your steps for ready+green PRs, merge ticks, OMB install tick, item 14 guard | prs caches, `.cache/omb-install.json`, `.cache/omb-releases.json` |
-| 40 | `apply_bot_reports.py` | Other bots' stream rows, verbatim | `.cache/bot-reports.json` |
-| 50 | `reconcile_priorities.py` | One priorities block per stream; `src:"stream"` items rebuilt; ladder items kept | streams + PR evidence |
-| 90 | `pin_ids.py` | Explicit unique `id` on every decision and step | — |
+| `00-collect-activity` | `collectors/activity.py` | `activity`, `activity_weekly` | `GITHUB_TOKEN` / `GH_TOKEN` / `GITHUB_PAT`, else `gh auth token`. No owner: skip |
+| `01-refresh-pr-cache` | `scripts/refresh_pr_cache.py` | `.cache/prs.json`, `prs-closed.json`, `repos.json`, and `omb-releases.json` when `omb.repo` is set | `gh`, else a GitHub token, else unauthenticated REST for `public_repos` only. No owner: skip |
+| `02-collect-cluster` | `collectors/metrics_generic.py` or `collectors/spark.py` | `metrics` or `spark` | `FLIGHTDECK_CLUSTER=metrics` or `spark`. Unset: skip. Spark reads `FLIGHTDECK_SPARK_FILE` or `.cache/spark.json` and does not open SSH |
+| `03-reconcile-responses` | `scripts/reconcile_responses.py` | Decisions → settled, Settled entries, step ticks | KV when `CLOUDFLARE_API_TOKEN` and the responses ids in sync config are set, else `.cache/responses.json` |
+| `05-reconcile-inflight` | `scripts/reconcile_inflight.py` | Merges (open PRs + synthetic rows), primary stream, new-repo Decisions, architecture stubs | `.cache/repos.json`, `.cache/prs.json` |
+| `07-reconcile-merges-lifecycle` | `scripts/reconcile_merges_lifecycle.py` | Drops open rows for merged/closed PRs, ticks steps, settles Decisions, Settled entries | `.cache/prs-closed.json` |
+| `10-reconcile-ready-decisions` | `scripts/reconcile_ready_decisions.py` | Ready-merge Decisions | merges rows in state `Ready…` whose repo is in `public_repos` |
+| `30-reconcile-steps-evidence` | `scripts/reconcile_steps_evidence.py` | Steps for ready+green PRs, install tick, release guard | prs cache, `.cache/omb-install.json`, `.cache/omb-releases.json`, `guards` in sync config |
+| `40-apply-bot-reports` | `scripts/apply_bot_reports.py` | Other bots' stream rows, verbatim | `.cache/bot-reports.json` |
+| `50-reconcile-priorities` | `scripts/reconcile_priorities.py` | One priorities block per stream; `src:"stream"` items rebuilt; ladder items kept | streams |
+| `90-pin-ids` | `scripts/pin_ids.py` | Explicit unique `id` on every decision and step | — |
+
+`scripts/tracker_evidence.py` runs after the hooks. It prints one line: PR count, in-flight count, gaps. Exit 2 when a cache is present and incomplete. No caches: it prints offline and exits 0.
 
 Cache writers the watch must run (structured JSON only):
-- `.cache/prs.json` / `.cache/prs-closed.json`: from the Mac with `gh` when the box token fails. Include `merge_state` (`mergeStateStatus`) and `checks` so "ready + green" is evidence, never a guess. Private repos need this; hook 01 can only refresh public ones without a token.
-- `.cache/responses.json`: the raw KV value of `responses/j.a.r.gamboa@gmail.com` (namespace `519a5896bd3a41e4b2d5696b051f147d`) when no `CLOUDFLARE_API_TOKEN` is set, e.g. via the Cloudflare MCP connector. Handled ids live in `.cache/responses-handled.json`.
+- `.cache/prs.json` / `.cache/prs-closed.json` / `.cache/repos.json`: hook 01 writes these when `gh` or a token can see the owner. Include `merge_state` (`mergeStateStatus`) and `checks` so "ready + green" is evidence, never a guess. Private repos need `gh` or a token. Without a token, hook 01 can only refresh `public_repos`, marks the cache incomplete, and exits 2.
+- `.cache/responses.json`: the raw KV value for the configured responses key when no `CLOUDFLARE_API_TOKEN` is set. Handled ids live in `.cache/responses-handled.json`.
 - `.cache/bot-reports.json`: `[{agent, area, current, next, at}]`, fields copied from each bot's own report or pane. Missing file = other streams unchanged. Never summarise chat into it.
-- `.cache/omb-install.json`: `{app, version, checked_at}` read from the Mac (`defaults read /Applications/OpenMausBot.app/Contents/Info CFBundleShortVersionString`).
-- Item 14 (first evoclock OpenMausBot GitHub release) is done only when a real non-draft release exists. No tick, cache, or agent can mark it done otherwise.
+- `.cache/omb-install.json`: `{app, version, checked_at}` from the machine that has the app installed. `omb.install_step_contains` in sync config names the step text to tick.
+- `.cache/omb-releases.json`: GitHub releases for `omb.repo`. A guard with `needs: "nondraft_release"` stays undone until a real non-draft release is in that file. No tick, cache, or agent can mark that step done otherwise.
+- `.cache/spark.json`: a reading shaped like data.json `spark` (`nodes` list). Hook 02 copies it only when `FLIGHTDECK_CLUSTER=spark`.
 
 ## Completeness invariants (every run)
 The hooks above enforce these. A gap means a script or cache writer is missing; fix that, not the pane.
 1. **Every open PR** has exactly one `merges` row (drafts count).
 2. **Recently merged/closed** (last day) update their row; matching merge steps tick done.
 3. **Every in-flight repo** (open PR, or pushed in 48h, or created in 7d) is discovered from the owner's full GitHub list — never typed from chat. No-PR in-flight repos get one synthetic merges row. New repos (created ≤48h) appear in an open Decision (or are named by an existing open Decision).
-4. **Streams stay readable.** Each agent row is short current work + next for the human. In-flight repos that no bot owns stay on **Merges** (and Architecture / Decisions), **not** dumped into Flockmate's stream as a link salad.
+4. **Streams stay readable.** Each agent row is short current work + next for the human. In-flight repos that no bot owns stay on **Merges** (and Architecture / Decisions), **not** dumped into the primary stream as a link salad. The primary stream's label comes from sync config. Empty label: do not write that row.
 5. **Decisions-only OK.** Ready merges, new-repo cutovers, spend, scope — open Decision with PR links before any chat ask.
-   - `reconcile_ready_decisions.py` `PUBLIC_REPOS` must list every public repo the human merges (include `FlightDeck`). Missing names = silent no-Decision bugs.
+   - `public_repos` in sync config must list every public repo the human merges. Missing names = silent no-Decision bugs.
 6. **Your steps** list ready+green phone actions; drafts never appear there.
 7. **Priorities** blocks match each active stream's current/next from evidence; do not wipe done items.
 8. **Settled today** only from the human's tracker responses (KV, hook 03) and merged-PR evidence (hook 07), never invented.
-9. **Architecture:** every in-flight product named on Merges/Decisions/Streams gets a `projects.tabs` entry and a bower diagram (stub if missing) that is rendered before publish.
+9. **Architecture:** every in-flight product named on Merges gets a diagram. Set `assets_dir` in sync config (not the demo assets folder) and the hook writes a bower stub plus a rendered page, then adds `projects.tabs`. With no `assets_dir`, it records `projects.pending` and does not add a tab, because a missing diagram fails render.
 10. **Activity** refreshed every sync (Mac `gh` when box token fails).
 11. Run `reconcile_inflight.py` and `reconcile_ready_decisions.py` every publish (hooks). Discovery failure (exit 2) must not be reported as complete — refresh `.cache/repos.json` + `.cache/prs.json` from a machine where `gh` works.
 

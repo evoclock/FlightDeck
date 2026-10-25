@@ -6,7 +6,8 @@ Stdlib only, read-only on GitHub (search API, GET). Two windows, same three numb
 Commits come from commit search (default branches only); PRs from issue search.
 
 Owner: FLIGHTDECK_GH_OWNER (no default). Unset: nothing is fetched or written (the demo skips this).
-Token: GITHUB_TOKEN or GH_TOKEN from the environment only (never read from a file, never printed).
+Token: GITHUB_TOKEN, GH_TOKEN, or GITHUB_PAT from the environment only (never read from a file, never printed).
+The 00-collect-activity hook may set GITHUB_TOKEN from `gh auth token` when those are unset.
 No token, or GitHub refuses: sections never collected get zeros and a note; collected sections are kept.
 A failed fetch exits 2.
 
@@ -89,7 +90,7 @@ def main(argv=None, now=None, opener=urllib.request.urlopen):
     if not owner:
         print("collectors.activity: FLIGHTDECK_GH_OWNER not set, skipping", file=sys.stderr)
         return 0
-    token = os.environ.get("GITHUB_TOKEN") or os.environ.get("GH_TOKEN")
+    token = os.environ.get("GITHUB_TOKEN") or os.environ.get("GH_TOKEN") or os.environ.get("GITHUB_PAT")
     path = data_path(args.data)
     d = load(path)
     z = zone()

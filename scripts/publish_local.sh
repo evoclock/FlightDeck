@@ -12,6 +12,9 @@ else
   OUT=$ROOT/dist/local
 fi
 cd "$ROOT"
+# Hooks refresh data.json from .cache when an instance is configured.
+# With no owner and no root data.json they skip, and the demo file stays put.
+bash "$ROOT/hooks/run-pre-render.sh"
 mkdir -p "$OUT"
 python3 -m flightdeck.render \
   "$ROOT/examples/demo/config.json" \

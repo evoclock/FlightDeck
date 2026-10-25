@@ -110,7 +110,15 @@ class PublicTreeSecretTests(unittest.TestCase):
             self.assertTrue(path.is_file(), path)
         paths = list(SITE.glob('*'))
         paths += list((ROOT / 'scripts').glob('*'))
-        paths += [ROOT / 'README.md', ROOT / 'docs' / 'deploy-cloudflare.md', ROOT / 'docs' / 'deploy-local.md']
+        paths += list((ROOT / 'hooks').rglob('*'))
+        paths += list((ROOT / 'collectors').glob('*.py'))
+        paths += [
+            ROOT / 'README.md',
+            ROOT / 'docs' / 'deploy-cloudflare.md',
+            ROOT / 'docs' / 'deploy-local.md',
+            ROOT / 'publish.sh',
+            ROOT / 'config' / 'sync.example.json',
+        ]
         blob = []
         for path in paths:
             if path.is_file() and path.suffix != '.pyc':
