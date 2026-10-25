@@ -20,14 +20,25 @@ class ConfigError(ValueError):
 def resolve_widget(config, slot):
     if slot not in SLOT_IDS:
         raise ConfigError(f'unknown slot: {slot}')
-    wid = config['slots'][slot]
+    if not isinstance(config, dict):
+        raise ConfigError('config must be an object')
+    slots = config.get('slots')
+    if not isinstance(slots, dict):
+        raise ConfigError('slots must be an object')
+    if slot not in slots:
+        raise ConfigError(f'missing slot: {slot}')
+    wid = slots[slot]
     if wid not in KNOWN_WIDGETS:
         raise ConfigError(f'unknown widget: {wid}')
     return wid
 
 
 def validate(config):
+    if not isinstance(config, dict):
+        raise ConfigError('config must be an object')
     slots = config.get('slots', {})
+    if not isinstance(slots, dict):
+        raise ConfigError('slots must be an object')
     missing = [s for s in SLOT_IDS if s not in slots]
     if missing:
         raise ConfigError(f'missing slots: {missing}')
