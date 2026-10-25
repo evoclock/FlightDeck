@@ -58,6 +58,8 @@ class PublishTests(unittest.TestCase):
             self.assertIn('OpenMausBot', html)
             self.assertIn('alt="FlightDeck demo banner"', html)
             self.assertTrue((out / 'assets' / 'banner.webp').is_file())
+            self.assertTrue((out / 'assets' / 'flightdeck-demo.mp4').is_file())
+            self.assertFalse((out / 'assets' / 'flock-tracker-demo.mp4').exists())
 
     def test_cloudflare_build_embeds_that_html(self):
         with tempfile.TemporaryDirectory() as tmp:

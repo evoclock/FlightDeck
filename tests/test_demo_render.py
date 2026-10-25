@@ -73,13 +73,18 @@ class DemoRenderTests(unittest.TestCase):
         self.assertIn('<section class="spark metrics"', self.doc)
 
     def test_walkthrough_video_is_the_attached_file(self):
-        video = DEMO / 'assets' / 'flock-tracker-demo.mp4'
+        video = DEMO / 'assets' / 'flightdeck-demo.mp4'
         self.assertTrue(video.is_file())
-        self.assertEqual(video.stat().st_size, 5746259)
+        self.assertEqual(video.stat().st_size, 2939944)
         self.assertIn(b'ftyp', video.read_bytes()[:32])
+        self.assertFalse((DEMO / 'assets' / 'flock-tracker-demo.mp4').exists())
         demo_doc = (DEMO / 'README.md').read_text()
-        self.assertIn('assets/flock-tracker-demo.mp4', demo_doc)
+        self.assertIn('assets/flightdeck-demo.mp4', demo_doc)
+        self.assertNotIn('flock-tracker', demo_doc)
         self.assertIn('demo-still.png', demo_doc)
+        root = (DEMO.parent.parent / 'README.md').read_text()
+        self.assertIn('examples/demo/assets/flightdeck-demo.mp4', root)
+        self.assertNotIn('flock-tracker', root)
 
 
 if __name__ == '__main__':

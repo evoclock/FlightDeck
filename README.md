@@ -24,7 +24,7 @@ Do not deploy a Worker for this public demo.
 
 ![FlightDeck demo illustration](examples/demo/demo-still.png)
 
-The still is this static page in a browser. A motion recording is not in the repo. To capture one, render locally and record `http://127.0.0.1:8765/` (leave the file offline; do not upload a Worker):
+The still is this static page in a browser. The walkthrough is [examples/demo/assets/flightdeck-demo.mp4](examples/demo/assets/flightdeck-demo.mp4). To preview the page locally (leave the file offline; do not upload a Worker):
 
 ```bash
 ./publish.sh
