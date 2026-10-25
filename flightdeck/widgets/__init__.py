@@ -8,8 +8,8 @@ from flightdeck.widgets import banner, empty
 
 @dataclass
 class RenderContext:
+    assets_dir: Path
     data: dict = field(default_factory=dict)
-    assets_dir: Path = Path('.')
     config: dict = field(default_factory=dict)
 
 

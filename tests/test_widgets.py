@@ -35,6 +35,21 @@ class WidgetTests(unittest.TestCase):
         out = render_slot('banner.image', self.ctx({'banner': {'alt': 'a <b> & "c"'}}))
         self.assertIn('alt="a &lt;b&gt; &amp; &quot;c&quot;"', out)
 
+    def test_banner_does_not_force_dimensions(self):
+        # tiny 2x7 VP8X WebP header: proportions unlike 1600x915
+        hdr = b'VP8X' + (10).to_bytes(4, 'little') + b'\x00\x00\x00\x00' + (1).to_bytes(3, 'little') + (6).to_bytes(3, 'little')
+        raw = b'RIFF' + (4 + len(hdr)).to_bytes(4, 'little') + b'WEBP' + hdr
+        (self.assets / 'banner.webp').write_bytes(raw)
+        out = render_slot('banner.image', self.ctx())
+        self.assertNotIn('1600', out)
+        self.assertNotIn(' width=', out)
+        self.assertNotIn(' height=', out)
+
+    def test_non_dict_banner_config_raises_config_error(self):
+        (self.assets / 'banner.webp').write_bytes(b'x')
+        with self.assertRaises(ConfigError):
+            render_slot('banner.image', self.ctx({'banner': 'oops'}))
+
     def test_missing_banner_file_raises_clear_error(self):
         with self.assertRaises(FileNotFoundError) as cm:
             render_slot('banner.image', self.ctx())
