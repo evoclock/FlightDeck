@@ -101,7 +101,8 @@ Later (not v1): prompt-generated widgets; voice for accept/refuse on decisions.
 **Public `flightdeck` includes:**
 
 - Core renderer, slot layout CSS rules (banner never shrunk), widget packages
-- `examples/demo/` with **scrubbed** fake streams, sample banner, no real PR titles, hostnames, or decisions
+- `examples/demo/` with **scrubbed** fake streams, no real PR titles, hostnames, or decisions
+- Default public banner: a flightdeck-inspired asset (Claude-generated), not the private ADHD neuromancer `banner.webp`
 - Deploy recipes for Cloudflare and local
 - Docs and tests for config/widgets
 
