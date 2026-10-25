@@ -69,7 +69,7 @@
     {
       "id": "dec-static-demo",
       "state": "open",
-      "title": "Keep the FlightDeck demo static?",
+      "title": "Keep this FlightDeck page static?",
       "meta": "template",
       "text": "- The demo lists public evoclock repos.\n- It is a file in the template.",
       "recommendation": "Yes.",

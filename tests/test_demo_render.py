@@ -9,7 +9,7 @@ from flightdeck import render as R
 
 DEMO = Path(__file__).resolve().parent.parent / 'examples' / 'demo'
 FORBIDDEN = (
-    'spark-backend', 'Neuromancer', 'neuromancer', 'crew-tracker', 'crewTracker',
+    'spark-backend', 'crew-tracker', 'crewTracker',
     'Flockmate', 'flockmate', 'flock-master', 'flockmate.dev', 'julen', 'Julen', '@gmail.com',
     'Harbor', 'Lumen', 'Quill', 'Nimbus', 'example/board', 'example/app',
     'pstack', 'tater-tot', 'node-a',
@@ -46,7 +46,8 @@ class DemoRenderTests(unittest.TestCase):
         self.assertNotIn('api.github.com', self.doc)
         self.assertIn('<title>FlightDeck</title>', self.doc)
         self.assertIn('<h1>FlightDeck</h1>', self.doc)
-        self.assertNotIn('<h1>FlightDeck demo</h1>', self.doc)
+        self.assertNotIn('FlightDeck demo', self.doc)
+        self.assertIn('alt="ADHD Neuromancer"', self.doc)
 
     def test_no_private_strings(self):
         for bad in FORBIDDEN:
@@ -69,6 +70,7 @@ class DemoRenderTests(unittest.TestCase):
     def test_banner_is_valid_webp(self):
         b = (DEMO / 'assets' / 'banner.webp').read_bytes()
         self.assertEqual((b[:4], b[8:12]), (b'RIFF', b'WEBP'))
+        self.assertEqual(len(b), 406602)
 
     def test_demo_uses_filled_gpu_cluster(self):
         cfg = json.loads((DEMO / 'config.json').read_text())
@@ -92,7 +94,7 @@ class DemoRenderTests(unittest.TestCase):
     def test_walkthrough_video_is_the_attached_file(self):
         video = DEMO / 'assets' / 'flightdeck-demo.mp4'
         self.assertTrue(video.is_file())
-        self.assertEqual(video.stat().st_size, 2049379)
+        self.assertEqual(video.stat().st_size, 2477775)
         self.assertIn(b'ftyp', video.read_bytes()[:32])
         self.assertFalse((DEMO / 'assets' / 'flock-tracker-demo.mp4').exists())
         demo_doc = (DEMO / 'README.md').read_text()

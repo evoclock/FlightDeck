@@ -1,6 +1,6 @@
-# FlightDeck demo
+# FlightDeck
 
-Static illustration of public evoclock repos. The page title is FlightDeck. Counts in `data.json` are examples. The cluster slot is the GPU card, with demo nodes `demo-a` and `demo-b`.
+Static illustration of public evoclock repos. The page title is FlightDeck. The banner is the ADHD Neuromancer artwork. Counts in `data.json` are examples. The cluster slot is the GPU card, with demo nodes `demo-a` and `demo-b`.
 
 - Walkthrough: [assets/flightdeck-demo.mp4](assets/flightdeck-demo.mp4)
 - Still: [demo-still.png](demo-still.png)
@@ -9,4 +9,4 @@ From the repo root, `./publish.sh` copies `assets/` to `dist/local/assets/`, inc
 
 <video src="assets/flightdeck-demo.mp4" controls playsinline width="100%"></video>
 
-![FlightDeck demo illustration](demo-still.png)
+![FlightDeck](demo-still.png)

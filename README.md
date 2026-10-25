@@ -8,7 +8,7 @@ Python 3.11 or newer is enough. The renderer and collectors use the standard lib
 
 The public demo is a static illustration of publicly released evoclock work. The page title is FlightDeck. Streams are FlightDeck, OpenMausBot, pi-agentic-driver, pi-bowerbird, and Demeter. Pull requests and notes link to public GitHub pages. Activity counts and the cluster chart are examples stored in `examples/demo/data.json`. That file is static. Rendering it does not collect from GitHub. The architecture slot stays empty until you add your own diagrams.
 
-The banner is `examples/demo/assets/banner.webp`, created by GPT Astra. Keep that file for the public demo. Swap in your own `banner.webp` beside your config when you leave the demo. The banner keeps its natural aspect.
+The banner is `examples/demo/assets/banner.webp`, the ADHD Neuromancer artwork. Keep that file for the public demo. Swap in your own `banner.webp` beside your config when you leave the demo. The banner keeps its natural aspect.
 
 ```bash
 ./publish.sh
@@ -22,7 +22,7 @@ python3 -m flightdeck.render examples/demo/config.json examples/demo/data.json d
 
 Do not deploy a Worker for this public demo.
 
-![FlightDeck demo illustration](examples/demo/demo-still.png)
+![FlightDeck](examples/demo/demo-still.png)
 
 The still is this static page in a browser. The walkthrough is [examples/demo/assets/flightdeck-demo.mp4](examples/demo/assets/flightdeck-demo.mp4). To preview the page locally (leave the file offline; do not upload a Worker):
 
