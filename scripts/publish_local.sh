@@ -13,7 +13,7 @@ else
 fi
 cd "$ROOT"
 # Hooks refresh data.json from .cache when an instance is configured.
-# With no owner and no root data.json they skip, and the demo file stays put.
+# With no owner and no root data.json they skip. They also refuse to write examples/demo/data.json.
 bash "$ROOT/hooks/run-pre-render.sh"
 mkdir -p "$OUT"
 python3 -m flightdeck.render \

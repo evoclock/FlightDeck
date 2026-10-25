@@ -165,5 +165,40 @@ class MetricsTests(unittest.TestCase):
         self.assertEqual(d["metrics"]["items"][0]["pct"], 1.0)
 
 
+class ShippedDemoGuardTests(unittest.TestCase):
+    def test_activity_refuses_the_shipped_demo_without_fetching(self):
+        from collectors import DEMO_DATA
+        before = DEMO_DATA.read_bytes()
+        op = opener_returning({"commits": 1, "opened": 1, "merged": 1})
+        now = datetime.datetime(2026, 10, 25, 1, 0, tzinfo=UTC)
+        with mock.patch.dict(os.environ, {"FLIGHTDECK_GH_OWNER": "acme", "GITHUB_TOKEN": "tok"}, clear=True):
+            with mock.patch("sys.stderr", io.StringIO()):
+                code = activity.main(["--data", str(DEMO_DATA)], now=now, opener=op)
+        self.assertEqual(code, 2)
+        self.assertEqual(op.calls, [])
+        self.assertEqual(DEMO_DATA.read_bytes(), before)
+
+    def test_metrics_and_spark_refuse_the_shipped_demo(self):
+        from collectors import DEMO_DATA, spark
+        before = DEMO_DATA.read_bytes()
+        with mock.patch("sys.stderr", io.StringIO()):
+            self.assertEqual(metrics_generic.main(["--data", str(DEMO_DATA)]), 2)
+        with tempfile.TemporaryDirectory() as tmp:
+            src = Path(tmp) / "spark.json"
+            src.write_text(json.dumps({"nodes": [{"name": "a"}]}))
+            with mock.patch.dict(os.environ, {"FLIGHTDECK_SPARK_FILE": str(src)}, clear=False):
+                with mock.patch("sys.stderr", io.StringIO()):
+                    self.assertEqual(spark.main(["--data", str(DEMO_DATA)]), 2)
+        self.assertEqual(DEMO_DATA.read_bytes(), before)
+
+    def test_sync_refuses_the_shipped_demo(self):
+        from collectors import DEMO_DATA
+        from flightdeck.sync import cli_data, pin_ids
+        before = DEMO_DATA.read_bytes()
+        with mock.patch("sys.stderr", io.StringIO()):
+            self.assertEqual(cli_data(pin_ids, ["--data", str(DEMO_DATA)]), 2)
+        self.assertEqual(DEMO_DATA.read_bytes(), before)
+
+
 if __name__ == "__main__":
     unittest.main()

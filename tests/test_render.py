@@ -213,6 +213,18 @@ class WidgetPortTests(Base):
         self.assertIn('data-window="week">0<', out)
         self.assertIn('Collecting…', out)
 
+    def test_activity_sample_keeps_counts_when_the_week_is_stale(self):
+        d = fake_data()
+        start = week_start(NOW, LONDON)
+        d['activity_weekly'] = {
+            'commits': 9, 'prs_opened': 4, 'prs_merged': 5, 'at': NOW.isoformat(),
+            'since': (start - datetime.timedelta(days=7)).isoformat(), 'sample': True,
+        }
+        out = activity.render(RenderContext(assets_dir=self.assets, data=d, config={}), now=NOW)
+        self.assertIn('data-window="week">9<', out)
+        self.assertIn('Example week', out)
+        self.assertNotIn('Collecting…', out)
+
     def test_week_starts_friday_1700(self):
         start = week_start(NOW, LONDON)
         self.assertEqual((start.weekday(), start.hour, start.minute), (4, 17, 0))

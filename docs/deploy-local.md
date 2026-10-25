@@ -8,7 +8,7 @@ From the repo root:
 scripts/publish_local.sh
 ```
 
-That writes `dist/local/index.html` from `examples/demo/` and copies `examples/demo/assets/` beside it. The banner and fonts are already embedded in the HTML, so opening the file works offline.
+That writes `dist/local/index.html` from the static illustration in `examples/demo/` and copies `examples/demo/assets/` beside it. The banner and fonts are already embedded in the HTML, so opening the file works offline. The demo lists public evoclock repos. Collectors refuse to overwrite `examples/demo/data.json`. See the README to record the page locally.
 
 ```bash
 python3 -m flightdeck.render examples/demo/config.json examples/demo/data.json dist/local/index.html

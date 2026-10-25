@@ -22,7 +22,7 @@ import urllib.error
 import urllib.parse
 import urllib.request
 
-from collectors import data_path, load, save
+from collectors import data_path, load, refuse_demo_write, save
 from flightdeck.common import DEFAULT_TZ, week_start
 
 try:
@@ -92,6 +92,8 @@ def main(argv=None, now=None, opener=urllib.request.urlopen):
         return 0
     token = os.environ.get("GITHUB_TOKEN") or os.environ.get("GH_TOKEN") or os.environ.get("GITHUB_PAT")
     path = data_path(args.data)
+    if refuse_demo_write(path):
+        return 2
     d = load(path)
     z = zone()
     now = (now or datetime.datetime.now(datetime.timezone.utc))

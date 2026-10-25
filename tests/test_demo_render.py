@@ -1,4 +1,4 @@
-"""The shipped examples/demo renders offline and contains only scrubbed, fake data."""
+"""The shipped examples/demo renders offline as a static illustration of public evoclock repos."""
 import json
 import re
 import tempfile
@@ -8,8 +8,12 @@ from pathlib import Path
 from flightdeck import render as R
 
 DEMO = Path(__file__).resolve().parent.parent / 'examples' / 'demo'
-FORBIDDEN = ('evoclock/', 'spark-backend', 'Neuromancer', 'neuromancer', 'crew-tracker', 'crewTracker',
-             'Flockmate', 'flockmate', 'julen', 'Julen', '@gmail.com')
+FORBIDDEN = (
+    'spark-backend', 'Neuromancer', 'neuromancer', 'crew-tracker', 'crewTracker',
+    'Flockmate', 'flockmate', 'flock-master', 'flockmate.dev', 'julen', 'Julen', '@gmail.com',
+    'Harbor', 'Lumen', 'Quill', 'Nimbus', 'example/board', 'example/app',
+    'pstack', 'tater-tot', 'node-a',
+)
 
 
 class DemoRenderTests(unittest.TestCase):
@@ -21,19 +25,36 @@ class DemoRenderTests(unittest.TestCase):
     def tearDown(self):
         self.tmp.cleanup()
 
-    def test_renders_fake_agents(self):
+    def test_renders_public_repos(self):
         self.assertTrue(self.doc.startswith('<!doctype html>'))
         self.assertEqual(self.out.read_text(), self.doc)
-        self.assertIn('Alpha', self.doc)
-        self.assertIn('Beta', self.doc)
-        self.assertIn('example/app', self.doc)
+        for name in ('FlightDeck', 'OpenMausBot', 'pi-agentic-driver', 'pi-bowerbird', 'Demeter'):
+            self.assertIn(name, self.doc)
+        for repo in (
+            'evoclock/FlightDeck', 'evoclock/OpenMausBot', 'evoclock/pi-agentic-driver',
+            'evoclock/pi-bowerbird', 'evoclock/fieldnotes',
+        ):
+            self.assertIn(repo, self.doc)
+        self.assertIn('5 bots · 2 need you', self.doc)
+        self.assertIn('3 open · 1 settled', self.doc)
+        self.assertIn('4 PRs · 0 ready', self.doc)
+        self.assertIn('Example week', self.doc)
+        self.assertIn('data-window="week">18<', self.doc)
+        self.assertIn('https://github.com/evoclock/pi-bowerbird/pull/2', self.doc)
+        self.assertIn('https://github.com/evoclock/OpenMausBot/pull/48', self.doc)
+        self.assertIn('Static illustration of public evoclock repos', self.doc)
+        self.assertNotIn('api.github.com', self.doc)
 
     def test_no_private_strings(self):
         for bad in FORBIDDEN:
             self.assertNotIn(bad, self.doc, bad)
         raw = (DEMO / 'config.json').read_text() + (DEMO / 'data.json').read_text()
-        for bad in FORBIDDEN:
+        for bad in FORBIDDEN + ('flockmate.dev', 'api.github.com'):
             self.assertNotIn(bad, raw, bad)
+        data = json.loads((DEMO / 'data.json').read_text())
+        self.assertTrue(data['activity_weekly']['sample'])
+        self.assertEqual(data['activity_weekly']['commits'], 18)
+        self.assertNotIn('evoclock/demeter', raw)
 
     def test_offline_assets_embedded(self):
         self.assertIn('data:image/webp;base64,UklG', self.doc)

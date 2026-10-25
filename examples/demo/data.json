@@ -1,46 +1,255 @@
 {
   "title": "FlightDeck demo",
-  "summary": "Two fake agents working on a fake app. All data here is made up.",
-  "bot_colors": {"Alpha": "#3f6f70", "Beta": "#76536b"},
-  "repo_colors": {"example/app": "#617082", "example/lib": "#8a6a3b"},
+  "summary": "Static illustration of public evoclock repos. Example counts only. This page does not collect live data.",
+  "bot_colors": {
+    "FlightDeck": "#3f6f70",
+    "OpenMausBot": "#76536b",
+    "pi-agentic-driver": "#52705f",
+    "pi-bowerbird": "#a77c2e",
+    "Demeter": "#617082"
+  },
+  "repo_colors": {
+    "evoclock/FlightDeck": "#3f6f70",
+    "evoclock/OpenMausBot": "#76536b",
+    "evoclock/pi-agentic-driver": "#52705f",
+    "evoclock/pi-bowerbird": "#a77c2e",
+    "evoclock/fieldnotes": "#617082"
+  },
   "streams": [
-    {"bot": "Alpha", "project": "example/app", "now": "Writing tests for the settings page", "waiting": "Nothing"},
-    {"bot": "Beta", "project": "example/lib", "now": "Reviewing the parser refactor", "waiting": "Approve the plan"}
+    {
+      "bot": "FlightDeck",
+      "project": "Template",
+      "now": "Sync hooks are in the template. This demo is a static page.",
+      "waiting": "Nothing"
+    },
+    {
+      "bot": "OpenMausBot",
+      "project": "App",
+      "now": "Two draft pull requests are open on the public repo.",
+      "waiting": "Read the drafts."
+    },
+    {
+      "bot": "pi-agentic-driver",
+      "project": "Driver",
+      "now": "3.0.0 is marked released in the public README.",
+      "waiting": "Nothing"
+    },
+    {
+      "bot": "pi-bowerbird",
+      "project": "Diagrams",
+      "now": "Two pull requests are open on the public repo.",
+      "waiting": "Review both open pull requests."
+    },
+    {
+      "bot": "Demeter",
+      "project": "Populations",
+      "now": "The public fieldnotes describe multilevel selection for populations of agents.",
+      "waiting": "Nothing"
+    }
   ],
   "decisions": [
-    {"id": "demo-dec-1", "state": "open", "title": "Adopt the new parser?",
-     "meta": "asked by Beta",
-     "text": "- Faster on large inputs\n- Changes one public error message",
-     "recommendation": "Yes, see [example PR](https://github.com/example/lib/pull/1)",
-     "why": "Benchmarks show a 2x speedup on the sample corpus."},
-    {"id": "demo-dec-2", "state": "settled", "title": "Keep SQLite for local dev", "text": "Settled last week."}
+    {
+      "id": "dec-bowerbird-2",
+      "state": "open",
+      "title": "Review evoclock/pi-bowerbird#2?",
+      "meta": "open on GitHub",
+      "text": "- evoclock/pi-bowerbird#2 is open on the public repo.\n- [Fit iso node focus border to the node outline](https://github.com/evoclock/pi-bowerbird/pull/2)",
+      "recommendation": "Read it on GitHub.",
+      "why": "- It is a public pull request.\n- This page does not read check status."
+    },
+    {
+      "id": "dec-bowerbird-3",
+      "state": "open",
+      "title": "Review evoclock/pi-bowerbird#3?",
+      "meta": "open on GitHub",
+      "text": "- evoclock/pi-bowerbird#3 is open on the public repo.\n- [Fix render test paths on Windows](https://github.com/evoclock/pi-bowerbird/pull/3)",
+      "recommendation": "Read it on GitHub.",
+      "why": "- It is a public pull request.\n- This page does not read check status."
+    },
+    {
+      "id": "dec-static-demo",
+      "state": "open",
+      "title": "Keep the FlightDeck demo static?",
+      "meta": "template",
+      "text": "- The demo lists public evoclock repos.\n- It is a file in the template.",
+      "recommendation": "Yes.",
+      "why": "- A shareable page can stay a static illustration.\n- Collectors refuse to write this file."
+    },
+    {
+      "id": "dec-driver-300",
+      "state": "settled",
+      "title": "Mark pi-agentic-driver 3.0.0 released",
+      "meta": "merged",
+      "text": "- evoclock/pi-agentic-driver#125 merged.\n- [Mark shipped 3.0.0 tools as released in the README](https://github.com/evoclock/pi-agentic-driver/pull/125)"
+    }
   ],
   "steps": [
-    {"text": "Add an API key for the demo service", "meta": "blocks Alpha"},
-    {"text": "Read the release notes", "done": true}
+    {
+      "id": "step-bowerbird-2",
+      "text": "Review evoclock/pi-bowerbird#2",
+      "url": "https://github.com/evoclock/pi-bowerbird/pull/2",
+      "meta": "open on GitHub",
+      "done": false,
+      "pr": "evoclock/pi-bowerbird#2"
+    },
+    {
+      "id": "step-bowerbird-3",
+      "text": "Review evoclock/pi-bowerbird#3",
+      "url": "https://github.com/evoclock/pi-bowerbird/pull/3",
+      "meta": "open on GitHub",
+      "done": false,
+      "pr": "evoclock/pi-bowerbird#3"
+    },
+    {
+      "id": "step-omb-48",
+      "text": "Read evoclock/OpenMausBot#48",
+      "url": "https://github.com/evoclock/OpenMausBot/pull/48",
+      "meta": "draft",
+      "done": false,
+      "pr": "evoclock/OpenMausBot#48"
+    },
+    {
+      "id": "step-omb-47",
+      "text": "Read evoclock/OpenMausBot#47",
+      "url": "https://github.com/evoclock/OpenMausBot/pull/47",
+      "meta": "draft",
+      "done": false,
+      "pr": "evoclock/OpenMausBot#47"
+    },
+    {
+      "id": "step-demeter-note",
+      "text": "Read the Demeter note in public fieldnotes",
+      "url": "https://github.com/evoclock/fieldnotes/blob/main/drafts/2026-10-23-weekly-recap-linkedin.md",
+      "meta": "public note",
+      "done": false
+    },
+    {
+      "id": "step-driver-300",
+      "text": "Read the pi-agentic-driver 3.0.0 release note",
+      "url": "https://github.com/evoclock/pi-agentic-driver/pull/125",
+      "meta": "merged 25 Oct",
+      "done": true
+    }
   ],
   "merges": [
-    {"title": "Add settings page", "repo": "example/app", "bot": "Alpha", "state": "Ready to merge"},
-    {"title": "Refactor parser", "repo": "example/lib", "bot": "Beta", "state": "In progress"}
+    {
+      "title": "Accept skill:poteto-mode-pi in Pi readiness",
+      "repo": "evoclock/OpenMausBot",
+      "bot": "OpenMausBot",
+      "state": "Draft",
+      "number": 48,
+      "url": "https://github.com/evoclock/OpenMausBot/pull/48"
+    },
+    {
+      "title": "Connect coding runs to reviewed GitHub drafts",
+      "repo": "evoclock/OpenMausBot",
+      "bot": "OpenMausBot",
+      "state": "Draft",
+      "number": 47,
+      "url": "https://github.com/evoclock/OpenMausBot/pull/47"
+    },
+    {
+      "title": "Fit iso node focus border to the node outline",
+      "repo": "evoclock/pi-bowerbird",
+      "bot": "pi-bowerbird",
+      "state": "Open",
+      "number": 2,
+      "url": "https://github.com/evoclock/pi-bowerbird/pull/2"
+    },
+    {
+      "title": "Fix render test paths on Windows",
+      "repo": "evoclock/pi-bowerbird",
+      "bot": "pi-bowerbird",
+      "state": "Open",
+      "number": 3,
+      "url": "https://github.com/evoclock/pi-bowerbird/pull/3"
+    }
   ],
-  "merge_note": "Merge example/lib first, then example/app.",
+  "merge_note": "Drafts stay on the queue. This page does not collect live check status.",
   "priorities": [
-    {"stream": "Alpha", "area": "Settings", "items": [
-      {"text": "Write tests", "state": "current"},
-      {"text": "Wire the API key", "state": "blocked"},
-      {"text": "Sketch the layout", "state": "done"}]},
-    {"stream": "Beta", "area": "Parser", "items": [
-      {"text": "Address review comments", "state": "current"},
-      {"text": "Update docs", "state": "next"}]}
+    {
+      "stream": "FlightDeck",
+      "area": "Template",
+      "items": [
+        {"text": "Sync hooks are in the template. This demo is a static page.", "state": "current", "src": "stream"}
+      ]
+    },
+    {
+      "stream": "OpenMausBot",
+      "area": "App",
+      "items": [
+        {"text": "Two draft pull requests are open on the public repo.", "state": "current", "src": "stream"},
+        {"text": "Read the drafts.", "state": "next", "src": "stream"}
+      ]
+    },
+    {
+      "stream": "pi-agentic-driver",
+      "area": "Driver",
+      "items": [
+        {"text": "3.0.0 is marked released in the public README.", "state": "current", "src": "stream"},
+        {"text": "Mark 3.0.0 released in the README", "state": "done", "src": "ladder"}
+      ]
+    },
+    {
+      "stream": "pi-bowerbird",
+      "area": "Diagrams",
+      "items": [
+        {"text": "Two pull requests are open on the public repo.", "state": "current", "src": "stream"},
+        {"text": "Review both open pull requests.", "state": "next", "src": "stream"}
+      ]
+    },
+    {
+      "stream": "Demeter",
+      "area": "Populations",
+      "items": [
+        {"text": "The public fieldnotes describe multilevel selection for populations of agents.", "state": "current", "src": "stream"}
+      ]
+    }
   ],
   "settled": [
-    {"meta": "Mon", "title": "Picked a name", "detail": "FlightDeck"},
-    {"meta": "Tue", "title": "Chose the colour palette", "detail": "Earthy tones, light mode only."}
+    {
+      "meta": "14:19",
+      "title": "OpenMausBot run checks",
+      "detail": "- evoclock/OpenMausBot#46 merged.\n- [Add host-observed run checks](https://github.com/evoclock/OpenMausBot/pull/46)"
+    },
+    {
+      "meta": "11:39",
+      "title": "FlightDeck sync hooks",
+      "detail": "- evoclock/FlightDeck#6 merged.\n- [Own tracker sync hooks in the FlightDeck template](https://github.com/evoclock/FlightDeck/pull/6)"
+    },
+    {
+      "meta": "01:30",
+      "title": "pi-agentic-driver 3.0.0",
+      "detail": "- evoclock/pi-agentic-driver#125 merged.\n- The public README marks the 3.0.0 tools as released."
+    }
   ],
-  "metrics": {"title": "This machine (node-a)", "items": [
-    {"key": "cpu", "label": "CPU", "pct": 23.0},
-    {"key": "mem", "label": "Memory", "pct": 61.5, "detail": "9.8 / 16 GB"},
-    {"key": "disk", "label": "Disk", "pct": 44.0}
-  ]},
-  "activity": {"window": "1h", "commits": 5, "prs_opened": 1, "prs_merged": 2}
+  "metrics": {
+    "title": "Example host",
+    "at": "2026-10-25T11:40:00+00:00",
+    "note": "Example readings for this illustration.",
+    "items": [
+      {"key": "cpu", "label": "CPU", "pct": 23.0},
+      {"key": "mem", "label": "Memory", "pct": 61.5, "detail": "9.8 / 16 GB"},
+      {"key": "disk", "label": "Disk", "pct": 44.0}
+    ]
+  },
+  "activity": {
+    "window": "1h",
+    "commits": 3,
+    "prs_opened": 1,
+    "prs_merged": 1,
+    "at": "2026-10-25T11:40:00+00:00",
+    "note": "Example counts for this illustration. Not a live GitHub total.",
+    "sample": true
+  },
+  "activity_weekly": {
+    "window": "week",
+    "since": "2026-10-23T17:00:00+01:00",
+    "commits": 18,
+    "prs_opened": 4,
+    "prs_merged": 3,
+    "at": "2026-10-25T11:40:00+00:00",
+    "note": "Example counts for this illustration. Not a live GitHub total.",
+    "sample": true
+  }
 }

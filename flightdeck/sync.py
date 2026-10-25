@@ -19,7 +19,7 @@ import urllib.parse
 import urllib.request
 from pathlib import Path
 
-from collectors import load, save
+from collectors import load, refuse_demo_write, save
 from flightdeck.common import DEFAULT_TZ, item_id
 
 try:
@@ -1231,6 +1231,8 @@ def cli_data(fn, argv=None):
     args = parser.parse_args(argv)
     cfg = load_config(args.config)
     path = resolve_data(args.data)
+    if path is not None and refuse_demo_write(path):
+        return 2
     if path is None:
         print(f"{fn.__name__}: no data file, skipping", file=sys.stderr)
         return 0
