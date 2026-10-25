@@ -22,13 +22,9 @@ python3 -m flightdeck.render examples/demo/config.json examples/demo/data.json d
 
 Do not deploy a Worker for this public demo.
 
-The walkthrough of this static page is [examples/demo/assets/flock-tracker-demo.mp4](examples/demo/assets/flock-tracker-demo.mp4). The still of the same page is [examples/demo/demo-still.png](examples/demo/demo-still.png).
-
-<video src="examples/demo/assets/flock-tracker-demo.mp4" controls playsinline width="100%"></video>
-
 ![FlightDeck demo illustration](examples/demo/demo-still.png)
 
-To open the page itself, render locally and serve `http://127.0.0.1:8765/` (leave the file offline; do not upload a Worker):
+The still is this static page in a browser. A motion recording is not in the repo. To capture one, render locally and record `http://127.0.0.1:8765/` (leave the file offline; do not upload a Worker):
 
 ```bash
 ./publish.sh
