@@ -72,6 +72,15 @@ class DemoRenderTests(unittest.TestCase):
         self.assertEqual(cfg['slots']['cluster'], 'metrics.generic')
         self.assertIn('<section class="spark metrics"', self.doc)
 
+    def test_walkthrough_video_is_the_attached_file(self):
+        video = DEMO / 'assets' / 'flock-tracker-demo.mp4'
+        self.assertTrue(video.is_file())
+        self.assertEqual(video.stat().st_size, 5746259)
+        self.assertIn(b'ftyp', video.read_bytes()[:32])
+        demo_doc = (DEMO / 'README.md').read_text()
+        self.assertIn('assets/flock-tracker-demo.mp4', demo_doc)
+        self.assertIn('demo-still.png', demo_doc)
+
 
 if __name__ == '__main__':
     unittest.main()
