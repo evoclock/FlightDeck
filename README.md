@@ -63,6 +63,10 @@ Local folder: [docs/deploy-local.md](docs/deploy-local.md). `scripts/publish_loc
 
 Cloudflare Workers: [docs/deploy-cloudflare.md](docs/deploy-cloudflare.md). `scripts/publish_cloudflare.sh` is a dry-run that embeds that HTML into a `flightdeck-demo` Worker. Real account ids, zone ids, Access emails, and KV ids stay in `site/site.json` on your machine. The repo only has placeholders in `site/site.example.json`.
 
+## CI
+
+Product CI is Buildkite on the `mac-mini` queue. The org pipeline uploads `.buildkite/pipeline.yml`. This repo does not use a GitHub Actions workflow. The pipeline checks Python 3.11 or newer, runs the unit tests, and renders the demo.
+
 ## Design
 
 The layout rules, slot list, and what is in and out of v1 are in [docs/superpowers/specs/2026-10-25-flightdeck-design.md](docs/superpowers/specs/2026-10-25-flightdeck-design.md).
