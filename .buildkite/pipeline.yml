@@ -1,7 +1,7 @@
 # Product CI for the public FlightDeck template.
 # The Buildkite org pipeline uploads this file on queue mac-mini:
 #   buildkite-agent pipeline upload .buildkite/pipeline.yml
-# Python 3.11+ standard library. No secrets. No GitHub Actions workflow.
+# Python 3.11+ standard library. No secrets. GitHub Actions runs the pull request wording check only.
 env:
   PYTHONDONTWRITEBYTECODE: "1"
 

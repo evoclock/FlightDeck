@@ -98,7 +98,7 @@ Cloudflare Workers: [docs/deploy-cloudflare.md](docs/deploy-cloudflare.md). `scr
 
 ## CI
 
-Product CI is Buildkite on the `mac-mini` queue. The org pipeline uploads `.buildkite/pipeline.yml`. This repo does not use a GitHub Actions workflow. The pipeline checks Python 3.11 or newer, runs the unit tests, and renders the demo.
+Product CI is Buildkite on the `mac-mini` queue. The org pipeline uploads `.buildkite/pipeline.yml`. The pipeline checks Python 3.11 or newer, runs the unit tests, and renders the demo. Pull request titles and bodies must pass the wording check.
 
 ## Design
 
