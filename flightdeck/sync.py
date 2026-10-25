@@ -173,9 +173,16 @@ def parse_time(value):
     return parsed
 
 
+def _local_now(now):
+    return aware(now).astimezone(zone()) if zone() else aware(now).astimezone()
+
+
 def format_meta(now):
-    local = aware(now).astimezone(zone()) if zone() else aware(now).astimezone()
-    return local.strftime("%a %H:%M")
+    return _local_now(now).strftime("%a %H:%M")
+
+
+def format_hm(now):
+    return _local_now(now).strftime("%H:%M")
 
 
 def bullets(*lines):
@@ -695,17 +702,38 @@ def comment_detail(comment):
     return bullets(*lines) if lines else "- Comment recorded."
 
 
+def _authorised_alternative_text(text, hm):
+    """One authorised-alternative bullet. A legacy 'Your alternative at…' line is replaced."""
+    fresh = f"- You authorised this alternative at {hm}."
+    rows = (text or "").splitlines()
+    out = []
+    placed = False
+    for row in rows:
+        stripped = row.strip()
+        if "Your alternative at" in stripped or "You authorised this alternative" in stripped:
+            if not placed:
+                out.append(fresh)
+                placed = True
+            continue
+        out.append(row)
+    if not placed:
+        out.append(fresh)
+    return "\n".join(out)
+
+
 def apply_responses(data, responses, handled, now):
     applied = []
     for resp in responses:
         if not isinstance(resp, dict):
             continue
         rid = str(resp.get("id") or "")
-        if not rid or rid in handled:
+        if not rid:
             continue
         value = resp.get("value") or ""
         kind = resp.get("type") or ""
         if kind == "step" or value == "done":
+            if rid in handled:
+                continue
             step = _find_by_id(data.get("steps"), rid, "step")
             if not step or value != "done":
                 continue
@@ -714,7 +742,11 @@ def apply_responses(data, responses, handled, now):
             continue
         decision = _find_by_id(data.get("decisions"), rid, "dec")
         if not decision:
-            print(f"reconcile_responses: id not on the tracker ({rid})", file=sys.stderr)
+            if rid not in handled:
+                print(f"reconcile_responses: id not on the tracker ({rid})", file=sys.stderr)
+            continue
+        # A handled Accept, Reject, or comment is applied again only while the Decision is still open.
+        if rid in handled and decision.get("state") != "open":
             continue
         title = decision.get("title") or "Decision"
         if value == "accepted":
@@ -725,10 +757,13 @@ def apply_responses(data, responses, handled, now):
             add_settled(data, title, "- Rejected.", now, rid)
         elif value == "comment":
             comment = (resp.get("comment") or "").strip()
-            if not comment:
+            if not comment or decision.get("state") != "open":
                 continue
+            hm = format_hm(now)
             decision["state"] = "settled"
-            add_settled(data, title, comment_detail(comment), now, rid)
+            decision["meta"] = f"Alternative {hm}"
+            decision["text"] = _authorised_alternative_text(decision.get("text") or "", hm)
+            add_settled(data, f"{title} (alternative)", comment_detail(comment), now, rid)
         else:
             continue
         applied.append(rid)
