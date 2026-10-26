@@ -141,7 +141,7 @@ class PublicTreeSecretTests(unittest.TestCase):
             self.assertNotIn('Claude', text, label)
         self.assertIn('GPT Astra', spec)
         self.assertIn('GPT Astra', plan)
-        self.assertIn('ADHD Neuromancer', readme)
+        self.assertIn('examples/demo/assets/banner.webp', readme)
         self.assertNotIn('GPT Astra', readme)
 
 
