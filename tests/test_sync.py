@@ -601,7 +601,7 @@ class PublishTests(unittest.TestCase):
 
     def test_new_surface_has_no_private_markers(self):
         readme = (ROOT / "README.md").read_text(encoding="utf-8")
-        self.assertIn("ADHD Neuromancer", readme)
+        self.assertIn("examples/demo/assets/banner.webp", readme)
         blob = [readme]
         for path in [ROOT / "publish.sh", ROOT / "config" / "sync.example.json"]:
             blob.append(path.read_text(encoding="utf-8"))

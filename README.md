@@ -6,7 +6,7 @@ The renderer and collectors use the standard library only. Clone this repo and r
 
 ## Render the demo
 
-The public demo is a static illustration of publicly released from my repos. The page title is FlightDeck. Streams are FlightDeck, OpenMausBot, pi-agentic-driver, pi-bowerbird, and Demeter. Pull requests and notes link to public GitHub pages. Activity counts and the cluster chart are examples stored in `examples/demo/data.json`. That file is static. Rendering it does not collect from GitHub. The architecture slot is `architecture.diagrams`, with public FlightDeck, OpenMausBot, pi-bowerbird, and Demeter fieldnotes stubs.
+The public demo is a static illustration of publicly released work from my repos. The page title is FlightDeck. Streams are FlightDeck, OpenMausBot, pi-agentic-driver, pi-bowerbird, and Demeter. Pull requests and notes link to public GitHub pages. Activity counts and the cluster chart are examples stored in `examples/demo/data.json`. That file is static. Rendering it does not collect from GitHub. The architecture slot is `architecture.diagrams`, with public FlightDeck, OpenMausBot, pi-bowerbird, and Demeter fieldnotes stubs.
 
 The banner is `examples/demo/assets/banner.webp`. Swap in your own `banner.webp` beside your config if you wish to bring your own. The banner keeps its natural aspect.
 
@@ -20,7 +20,7 @@ That runs the pre-render hooks, then writes `dist/local/index.html` and copies t
 python3 -m flightdeck.render examples/demo/config.json examples/demo/data.json dist/local/index.html
 ```
 
-Make sure to avoid deploying a Worker for this public demo, it simply won't do much for you.
+Do not deploy a Worker for this public demo.
 
 [![FlightDeck walkthrough: banner, cluster, activity, streams, decisions, steps, merges, and architecture](examples/demo/assets/flightdeck-demo-readme.gif)](examples/demo/assets/flightdeck-demo.mp4)
 
