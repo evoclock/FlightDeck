@@ -108,7 +108,10 @@ ul{list-style:none;margin:0;padding:0}
 .tick:checked::after{content:"";width:6px;height:12px;border:solid #fff;border-width:0 3px 3px 0;transform:translateY(-1px) rotate(45deg)}
 .tick:disabled{cursor:default}
 .tick:focus-visible{outline:3px solid var(--focus);outline-offset:3px}
-.txt{flex:1;min-width:0;color:var(--ink)}
+.txt{flex:1;min-width:0;max-width:100%;color:var(--ink);overflow-wrap:anywhere}
+.t,.strong.t{min-width:0;max-width:100%;overflow-wrap:anywhere}
+.list .item,.tickrow{min-width:0;max-width:100%}
+.pb{overflow-x:hidden}
 .steps .done .txt,.ticked .txt{color:var(--sub)}
 .steps .done .t,.ticked .t{text-decoration:line-through;text-decoration-thickness:1.5px}
 .when{margin-left:8px;color:var(--forest);font-weight:500}
@@ -218,7 +221,7 @@ footer{margin-top:var(--gap);font-size:15.5px;color:var(--sub);display:flex;gap:
  .nsub{font-size:14px}
  .nrow + .nrow .ml{display:none}
  .grid{grid-template-columns:repeat(2,minmax(0,1fr));align-items:stretch}
- .pane{height:clamp(420px,70vh,760px)}
+ .pane{min-height:clamp(420px,70vh,760px);height:auto;max-height:none}
  .pane.closed{height:auto}
  #architecture{grid-column:1/-1}
 }

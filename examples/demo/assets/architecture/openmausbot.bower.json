@@ -1,0 +1,212 @@
+{
+  "schema": "bowerbird/v1",
+  "meta": {
+    "title": "OpenMausBot",
+    "kicker": "FlightDeck · architecture",
+    "subtitle": "Chat app where each bot is a local agent with its own model, cloud computer and connected apps.",
+    "statusTracking": true,
+    "grid": {
+      "col": 340,
+      "row": 180,
+      "gap": 44
+    },
+    "repository": {
+      "url": "https://github.com/evoclock/OpenMausBot",
+      "ref": "main"
+    },
+    "repos": [
+      "evoclock/OpenMausBot"
+    ]
+  },
+  "categories": {
+    "sage": {
+      "label": "Interface / app"
+    },
+    "peach": {
+      "label": "Orchestration / agents"
+    },
+    "slate": {
+      "label": "Runners / compute"
+    },
+    "mauve": {
+      "label": "Data / storage"
+    },
+    "mustard": {
+      "label": "CI / release"
+    },
+    "teal": {
+      "label": "Docs / contracts"
+    }
+  },
+  "nodes": [
+    {
+      "id": "desktop",
+      "at": [
+        0,
+        0
+      ],
+      "type": "main",
+      "title": "Desktop app",
+      "hint": "electron/, src/",
+      "category": "sage",
+      "status": "implemented",
+      "details": "Electron shell and React chat UI: bots in a sidebar, rooms, approvals.\n\n#### Tracker status\nBuilt\n\n#### Where\n- OpenMausBot · main · electron/, src/\n- [github.com/evoclock/OpenMausBot/tree/main/electron](https://github.com/evoclock/OpenMausBot/tree/main/electron)"
+    },
+    {
+      "id": "companion",
+      "at": [
+        0,
+        1
+      ],
+      "type": "main",
+      "title": "Phone companion",
+      "hint": "companion/",
+      "category": "sage",
+      "status": "implemented",
+      "details": "Pairs a phone over mDNS or a tunnel and relays the viewer.\n\n#### Tracker status\nBuilt\n\n#### Where\n- OpenMausBot · main · companion/\n- [github.com/evoclock/OpenMausBot/tree/main/companion](https://github.com/evoclock/OpenMausBot/tree/main/companion)"
+    },
+    {
+      "id": "server",
+      "at": [
+        1,
+        1
+      ],
+      "type": "main",
+      "title": "Local server",
+      "hint": "server/",
+      "category": "peach",
+      "status": "implemented",
+      "details": "Rooms, bots, routines, memory, MCP gateway, approvals and spend caps.\n\n#### Tracker status\nBuilt\n\n#### Where\n- OpenMausBot · main · server/\n- [github.com/evoclock/OpenMausBot/tree/main/server](https://github.com/evoclock/OpenMausBot/tree/main/server)"
+    },
+    {
+      "id": "coding",
+      "at": [
+        2,
+        1
+      ],
+      "type": "merged #38",
+      "title": "Coding runs",
+      "hint": "OpenMausBot",
+      "category": "slate",
+      "status": "implemented",
+      "details": "Coding loop in Treehouse workspaces with effect receipts and context kept across iterations (#33, #38).\n\n#### Tracker status\nBuilt\n\n#### Where\n- OpenMausBot · #38\n- [github.com/evoclock/OpenMausBot/pull/38](https://github.com/evoclock/OpenMausBot/pull/38)"
+    },
+    {
+      "id": "attach",
+      "at": [
+        3,
+        1
+      ],
+      "type": "PR #39",
+      "title": "Driver attach",
+      "hint": "OpenMausBot",
+      "category": "slate",
+      "status": "partial",
+      "details": "Keeps coding runs safe across restarts by attaching to the driver.\n\n#### Tracker status\nIn progress\n\n#### Where\n- OpenMausBot · PR #39\n- [github.com/evoclock/OpenMausBot/pull/39](https://github.com/evoclock/OpenMausBot/pull/39)"
+    },
+    {
+      "id": "chain",
+      "at": [
+        3,
+        2
+      ],
+      "type": "PR #41",
+      "title": "Coding-run model chain",
+      "hint": "OpenMausBot",
+      "category": "slate",
+      "status": "partial",
+      "details": "Keeps coding runs on approved, predictable model routes.\n\n#### Tracker status\nIn progress\n\n#### Where\n- OpenMausBot · PR #41\n- [github.com/evoclock/OpenMausBot/pull/41](https://github.com/evoclock/OpenMausBot/pull/41)"
+    },
+    {
+      "id": "control",
+      "at": [
+        1,
+        2
+      ],
+      "type": "main",
+      "title": "Cloud control plane",
+      "hint": "cloudflare/control-plane",
+      "category": "slate",
+      "status": "implemented",
+      "details": "Cloudflare control plane for hosted accounts and cloud computers.\n\n#### Tracker status\nBuilt\n\n#### Where\n- OpenMausBot · main · cloudflare/control-plane\n- [github.com/evoclock/OpenMausBot/tree/main/cloudflare/control-plane](https://github.com/evoclock/OpenMausBot/tree/main/cloudflare/control-plane)"
+    },
+    {
+      "id": "composio",
+      "at": [
+        2,
+        2
+      ],
+      "type": "main",
+      "title": "Connected-apps broker",
+      "hint": "cloudflare/composio-broker",
+      "category": "peach",
+      "status": "implemented",
+      "details": "Cloudflare broker for connected apps.\n\n#### Tracker status\nBuilt\n\n#### Where\n- OpenMausBot · main · cloudflare/composio-broker\n- [github.com/evoclock/OpenMausBot/tree/main/cloudflare/composio-broker](https://github.com/evoclock/OpenMausBot/tree/main/cloudflare/composio-broker)"
+    },
+    {
+      "id": "updater",
+      "at": [
+        1,
+        0
+      ],
+      "type": "PR #40",
+      "title": "evoclock updater",
+      "hint": "OpenMausBot",
+      "category": "mustard",
+      "status": "partial",
+      "details": "Takes app updates from the evoclock fork (move C follows).\n\n#### Tracker status\nIn progress\n\n#### Where\n- OpenMausBot · PR #40\n- [github.com/evoclock/OpenMausBot/pull/40](https://github.com/evoclock/OpenMausBot/pull/40)"
+    },
+    {
+      "id": "release",
+      "at": [
+        2,
+        0
+      ],
+      "type": "Unverified",
+      "title": "First evoclock release",
+      "hint": "tracker",
+      "category": "mustard",
+      "status": "planned",
+      "unverified": true,
+      "details": "Item 14 in Your steps. No release branch or spec found in the repo.\n\n#### Tracker status\nUnverified. Not found in a repo yet, so the diagram draws it like a planned part.\n\n#### Where\n- OpenMausBot · tracker · Your steps\n- [github.com/evoclock/OpenMausBot/releases](https://github.com/evoclock/OpenMausBot/releases)"
+    }
+  ],
+  "edges": [
+    {
+      "from": "desktop",
+      "to": "server"
+    },
+    {
+      "from": "companion",
+      "to": "server"
+    },
+    {
+      "from": "server",
+      "to": "coding"
+    },
+    {
+      "from": "coding",
+      "to": "attach"
+    },
+    {
+      "from": "coding",
+      "to": "chain"
+    },
+    {
+      "from": "server",
+      "to": "control"
+    },
+    {
+      "from": "server",
+      "to": "composio"
+    },
+    {
+      "from": "desktop",
+      "to": "updater"
+    },
+    {
+      "from": "updater",
+      "to": "release"
+    }
+  ]
+}

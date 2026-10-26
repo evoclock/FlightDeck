@@ -1,0 +1,38 @@
+{
+  "bowerbird": "0.1.1",
+  "theme": "light",
+  "views": [
+    "flat",
+    "iso"
+  ],
+  "diagrams": {
+    "flightdeck.bower.json": {
+      "sha256": "41c3b6979b2c6ff8001243c5cff57bcd38b886e5fe2789dc3be6a49d88ad546e",
+      "warnings": {
+        "flat": [],
+        "iso": []
+      }
+    },
+    "openmausbot.bower.json": {
+      "sha256": "e6d5c3a8776dfe28dc244be5c3fe9ef61fb17c6d8ea0ef8168628d39e45314b2",
+      "warnings": {
+        "flat": [],
+        "iso": []
+      }
+    },
+    "pi-bowerbird.bower.json": {
+      "sha256": "affa04009aebd770521d7f3331ccd89d9a49ea174ba8a5eec8a78f3c008d2fc9",
+      "warnings": {
+        "flat": [],
+        "iso": []
+      }
+    },
+    "demeter.bower.json": {
+      "sha256": "81aa487229dfae8576990961cd875b632fea2955956c6d02072f23e9f96fea80",
+      "warnings": {
+        "flat": [],
+        "iso": []
+      }
+    }
+  }
+}

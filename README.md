@@ -2,13 +2,13 @@
 
 FlightDeck is a static dashboard for agent work. Ten slots stay in a fixed layout. `config.json` chooses which widget fills each slot. Collectors write `data.json`. One render command writes a single HTML file.
 
-Python 3.11 or newer is enough. The renderer and collectors use the standard library only. Clone this repo and run the commands from the root.
+The renderer and collectors use the standard library only. Clone this repo and run the commands from the root.
 
 ## Render the demo
 
-The public demo is a static illustration of publicly released evoclock work. Streams are FlightDeck, OpenMausBot, pi-agentic-driver, pi-bowerbird, and Demeter. Pull requests and notes link to public GitHub pages. Activity counts and host bars are examples stored in `examples/demo/data.json`. That file is static. Rendering it does not collect from GitHub. The architecture slot stays empty until you add your own diagrams.
+The public demo is a static illustration of publicly released work from my repos. The page title is FlightDeck. Streams are FlightDeck, OpenMausBot, pi-agentic-driver, pi-bowerbird, and Demeter. Pull requests and notes link to public GitHub pages. Activity counts and the cluster chart are examples stored in `examples/demo/data.json`. That file is static. Rendering it does not collect from GitHub. The architecture slot is `architecture.diagrams`, with public FlightDeck, OpenMausBot, pi-bowerbird, and Demeter fieldnotes stubs.
 
-The banner is `examples/demo/assets/banner.webp`, created by GPT Astra. Keep that file for the public demo. Swap in your own `banner.webp` beside your config when you leave the demo. The banner keeps its natural aspect.
+The banner is `examples/demo/assets/banner.webp`. Swap in your own `banner.webp` beside your config if you wish to bring your own. The banner keeps its natural aspect.
 
 ```bash
 ./publish.sh
@@ -22,9 +22,9 @@ python3 -m flightdeck.render examples/demo/config.json examples/demo/data.json d
 
 Do not deploy a Worker for this public demo.
 
-![FlightDeck demo illustration](examples/demo/demo-still.png)
+[![FlightDeck walkthrough: banner, cluster, activity, streams, decisions, steps, merges, and architecture](examples/demo/assets/flightdeck-demo-readme.gif)](examples/demo/assets/flightdeck-demo.mp4)
 
-The still is this static page in a browser. A motion recording is not in the repo. To capture one, render locally and record `http://127.0.0.1:8765/` (leave the file offline; do not upload a Worker):
+Explore the full dashboard tour above, including the interactive architecture diagrams. [Watch the video](examples/demo/assets/flightdeck-demo.mp4) or [view the dashboard still](examples/demo/demo-still.png). To preview locally (leave the file offline; do not upload a Worker):
 
 ```bash
 ./publish.sh
@@ -65,9 +65,9 @@ Copy `config.example.json` to `config.json`. Every slot is required. An unknown 
 | `architecture.diagrams` | Architecture embeds |
 | `empty` | Hide the slot |
 
-The demo sets `cluster` to `metrics.generic` and `architecture` to `empty`. Use `cluster.gpu` when you have cluster readings. Use `architecture.diagrams` when you have diagrams. `empty` leaves a slot out.
+The demo sets `cluster` to `cluster.gpu` and `architecture` to `empty`. `config.example.json` sets `cluster` to `metrics.generic` for a machine without GPU readings. Use `architecture.diagrams` when you have diagrams. `empty` leaves a slot out.
 
-Weekly activity in the demo sets `activity_weekly.sample` so the example counts stay on the page after Friday 17:00. A live collector does not set `sample`. A weekly block from an earlier week, without `sample`, shows zeros and Collecting.
+The demo weekly block is the current week, so the column reads This week. A weekly block from an earlier week, without `sample`, shows zeros and Collecting. `activity_weekly.sample` keeps stored counts after Friday 17:00 and labels that column Example. A live collector does not set `sample`.
 
 Refresh `data.json` before rendering again:
 
@@ -96,10 +96,5 @@ Local folder: [docs/deploy-local.md](docs/deploy-local.md). `scripts/publish_loc
 
 Cloudflare Workers: [docs/deploy-cloudflare.md](docs/deploy-cloudflare.md). `scripts/publish_cloudflare.sh` is a dry-run that embeds that HTML into a `flightdeck-demo` Worker. Real account ids, zone ids, Access emails, and KV ids stay in `site/site.json` on your machine. The repo only has placeholders in `site/site.example.json`.
 
-## CI
-
-Product CI is Buildkite on the `mac-mini` queue. The org pipeline uploads `.buildkite/pipeline.yml`. The pipeline checks Python 3.11 or newer, runs the unit tests, and renders the demo. Pull request titles and bodies must pass the wording check.
-
-## Design
-
-The layout rules, slot list, and what is in and out of v1 are in [docs/superpowers/specs/2026-10-25-flightdeck-design.md](docs/superpowers/specs/2026-10-25-flightdeck-design.md).
+## License
+MIT

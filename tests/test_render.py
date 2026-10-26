@@ -155,6 +155,16 @@ class RenderTests(Base):
 
 
 class WidgetPortTests(Base):
+    def test_step_links_render_and_open_in_a_new_tab(self):
+        ctx = self.ctx()
+        ctx.data['steps'] = [{'id': 'step-x', 'text': 'Merge [app #2](https://github.com/example/app/pull/2) now',
+                              'url': 'https://example.com/run/9'}]
+        st = render_slot('steps.checklist', ctx)
+        self.assertIn('<a href="https://github.com/example/app/pull/2" target="_blank" rel="noopener noreferrer">app #2</a>', st)
+        self.assertIn('<a href="https://example.com/run/9" target="_blank" rel="noopener noreferrer">example.com/run/9</a>', st)
+        self.assertIn('aria-label="Mark done: Merge app #2 now"', st)
+        self.assertNotIn('[app #2]', st)
+
     def test_streams_badge_counts_who_needs_you(self):
         out = render_slot('streams.table', self.ctx())
         self.assertIn('2 bots · 1 need you', out)
@@ -165,7 +175,7 @@ class WidgetPortTests(Base):
         self.assertLess(out.index('data-id="dec-1"'), out.index('Settled'))
         self.assertIn('1 open · 1 settled', out)
         self.assertIn('<ul class="prose-list"><li>one</li><li>two</li></ul>', out)
-        self.assertIn('<a href="https://github.com/example/app/pull/1" target="_blank" rel="noopener">PR</a>', out)
+        self.assertIn('<a href="https://github.com/example/app/pull/1" target="_blank" rel="noopener noreferrer">PR</a>', out)
         self.assertEqual(out.count('data-act="accepted"'), 2)
 
     def test_steps_and_merges_have_tick_boxes(self):
@@ -199,6 +209,33 @@ class WidgetPortTests(Base):
         out = render_slot('cluster.gpu', self.ctx({}))
         self.assertIn('No nodes configured.', out)
         self.assertIn('0 online', out)
+
+    def test_sample_spark_keeps_the_chart_after_the_hour(self):
+        d = fake_data()
+        end = NOW - datetime.timedelta(days=3)
+        hist = []
+        for i in range(0, 61, 5):
+            at = end - datetime.timedelta(minutes=60 - i)
+            hist.append({'at': at.isoformat(), 'gpu': {'demo-a': 40 + (i % 20), 'demo-b': 30 + (i % 15)}})
+        d['spark'] = {
+            'sample': True, 'cluster': 'demo',
+            'nodes': [
+                {'name': 'demo-a', 'status': 'online', 'read_at': end.isoformat(), 'gpu_util_pct': 55.0,
+                 'mem_used_bytes': 40e9, 'mem_total_bytes': 80e9, 'temp_c': 60, 'power_w': 40},
+                {'name': 'demo-b', 'status': 'online', 'read_at': end.isoformat(), 'gpu_util_pct': 42.0,
+                 'mem_used_bytes': 30e9, 'mem_total_bytes': 80e9, 'temp_c': 55, 'power_w': 35},
+            ],
+            'history': hist,
+        }
+        out = cluster.render(self.ctx(d), now=NOW)
+        self.assertIn('class="tr-empty" hidden', out)
+        self.assertIn('class="nrow s-online"', out)
+        self.assertIn('"sample": true', out)
+        self.assertIn('data-node="demo-a"', out)
+
+    def test_sample_spark_page_never_polls_live_readings(self):
+        from flightdeck.page_js import JS
+        self.assertIn("&&!(TR&&TR.sample)){var poll=", JS)
 
     def test_activity_counts_and_weekly_staleness(self):
         d = fake_data()

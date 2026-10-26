@@ -11,7 +11,7 @@ import json
 import re
 from pathlib import Path
 
-from flightdeck.common import e, pane
+from flightdeck.common import e, ext_link, pane
 
 STATUS = {"built": "Built", "progress": "In progress", "planned": "Planned", "unverified": "Unverified"}
 BB_STATUS = {"implemented": "built", "partial": "progress", "planned": "planned"}
@@ -76,7 +76,7 @@ def render(ctx):
         tabs.append(f'<button role="tab" id="tab-{pid}" aria-selected="{sel}" aria-controls="arch-{pid}" '
                     f'tabindex="{0 if i == 0 else -1}" type="button">{e(name)}</button>')
         counts = " · ".join(f'{st.count(k)} {v.lower()}' for k, v in STATUS.items() if k in st)
-        repos = " ".join(f'<a href="https://github.com/{e(r)}">{e(r)}</a>' for r in dg["meta"].get("repos", []))
+        repos = " ".join(ext_link(f"https://github.com/{r}", r) for r in dg["meta"].get("repos", []))
         toggle = "".join(f'<button type="button" class="vt" data-view="{v}" aria-pressed="{str(j == 0).lower()}">{l}</button>'
                          for j, (v, l) in enumerate(VIEWS.items()))
         panels.append(f'<div role="tabpanel" id="arch-{pid}" aria-labelledby="tab-{pid}" class="tabpanel"{"" if i == 0 else " hidden"}>'

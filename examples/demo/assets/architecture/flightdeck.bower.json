@@ -1,0 +1,160 @@
+{
+  "schema": "bowerbird/v1",
+  "meta": {
+    "title": "FlightDeck",
+    "kicker": "FlightDeck · architecture",
+    "subtitle": "Public, config-driven dashboard: slots map to widgets, rendered to one static page.",
+    "statusTracking": true,
+    "grid": {
+      "col": 340,
+      "row": 180,
+      "gap": 44
+    },
+    "repository": {
+      "url": "https://github.com/evoclock/FlightDeck",
+      "ref": "main"
+    },
+    "repos": [
+      "evoclock/FlightDeck"
+    ]
+  },
+  "categories": {
+    "sage": {
+      "label": "Interface / app"
+    },
+    "peach": {
+      "label": "Orchestration / agents"
+    },
+    "slate": {
+      "label": "Runners / compute"
+    },
+    "mauve": {
+      "label": "Data / storage"
+    },
+    "mustard": {
+      "label": "CI / release"
+    },
+    "teal": {
+      "label": "Docs / contracts"
+    }
+  },
+  "nodes": [
+    {
+      "id": "pkg",
+      "at": [
+        1,
+        0
+      ],
+      "type": "main",
+      "title": "flightdeck package",
+      "hint": "config, render, layout",
+      "category": "sage",
+      "status": "implemented",
+      "details": "Python package: config loader with locked slot ids, slot renderer, layout CSS and page JS.\n\n#### Tracker status\nBuilt (Tasks 1–3)\n\n#### Where\n- [flightdeck/](https://github.com/evoclock/FlightDeck/tree/main/flightdeck)\n- [flightdeck/config.py](https://github.com/evoclock/FlightDeck/blob/main/flightdeck/config.py)\n- [flightdeck/render.py](https://github.com/evoclock/FlightDeck/blob/main/flightdeck/render.py)\n- [config.example.json](https://github.com/evoclock/FlightDeck/blob/main/config.example.json)"
+    },
+    {
+      "id": "widgets",
+      "at": [
+        2,
+        0
+      ],
+      "type": "main",
+      "title": "Slot widgets",
+      "hint": "flightdeck/widgets/",
+      "category": "sage",
+      "status": "implemented",
+      "details": "Widget registry: banner, cluster, activity, streams, decisions, steps, merges, priorities, settled, architecture, metrics, empty.\n\n#### Tracker status\nBuilt (Tasks 2–3)\n\n#### Where\n- [flightdeck/widgets/](https://github.com/evoclock/FlightDeck/tree/main/flightdeck/widgets)"
+    },
+    {
+      "id": "collectors",
+      "at": [
+        2,
+        1
+      ],
+      "type": "main",
+      "title": "Collectors",
+      "hint": "activity, generic metrics",
+      "category": "mauve",
+      "status": "implemented",
+      "details": "GitHub activity collector and generic metrics collector that feed data.json.\n\n#### Tracker status\nBuilt (Task 5)\n\n#### Where\n- [collectors/activity.py](https://github.com/evoclock/FlightDeck/blob/main/collectors/activity.py)\n- [collectors/metrics_generic.py](https://github.com/evoclock/FlightDeck/blob/main/collectors/metrics_generic.py)"
+    },
+    {
+      "id": "demo",
+      "at": [
+        0,
+        0
+      ],
+      "type": "main",
+      "title": "Scrubbed demo",
+      "hint": "examples/demo/",
+      "category": "teal",
+      "status": "partial",
+      "details": "Demo config + data with no private details. Banner is a TEMP placeholder until the Claude default banner lands at examples/demo/assets/banner.webp.\n\n#### Tracker status\nPartial · waiting on default banner\n\n#### Where\n- [examples/demo/](https://github.com/evoclock/FlightDeck/tree/main/examples/demo)\n- [examples/demo/assets/banner.webp](https://github.com/evoclock/FlightDeck/blob/main/examples/demo/assets/banner.webp)"
+    },
+    {
+      "id": "cf",
+      "at": [
+        0,
+        1
+      ],
+      "type": "main",
+      "title": "Deploy recipes",
+      "hint": "Cloudflare + local",
+      "category": "mustard",
+      "status": "planned",
+      "details": "Planned: site/ port, scripts/publish_cloudflare.sh, scripts/publish_local.sh, docs/deploy-*.md.\n\n#### Tracker status\nNot started (Task 6)\n\n#### Where\n- [Plan · Task 6](https://github.com/evoclock/FlightDeck/blob/main/docs/superpowers/plans/2026-10-25-flightdeck.md)"
+    },
+    {
+      "id": "readme",
+      "at": [
+        1,
+        1
+      ],
+      "type": "main",
+      "title": "Public README",
+      "hint": "install, slots, deploy",
+      "category": "teal",
+      "status": "planned",
+      "details": "Planned: plain-language README covering install, config slots, widget table and both deploy paths.\n\n#### Tracker status\nNot started (Task 7)\n\n#### Where\n- [Design doc](https://github.com/evoclock/FlightDeck/blob/main/docs/superpowers/specs/2026-10-25-flightdeck-design.md)"
+    },
+    {
+      "id": "instance",
+      "at": [
+        1,
+        2
+      ],
+      "type": "main",
+      "title": "Live instance",
+      "hint": "uses submodule",
+      "category": "peach",
+      "status": "planned",
+      "details": "Planned: a separate instance repo pulls FlightDeck as a submodule with live data.json, its own banner and Spark collectors.\n\n#### Tracker status\nNot started (Task 8)\n\n#### Where\n- [Plan · Task 8](https://github.com/evoclock/FlightDeck/blob/main/docs/superpowers/plans/2026-10-25-flightdeck.md)"
+    }
+  ],
+  "edges": [
+    {
+      "from": "pkg",
+      "to": "widgets"
+    },
+    {
+      "from": "pkg",
+      "to": "collectors"
+    },
+    {
+      "from": "demo",
+      "to": "pkg"
+    },
+    {
+      "from": "cf",
+      "to": "pkg"
+    },
+    {
+      "from": "readme",
+      "to": "pkg"
+    },
+    {
+      "from": "instance",
+      "to": "pkg"
+    }
+  ]
+}

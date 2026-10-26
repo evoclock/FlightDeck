@@ -1,0 +1,747 @@
+<!doctype html>
+<html lang="en" data-theme="light" class="motion">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>OpenMausBot</title>
+<meta name="description" content="Chat app where each bot is a local agent with its own model, cloud computer and connected apps.">
+<meta name="generator" content="bowerbird">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@300..800&display=swap">
+<style>
+:root{color-scheme:light dark}
+*{box-sizing:border-box}
+html[data-theme=dark]{--bg:#1a1816;--panel:#272421;--line:#35302b;--ink:#ead1b5;--muted:#b09080;--accent:#79c39e}
+html[data-theme=light]{--bg:#fbf9f6;--panel:#fffdfa;--line:#dcdad7;--ink:#2f2a27;--muted:#716961;--accent:#3d8461}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.6 Geist,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialiased}
+a{color:var(--ink);text-decoration-color:var(--accent);text-decoration-thickness:1px;text-underline-offset:.22em}
+a:hover{color:var(--accent)}
+code{font:.84em ui-monospace,SFMono-Regular,Menlo,monospace;overflow-wrap:anywhere}
+.page{width:min(1680px,calc(100% - 48px));margin:0 auto}
+.caps{font-size:.68rem;font-weight:500;letter-spacing:.2em;text-transform:uppercase;color:var(--muted)}
+.toolbar{position:sticky;top:0;z-index:5;display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;justify-content:space-between;padding:14px 0;background:var(--bg);border-bottom:1px solid var(--line)}
+.toolbar .group{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.toolbar label{margin-right:4px}
+button,select{min-height:32px;padding:4px 12px;border:1px solid var(--line);border-radius:4px;background:transparent;color:var(--ink);font:inherit;font-size:.68rem;font-weight:500;letter-spacing:.16em;text-transform:uppercase;cursor:pointer}
+button:hover,select:hover{border-color:var(--muted)}
+button[aria-pressed=true]{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+select option{background:var(--bg);color:var(--ink);text-transform:none;letter-spacing:0}
+:focus-visible{outline:1.5px solid var(--accent);outline-offset:3px}
+.stage{position:relative;height:min(82vh,1100px);margin:24px 0;overflow:hidden;overflow:clip;border:1px solid var(--line);border-radius:6px;background:var(--bg);cursor:grab;touch-action:none;user-select:none}
+.stage.panning{cursor:grabbing}
+.stage:focus-visible{outline-offset:-2px}
+.stage:fullscreen{height:100vh;border:0;border-radius:0}
+.viewport{position:absolute;left:0;top:0;transform-origin:0 0;will-change:transform}
+.viewport svg{display:block}
+.nav{position:absolute;top:12px;right:12px;z-index:2;display:flex;gap:4px;padding:4px;border:1px solid var(--line);border-radius:6px;background:var(--bg)}
+.nav button{min-width:34px;min-height:30px;padding:0 9px;border-color:transparent;letter-spacing:.06em}
+.nav button:hover{border-color:var(--line)}
+.nav #zoom-level{min-width:58px;font-variant-numeric:tabular-nums}
+.minimap{position:absolute;right:12px;bottom:12px;z-index:2;width:clamp(140px,16vw,220px);overflow:hidden;border:1px solid var(--line);border-radius:4px;background:var(--bg);cursor:crosshair;transition:opacity .25s ease}
+.minimap img{display:block;width:100%;height:auto;pointer-events:none}
+.minimap-frame{position:absolute;border:1.5px solid var(--accent);border-radius:2px;box-shadow:0 0 0 999px rgb(0 0 0 / 22%);pointer-events:none}
+.stage.at-fit .minimap{opacity:0;pointer-events:none}
+.stage-hint{position:absolute;left:14px;bottom:10px;z-index:2;margin:0;pointer-events:none;opacity:.8}
+.stage:not(.at-fit) .stage-hint{opacity:0}
+.bb-node[tabindex]{cursor:pointer}
+.bb-node[tabindex]:hover .bb-node-box,.bb-node[tabindex]:focus .bb-node-box{stroke-width:1.6}
+.bb-node.is-selected .bb-node-box{stroke-width:2}
+.map-item{transition:opacity .25s ease}
+.map-item.is-dimmed{opacity:.12}
+html:not(.motion) .bb-flow{display:none}
+.motion .bb-node{animation:bb-enter .6s cubic-bezier(.2,.7,.2,1) both}
+@keyframes bb-enter{from{opacity:0}}
+.drawer[hidden]{display:none}
+.drawer{position:fixed;z-index:20;top:80px;right:24px;bottom:24px;display:flex;flex-direction:column;width:min(420px,calc(100vw - 48px));border:1px solid var(--line);border-radius:6px;background:var(--bg);box-shadow:0 24px 60px rgb(0 0 0 / 22%)}
+.drawer.from-left{right:auto;left:24px}
+.drawer-head{display:flex;gap:12px;justify-content:space-between;align-items:start;padding:20px 22px 16px;border-bottom:1px solid var(--line)}
+.drawer-head p{margin:0 0 6px}
+.drawer-head h2{margin:0;font-size:1.35rem;font-weight:400;letter-spacing:-.01em}
+.drawer-head button{min-height:28px;padding:0 9px;letter-spacing:0;font-size:1rem}
+.drawer-body{overflow:auto;padding:14px 22px 22px;font-size:.9rem}
+.drawer-body h4,.detail h4{margin:18px 0 6px;color:var(--muted);font-size:.66rem;font-weight:500;letter-spacing:.2em;text-transform:uppercase}
+.drawer-body ul,.detail ul{margin:6px 0;padding-left:16px}
+.evidence-list{margin-top:14px;padding-top:12px;border-top:1px solid var(--line);font-size:.84rem}
+.evidence-list b{display:block;margin-bottom:4px;color:var(--muted);font-size:.66rem;font-weight:500;letter-spacing:.2em;text-transform:uppercase}
+.details{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:0 32px;margin:40px 0 56px}
+.details>h2{grid-column:1/-1;margin:0 0 12px;font-size:1.5rem;font-weight:300;letter-spacing:-.01em}
+details.card{border-top:1px solid var(--line)}
+details.card summary{padding:14px 0;cursor:pointer;font-weight:500;list-style:none;display:flex;gap:10px;align-items:baseline}
+details.card summary::-webkit-details-marker{display:none}
+details.card summary .st{margin-left:auto}
+details.card .detail{padding:0 0 18px;font-size:.9rem;color:var(--ink)}
+footer{padding:18px 0 32px;border-top:1px solid var(--line)}
+@media (max-width:760px){.drawer,.drawer.from-left{top:auto;left:12px;right:12px;bottom:12px;width:auto;max-height:66vh}}
+@media (prefers-reduced-motion:reduce){.map-item{transition:none}.motion .bb-node{animation:none}}
+@media print{.toolbar,.drawer{display:none}details.card>*:not(summary){display:block!important}}
+</style>
+</head>
+<body data-basename="openmausbot">
+<div class="page">
+<div class="toolbar"><div class="group"><span class="caps">6 built · 3 partial · 1 planned</span></div>
+<div class="group"><button id="motion" type="button" aria-pressed="true" title="Toggle flow animation (M)">Motion</button><button id="theme" type="button" title="Toggle theme (T)">Light</button>
+<select id="export" aria-label="Export diagram"><option value="">Export…</option><option value="svg">SVG</option><option value="png">PNG (2×)</option><option value="webp">WebP (2×)</option></select></div></div>
+<div class="stage at-fit" id="stage" tabindex="0" aria-label="Diagram canvas. Drag to pan, Ctrl or Cmd plus scroll to zoom, F to fit.">
+<div class="viewport" id="viewport"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1354 1220" width="1354" height="1220" role="group" aria-labelledby="bb-t">
+<title id="bb-t">OpenMausBot</title>
+<style>
+text{font-family:Geist,"Geist Sans",ui-sans-serif,system-ui,-apple-system,"Segoe UI",Helvetica,Arial,sans-serif;font-variant-numeric:tabular-nums}
+.bb-title{font-size:36px;font-weight:300;letter-spacing:-.015em}
+.bb-subtitle{font-size:14px;font-weight:400}
+.bb-kicker-top{font-size:10.5px;font-weight:500;letter-spacing:2.6px}
+.bb-meta{font-size:11px;font-weight:400;letter-spacing:.03em}
+.bb-meter-big{font-size:42px;font-weight:300;letter-spacing:-.02em}
+.bb-meter-unit{font-size:17px;font-weight:300}
+.bb-meter-track{stroke-width:1;fill:none}
+.bb-meter-solid,.bb-meter-part{stroke-width:3;fill:none}
+.bb-meter-part{stroke-dasharray:2 3}
+.bb-rule{stroke-width:1;fill:none}
+.bb-zone{stroke-width:1}
+.bb-zone-kicker{font-size:10.5px;font-weight:500;letter-spacing:2.6px}
+.bb-zone-title{font-size:21px;font-weight:400;letter-spacing:-.005em}
+.bb-zone-sub{font-size:11.5px}
+.bb-node-box{stroke-width:1}
+.bb-node.status-planned .bb-node-box{stroke-dasharray:4 4}
+.bb-kicker{font-size:10.5px;font-weight:500;letter-spacing:2.4px}
+.bb-node-title{font-size:17px;font-weight:500;letter-spacing:-.005em}
+.bb-copy{font-size:13.5px;font-weight:400}
+.bb-hint{font-size:11.5px;font-weight:400;letter-spacing:.02em}
+.bb-status-text{font-size:9.5px;font-weight:600;letter-spacing:1.9px}
+.bb-dot{stroke-width:1.1;fill:none}
+.bb-edge{fill:none;stroke-width:1.25;stroke-linejoin:round;stroke-linecap:round}
+.bb-edge.control{stroke-dasharray:3 4}
+.bb-edge.failure{stroke-dasharray:.1 4.5;stroke-width:1.8}
+.bb-edge.is-planned{opacity:.4}
+.bb-label{font-size:11.5px;font-weight:500;letter-spacing:.02em;paint-order:stroke;stroke-width:6px;stroke-linejoin:round}
+.bb-legend-text{font-size:12px;font-weight:400}
+.bb-finding-text{font-size:9px;font-weight:600;letter-spacing:1.6px}
+.iso-face{stroke-width:.8;stroke-linejoin:round}
+.bb-node.status-planned .iso-face{fill:none;stroke-dasharray:4 4;stroke-width:1}
+.iso-hatch line{stroke-width:.8;opacity:.45}
+.iso-label-knockout{paint-order:stroke;stroke-width:6px;stroke-linejoin:round}
+html[data-theme=dark] .bb-canvas{fill:#1a1816}
+html[data-theme=dark] .bb-title,html[data-theme=dark] .bb-zone-title,html[data-theme=dark] .bb-node-title,html[data-theme=dark] .bb-meter-big,html[data-theme=dark] .bb-meter-unit{fill:#ead1b5}
+html[data-theme=dark] .bb-subtitle,html[data-theme=dark] .bb-copy,html[data-theme=dark] .bb-hint,html[data-theme=dark] .bb-legend-text,html[data-theme=dark] .bb-meta,html[data-theme=dark] .bb-kicker,html[data-theme=dark] .bb-zone-kicker,html[data-theme=dark] .bb-kicker-top,html[data-theme=dark] .bb-zone-sub{fill:#b09080}
+html[data-theme=dark] .bb-rule,html[data-theme=dark] .bb-meter-track{stroke:#35302b}
+html[data-theme=dark] .bb-meter-solid{stroke:#ead1b5}
+html[data-theme=dark] .bb-meter-part{stroke:#b09080}
+html[data-theme=dark] .bb-zone{fill:#1f1c19;stroke:#35302b}
+html[data-theme=dark] .bb-node-box{fill:#272421;stroke:#35302b}
+html[data-theme=dark] .bb-node.status-planned .bb-node-box{fill:none;stroke:#4c443c}
+html[data-theme=dark] .bb-node.status-planned .bb-node-title{fill:#b09080}
+html[data-theme=dark] .bb-status-text{fill:#b09080}
+html[data-theme=dark] .bb-status.is-implemented .bb-status-text{fill:#b09080}
+html[data-theme=dark] .bb-dot{stroke:#b09080}
+html[data-theme=dark] .bb-dot-fill{fill:#b09080}
+html[data-theme=dark] .bb-status.is-implemented .bb-dot{stroke:#ead1b5}
+html[data-theme=dark] .bb-status.is-implemented .bb-dot-fill{fill:#ead1b5}
+html[data-theme=dark] .bb-edge.data{stroke:#958574}
+html[data-theme=dark] .bb-edge.control{stroke:#6b737e}
+html[data-theme=dark] .bb-edge.failure{stroke:#c27a5c}
+html[data-theme=dark] .bb-arrow.data{fill:#958574}
+html[data-theme=dark] .bb-arrow.control{fill:#6b737e}
+html[data-theme=dark] .bb-arrow.failure{fill:#c27a5c}
+html[data-theme=dark] .bb-label,html[data-theme=dark] .iso-label-knockout{stroke:#1a1816}
+html[data-theme=dark] .bb-label.data{fill:#b09080}
+html[data-theme=dark] .bb-label.control{fill:#a4a8ae}
+html[data-theme=dark] .bb-label.failure{fill:#c27a5c}
+html[data-theme=dark] .bb-flow{stroke:#ead1b5;stroke-opacity:.55}
+html[data-theme=dark] .bb-finding-text,html[data-theme=dark] .bb-finding-inline{fill:#c27a5c}
+html[data-theme=dark] .bb-node.has-finding .bb-node-box{stroke:#c27a5c}
+html[data-theme=dark] .bb-pseudo-fill{fill:#ead1b5}
+html[data-theme=dark] .bb-pseudo-ring{fill:#1a1816;stroke:#ead1b5;stroke-width:1.3}
+html[data-theme=dark] .bb-pseudo-choice{fill:#272421}
+html[data-theme=dark] .bb-node.is-selected .bb-node-box,html[data-theme=dark] .bb-node[tabindex]:focus .bb-node-box{stroke:#ead1b5}
+html[data-theme=dark] .cat-sage .bb-mark,html[data-theme=dark] .bb-mark.cat-sage{fill:#7fbd9e}
+html[data-theme=dark] .cat-sage .bb-kicker,html[data-theme=dark] .cat-sage .bb-zone-kicker{fill:#89b498}
+html[data-theme=dark] .cat-sage .bb-node-box{fill:#353c35;stroke:#475b4e}
+html[data-theme=dark] .cat-sage.status-planned .bb-node-box{fill:none;stroke:#476253}
+html[data-theme=dark] .bb-zone.cat-sage{fill:#212420;stroke:#344339}
+html[data-theme=dark] .cat-sage .iso-roof{fill:#8fb7a3;stroke:#48705c}
+html[data-theme=dark] .cat-sage .iso-left{fill:#70a48a;stroke:#48705c}
+html[data-theme=dark] .cat-sage .iso-right{fill:#5a8c73;stroke:#48705c}
+html[data-theme=dark] .cat-sage.status-planned .iso-face{stroke:#79c39e}
+html[data-theme=dark] .cat-peach .bb-mark,html[data-theme=dark] .bb-mark.cat-peach{fill:#ca9a7d}
+html[data-theme=dark] .cat-peach .bb-kicker,html[data-theme=dark] .cat-peach .bb-zone-kicker{fill:#c5987e}
+html[data-theme=dark] .cat-peach .bb-node-box{fill:#413730;stroke:#624e42}
+html[data-theme=dark] .cat-peach.status-planned .bb-node-box{fill:none;stroke:#695344}
+html[data-theme=dark] .bb-zone.cat-peach{fill:#26211d;stroke:#483a31}
+html[data-theme=dark] .cat-peach .iso-roof{fill:#b79e8f;stroke:#705748}
+html[data-theme=dark] .cat-peach .iso-left{fill:#a48370;stroke:#705748}
+html[data-theme=dark] .cat-peach .iso-right{fill:#8c6c5a;stroke:#705748}
+html[data-theme=dark] .cat-peach.status-planned .iso-face{stroke:#ee9b69}
+html[data-theme=dark] .cat-slate .bb-mark,html[data-theme=dark] .bb-mark.cat-slate{fill:#7a92ae}
+html[data-theme=dark] .cat-slate .bb-kicker,html[data-theme=dark] .cat-slate .bb-zone-kicker{fill:#8592a5}
+html[data-theme=dark] .cat-slate .bb-node-box{fill:#343638;stroke:#454c54}
+html[data-theme=dark] .cat-slate.status-planned .bb-node-box{fill:none;stroke:#454f5a}
+html[data-theme=dark] .bb-zone.cat-slate{fill:#212121;stroke:#33383e}
+html[data-theme=dark] .cat-slate .iso-roof{fill:#96a2b0;stroke:#4f5b69}
+html[data-theme=dark] .cat-slate .iso-left{fill:#79889a;stroke:#4f5b69}
+html[data-theme=dark] .cat-slate .iso-right{fill:#637183;stroke:#4f5b69}
+html[data-theme=dark] .cat-slate.status-planned .iso-face{stroke:#617082}
+html[data-theme=dark] .cat-mauve .bb-mark,html[data-theme=dark] .bb-mark.cat-mauve{fill:#ae7a9d}
+html[data-theme=dark] .cat-mauve .bb-kicker,html[data-theme=dark] .cat-mauve .bb-zone-kicker{fill:#ae7e97}
+html[data-theme=dark] .cat-mauve .bb-node-box{fill:#3d3235;stroke:#58434e}
+html[data-theme=dark] .cat-mauve.status-planned .bb-node-box{fill:none;stroke:#5d4453}
+html[data-theme=dark] .bb-zone.cat-mauve{fill:#241f1f;stroke:#403139}
+html[data-theme=dark] .cat-mauve .iso-roof{fill:#b196a8;stroke:#694e61}
+html[data-theme=dark] .cat-mauve .iso-left{fill:#9b7890;stroke:#694e61}
+html[data-theme=dark] .cat-mauve .iso-right{fill:#846279;stroke:#694e61}
+html[data-theme=dark] .cat-mauve.status-planned .iso-face{stroke:#76536b}
+html[data-theme=dark] .cat-mustard .bb-mark,html[data-theme=dark] .bb-mark.cat-mustard{fill:#c2aa6a}
+html[data-theme=dark] .cat-mustard .bb-kicker,html[data-theme=dark] .cat-mustard .bb-zone-kicker{fill:#bea56e}
+html[data-theme=dark] .cat-mustard .bb-node-box{fill:#40392d;stroke:#5f543b}
+html[data-theme=dark] .cat-mustard.status-planned .bb-node-box{fill:none;stroke:#665a3c}
+html[data-theme=dark] .bb-zone.cat-mustard{fill:#26221c;stroke:#463e2c}
+html[data-theme=dark] .cat-mustard .iso-roof{fill:#b7ad8f;stroke:#706548}
+html[data-theme=dark] .cat-mustard .iso-left{fill:#a49670;stroke:#706548}
+html[data-theme=dark] .cat-mustard .iso-right{fill:#8c7e5a;stroke:#706548}
+html[data-theme=dark] .cat-mustard.status-planned .iso-face{stroke:#ceb05e}
+html[data-theme=dark] .cat-teal .bb-mark,html[data-theme=dark] .bb-mark.cat-teal{fill:#7aadae}
+html[data-theme=dark] .cat-teal .bb-kicker,html[data-theme=dark] .cat-teal .bb-zone-kicker{fill:#85a7a5}
+html[data-theme=dark] .cat-teal .bb-node-box{fill:#343a38;stroke:#455554}
+html[data-theme=dark] .cat-teal.status-planned .bb-node-box{fill:none;stroke:#455b5a}
+html[data-theme=dark] .bb-zone.cat-teal{fill:#212221;stroke:#333f3e}
+html[data-theme=dark] .cat-teal .iso-roof{fill:#8fb7b7;stroke:#486f70}
+html[data-theme=dark] .cat-teal .iso-left{fill:#70a2a4;stroke:#486f70}
+html[data-theme=dark] .cat-teal .iso-right{fill:#5a8b8c;stroke:#486f70}
+html[data-theme=dark] .cat-teal.status-planned .iso-face{stroke:#3f6f70}
+html[data-theme=dark] .iso-shadow{fill:#000000;fill-opacity:0.32}
+html[data-theme=dark] .iso-hatch line{stroke:#1a1816}
+html[data-theme=dark] .iso-tag-bg,html[data-theme=dark] .iso-label-bg{fill:#1a1816;fill-opacity:.9}
+html[data-theme=dark] .bb-label.plain{stroke:none}
+html[data-theme=dark] .bb-node:not([class*=cat-]) .iso-face{fill:#272421;stroke:#35302b}html[data-theme=light] .bb-canvas{fill:#fbf9f6}
+html[data-theme=light] .bb-title,html[data-theme=light] .bb-zone-title,html[data-theme=light] .bb-node-title,html[data-theme=light] .bb-meter-big,html[data-theme=light] .bb-meter-unit{fill:#2f2a27}
+html[data-theme=light] .bb-subtitle,html[data-theme=light] .bb-copy,html[data-theme=light] .bb-hint,html[data-theme=light] .bb-legend-text,html[data-theme=light] .bb-meta,html[data-theme=light] .bb-kicker,html[data-theme=light] .bb-zone-kicker,html[data-theme=light] .bb-kicker-top,html[data-theme=light] .bb-zone-sub{fill:#716961}
+html[data-theme=light] .bb-rule,html[data-theme=light] .bb-meter-track{stroke:#dcdad7}
+html[data-theme=light] .bb-meter-solid{stroke:#2f2a27}
+html[data-theme=light] .bb-meter-part{stroke:#716961}
+html[data-theme=light] .bb-zone{fill:#f5f3f0;stroke:#dcdad7}
+html[data-theme=light] .bb-node-box{fill:#fffdfa;stroke:#dcdad7}
+html[data-theme=light] .bb-node.status-planned .bb-node-box{fill:none;stroke:#c2bfbc}
+html[data-theme=light] .bb-node.status-planned .bb-node-title{fill:#716961}
+html[data-theme=light] .bb-status-text{fill:#716961}
+html[data-theme=light] .bb-status.is-implemented .bb-status-text{fill:#716961}
+html[data-theme=light] .bb-dot{stroke:#716961}
+html[data-theme=light] .bb-dot-fill{fill:#716961}
+html[data-theme=light] .bb-status.is-implemented .bb-dot{stroke:#2f2a27}
+html[data-theme=light] .bb-status.is-implemented .bb-dot-fill{fill:#2f2a27}
+html[data-theme=light] .bb-edge.data{stroke:#888079}
+html[data-theme=light] .bb-edge.control{stroke:#747c86}
+html[data-theme=light] .bb-edge.failure{stroke:#9b4a36}
+html[data-theme=light] .bb-arrow.data{fill:#888079}
+html[data-theme=light] .bb-arrow.control{fill:#747c86}
+html[data-theme=light] .bb-arrow.failure{fill:#9b4a36}
+html[data-theme=light] .bb-label,html[data-theme=light] .iso-label-knockout{stroke:#fbf9f6}
+html[data-theme=light] .bb-label.data{fill:#716961}
+html[data-theme=light] .bb-label.control{fill:#4c535c}
+html[data-theme=light] .bb-label.failure{fill:#9b4a36}
+html[data-theme=light] .bb-flow{stroke:#2f2a27;stroke-opacity:.55}
+html[data-theme=light] .bb-finding-text,html[data-theme=light] .bb-finding-inline{fill:#9b4a36}
+html[data-theme=light] .bb-node.has-finding .bb-node-box{stroke:#9b4a36}
+html[data-theme=light] .bb-pseudo-fill{fill:#2f2a27}
+html[data-theme=light] .bb-pseudo-ring{fill:#fbf9f6;stroke:#2f2a27;stroke-width:1.3}
+html[data-theme=light] .bb-pseudo-choice{fill:#fffdfa}
+html[data-theme=light] .bb-node.is-selected .bb-node-box,html[data-theme=light] .bb-node[tabindex]:focus .bb-node-box{stroke:#2f2a27}
+html[data-theme=light] .cat-sage .bb-mark,html[data-theme=light] .bb-mark.cat-sage{fill:#427f61}
+html[data-theme=light] .cat-sage .bb-kicker,html[data-theme=light] .cat-sage .bb-zone-kicker{fill:#477d61}
+html[data-theme=light] .cat-sage .bb-node-box{fill:#eaefe9;stroke:#b7cdc0}
+html[data-theme=light] .cat-sage.status-planned .bb-node-box{fill:none;stroke:#9fbcac}
+html[data-theme=light] .bb-zone.cat-sage{fill:#f0f2ed;stroke:#c0d2c6}
+html[data-theme=light] .cat-sage .iso-roof{fill:#afd5c2;stroke:#54a17b}
+html[data-theme=light] .cat-sage .iso-left{fill:#8dc3a9;stroke:#54a17b}
+html[data-theme=light] .cat-sage .iso-right{fill:#6fb492;stroke:#54a17b}
+html[data-theme=light] .cat-sage.status-planned .iso-face{stroke:#3d8461}
+html[data-theme=light] .cat-peach .bb-mark,html[data-theme=light] .bb-mark.cat-peach{fill:#a76644}
+html[data-theme=light] .cat-peach .bb-kicker,html[data-theme=light] .cat-peach .bb-zone-kicker{fill:#a26647}
+html[data-theme=light] .cat-peach .bb-node-box{fill:#f5ece6;stroke:#dec4b5}
+html[data-theme=light] .cat-peach.status-planned .bb-node-box{fill:none;stroke:#d1b09d}
+html[data-theme=light] .bb-zone.cat-peach{fill:#f6f0eb;stroke:#e0cabd}
+html[data-theme=light] .cat-peach .iso-roof{fill:#d6bcae;stroke:#a36e52}
+html[data-theme=light] .cat-peach .iso-left{fill:#c59f8c;stroke:#a36e52}
+html[data-theme=light] .cat-peach .iso-right{fill:#b6866d;stroke:#a36e52}
+html[data-theme=light] .cat-peach.status-planned .iso-face{stroke:#b4643a}
+html[data-theme=light] .cat-slate .bb-mark,html[data-theme=light] .bb-mark.cat-slate{fill:#4a5c73}
+html[data-theme=light] .cat-slate .bb-kicker,html[data-theme=light] .cat-slate .bb-zone-kicker{fill:#4e5d71}
+html[data-theme=light] .cat-slate .bb-node-box{fill:#ebebeb;stroke:#bac0c7}
+html[data-theme=light] .cat-slate.status-planned .bb-node-box{fill:none;stroke:#a3abb5}
+html[data-theme=light] .bb-zone.cat-slate{fill:#f0f0ee;stroke:#c2c7cc}
+html[data-theme=light] .cat-slate .iso-roof{fill:#b5c1cf;stroke:#617894}
+html[data-theme=light] .cat-slate .iso-left{fill:#96a7bb;stroke:#617894}
+html[data-theme=light] .cat-slate .iso-right{fill:#7a8fa8;stroke:#617894}
+html[data-theme=light] .cat-slate.status-planned .iso-face{stroke:#4f5d6e}
+html[data-theme=light] .cat-mauve .bb-mark,html[data-theme=light] .bb-mark.cat-mauve{fill:#7b4e6d}
+html[data-theme=light] .cat-mauve .bb-kicker,html[data-theme=light] .cat-mauve .bb-zone-kicker{fill:#7a516c}
+html[data-theme=light] .cat-mauve .bb-node-box{fill:#f0eaea;stroke:#cdbbc4}
+html[data-theme=light] .cat-mauve.status-planned .bb-node-box{fill:none;stroke:#bba4b2}
+html[data-theme=light] .bb-zone.cat-mauve{fill:#f3efee;stroke:#d2c2ca}
+html[data-theme=light] .cat-mauve .iso-roof{fill:#cfb5c7;stroke:#946184}
+html[data-theme=light] .cat-mauve .iso-left{fill:#bb96af;stroke:#946184}
+html[data-theme=light] .cat-mauve .iso-right{fill:#a87a9a;stroke:#946184}
+html[data-theme=light] .cat-mauve.status-planned .iso-face{stroke:#76536b}
+html[data-theme=light] .cat-mustard .bb-mark,html[data-theme=light] .bb-mark.cat-mustard{fill:#7d6a33}
+html[data-theme=light] .cat-mustard .bb-kicker,html[data-theme=light] .cat-mustard .bb-zone-kicker{fill:#7c6a38}
+html[data-theme=light] .cat-mustard .bb-node-box{fill:#f1ede4;stroke:#cec5ae}
+html[data-theme=light] .cat-mustard.status-planned .bb-node-box{fill:none;stroke:#bcb295}
+html[data-theme=light] .bb-zone.cat-mustard{fill:#f3f0ea;stroke:#d3cbb8}
+html[data-theme=light] .cat-mustard .iso-roof{fill:#d6cbae;stroke:#a38e52}
+html[data-theme=light] .cat-mustard .iso-left{fill:#c5b68c;stroke:#a38e52}
+html[data-theme=light] .cat-mustard .iso-right{fill:#b6a36d;stroke:#a38e52}
+html[data-theme=light] .cat-mustard.status-planned .iso-face{stroke:#8a7026}
+html[data-theme=light] .cat-teal .bb-mark,html[data-theme=light] .bb-mark.cat-teal{fill:#3b7273}
+html[data-theme=light] .cat-teal .bb-kicker,html[data-theme=light] .cat-teal .bb-zone-kicker{fill:#407171}
+html[data-theme=light] .cat-teal .bb-node-box{fill:#e9eeeb;stroke:#b5c8c7}
+html[data-theme=light] .cat-teal.status-planned .bb-node-box{fill:none;stroke:#9bb6b5}
+html[data-theme=light] .bb-zone.cat-teal{fill:#eff1ee;stroke:#bececc}
+html[data-theme=light] .cat-teal .iso-roof{fill:#aed5d6;stroke:#53a1a2}
+html[data-theme=light] .cat-teal .iso-left{fill:#8cc3c4;stroke:#53a1a2}
+html[data-theme=light] .cat-teal .iso-right{fill:#6eb4b5;stroke:#53a1a2}
+html[data-theme=light] .cat-teal.status-planned .iso-face{stroke:#2f6869}
+html[data-theme=light] .iso-shadow{fill:#3b2f26;fill-opacity:0.08}
+html[data-theme=light] .iso-hatch line{stroke:#fbf9f6}
+html[data-theme=light] .iso-tag-bg,html[data-theme=light] .iso-label-bg{fill:#fbf9f6;fill-opacity:.9}
+html[data-theme=light] .bb-label.plain{stroke:none}
+html[data-theme=light] .bb-node:not([class*=cat-]) .iso-face{fill:#fffdfa;stroke:#dcdad7}
+.bb-flow{fill:none;stroke-width:2.4;stroke-linecap:round;stroke-dasharray:.1 28;animation:bb-flow 2.6s linear infinite}
+@keyframes bb-flow{to{stroke-dashoffset:-28.1}}
+@media (prefers-reduced-motion:reduce){.bb-flow{animation:none;opacity:0}}
+</style>
+<defs><marker id="bb-arrow-data" viewBox="0 0 10 10" refX="8.6" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path class="bb-arrow data" d="M 0 1 L 10 5 L 0 9 z"/></marker><marker id="bb-arrow-control" viewBox="0 0 10 10" refX="8.6" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path class="bb-arrow control" d="M 0 1 L 10 5 L 0 9 z"/></marker><marker id="bb-arrow-failure" viewBox="0 0 10 10" refX="8.6" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path class="bb-arrow failure" d="M 0 1 L 10 5 L 0 9 z"/></marker></defs>
+<rect class="bb-canvas" x="0" y="0" width="1354" height="1220"/>
+<path class="bb-rule" d="M 48 48 H 70"/>
+<text class="bb-kicker-top" x="82" y="52">FLIGHTDECK · ARCHITECTURE</text>
+<text class="bb-title" x="48" y="100">OpenMausBot</text>
+<text class="bb-subtitle" x="48" y="130">Chat app where each bot is a local agent with its own model, cloud computer and connected apps.</text>
+<g class="bb-meter" aria-label="60% built"><text class="bb-kicker-top" x="1306" y="52" text-anchor="end">COMPLETION</text><text x="1306" y="96" text-anchor="end"><tspan class="bb-meter-big">60</tspan><tspan class="bb-meter-unit" dx="3">%</tspan></text><path class="bb-meter-track" d="M 1086 110 H 1306"/><path class="bb-meter-solid" d="M 1086 110 H 1218"/><path class="bb-meter-part" d="M 1218 110 H 1284"/><text class="bb-meta" x="1306" y="132" text-anchor="end">6 built · 3 partial · 1 planned</text></g>
+<polygon class="iso-shadow" points="333.7,235 590,383 472.2,451 215.9,303"/>
+<polygon class="iso-shadow" points="177.8,325 434.1,473 316.3,541 60,393"/>
+<polygon class="iso-shadow" points="628.1,405 884.5,553 766.7,621 510.3,473"/>
+<polygon class="iso-shadow" points="472.2,495 728.6,643 610.8,711 354.4,563"/>
+<polygon class="iso-shadow" points="316.3,585 572.7,733 454.9,801 198.6,653"/>
+<polygon class="iso-shadow" points="766.7,665 1023,813 905.2,881 648.9,733"/>
+<polygon class="iso-shadow" points="610.8,755 867.1,903 749.4,971 493,823"/>
+<polygon class="iso-shadow" points="1061.1,835 1317.5,983 1199.7,1051 943.3,903"/>
+<polygon class="iso-shadow" points="905.2,925 1161.6,1073 1043.8,1141 787.5,993"/>
+<g class="bb-node map-item cat-sage status-implemented" data-id="desktop" tabindex="0" role="button" aria-label="Open details for Desktop app">
+<polygon class="iso-face iso-left" points="203.9,258 460.2,406 460.2,444 203.9,296"/>
+<polygon class="iso-face iso-right" points="578,338 460.2,406 460.2,444 578,376"/>
+<polygon class="iso-face iso-roof" points="321.7,190 578,338 460.2,406 203.9,258"/>
+</g>
+<g class="bb-node map-item cat-sage status-implemented" data-id="companion" tabindex="0" role="button" aria-label="Open details for Phone companion">
+<polygon class="iso-face iso-left" points="48,348 304.3,496 304.3,534 48,386"/>
+<polygon class="iso-face iso-right" points="422.1,428 304.3,496 304.3,534 422.1,466"/>
+<polygon class="iso-face iso-roof" points="165.8,280 422.1,428 304.3,496 48,348"/>
+</g>
+<g class="bb-node map-item cat-mustard status-partial" data-id="updater" tabindex="0" role="button" aria-label="Open details for evoclock updater">
+<polygon class="iso-face iso-left" points="498.3,428 754.7,576 754.7,614 498.3,466"/>
+<polygon class="iso-face iso-right" points="872.5,508 754.7,576 754.7,614 872.5,546"/>
+<polygon class="iso-face iso-roof" points="616.1,360 872.5,508 754.7,576 498.3,428"/>
+<clipPath id="clip-updater"><polygon class="" points="616.1,360 872.5,508 754.7,576 498.3,428"/></clipPath><g class="iso-hatch" clip-path="url(#clip-updater)"><line x1="282.3" y1="576" x2="498.3" y2="360"/><line x1="291.3" y1="576" x2="507.3" y2="360"/><line x1="300.3" y1="576" x2="516.3" y2="360"/><line x1="309.3" y1="576" x2="525.3" y2="360"/><line x1="318.3" y1="576" x2="534.3" y2="360"/><line x1="327.3" y1="576" x2="543.3" y2="360"/><line x1="336.3" y1="576" x2="552.3" y2="360"/><line x1="345.3" y1="576" x2="561.3" y2="360"/><line x1="354.3" y1="576" x2="570.3" y2="360"/><line x1="363.3" y1="576" x2="579.3" y2="360"/><line x1="372.3" y1="576" x2="588.3" y2="360"/><line x1="381.3" y1="576" x2="597.3" y2="360"/><line x1="390.3" y1="576" x2="606.3" y2="360"/><line x1="399.3" y1="576" x2="615.3" y2="360"/><line x1="408.3" y1="576" x2="624.3" y2="360"/><line x1="417.3" y1="576" x2="633.3" y2="360"/><line x1="426.3" y1="576" x2="642.3" y2="360"/><line x1="435.3" y1="576" x2="651.3" y2="360"/><line x1="444.3" y1="576" x2="660.3" y2="360"/><line x1="453.3" y1="576" x2="669.3" y2="360"/><line x1="462.3" y1="576" x2="678.3" y2="360"/><line x1="471.3" y1="576" x2="687.3" y2="360"/><line x1="480.3" y1="576" x2="696.3" y2="360"/><line x1="489.3" y1="576" x2="705.3" y2="360"/><line x1="498.3" y1="576" x2="714.3" y2="360"/><line x1="507.3" y1="576" x2="723.3" y2="360"/><line x1="516.3" y1="576" x2="732.3" y2="360"/><line x1="525.3" y1="576" x2="741.3" y2="360"/><line x1="534.3" y1="576" x2="750.3" y2="360"/><line x1="543.3" y1="576" x2="759.3" y2="360"/><line x1="552.3" y1="576" x2="768.3" y2="360"/><line x1="561.3" y1="576" x2="777.3" y2="360"/><line x1="570.3" y1="576" x2="786.3" y2="360"/><line x1="579.3" y1="576" x2="795.3" y2="360"/><line x1="588.3" y1="576" x2="804.3" y2="360"/><line x1="597.3" y1="576" x2="813.3" y2="360"/><line x1="606.3" y1="576" x2="822.3" y2="360"/><line x1="615.3" y1="576" x2="831.3" y2="360"/><line x1="624.3" y1="576" x2="840.3" y2="360"/><line x1="633.3" y1="576" x2="849.3" y2="360"/><line x1="642.3" y1="576" x2="858.3" y2="360"/><line x1="651.3" y1="576" x2="867.3" y2="360"/><line x1="660.3" y1="576" x2="876.3" y2="360"/><line x1="669.3" y1="576" x2="885.3" y2="360"/><line x1="678.3" y1="576" x2="894.3" y2="360"/><line x1="687.3" y1="576" x2="903.3" y2="360"/><line x1="696.3" y1="576" x2="912.3" y2="360"/><line x1="705.3" y1="576" x2="921.3" y2="360"/><line x1="714.3" y1="576" x2="930.3" y2="360"/><line x1="723.3" y1="576" x2="939.3" y2="360"/><line x1="732.3" y1="576" x2="948.3" y2="360"/><line x1="741.3" y1="576" x2="957.3" y2="360"/><line x1="750.3" y1="576" x2="966.3" y2="360"/><line x1="759.3" y1="576" x2="975.3" y2="360"/><line x1="768.3" y1="576" x2="984.3" y2="360"/><line x1="777.3" y1="576" x2="993.3" y2="360"/><line x1="786.3" y1="576" x2="1002.3" y2="360"/><line x1="795.3" y1="576" x2="1011.3" y2="360"/><line x1="804.3" y1="576" x2="1020.3" y2="360"/><line x1="813.3" y1="576" x2="1029.3" y2="360"/><line x1="822.3" y1="576" x2="1038.3" y2="360"/><line x1="831.3" y1="576" x2="1047.3" y2="360"/><line x1="840.3" y1="576" x2="1056.3" y2="360"/><line x1="849.3" y1="576" x2="1065.3" y2="360"/><line x1="858.3" y1="576" x2="1074.3" y2="360"/><line x1="867.3" y1="576" x2="1083.3" y2="360"/></g>
+</g>
+<g class="bb-node map-item cat-peach status-implemented" data-id="server" tabindex="0" role="button" aria-label="Open details for Local server">
+<polygon class="iso-face iso-left" points="342.4,518 598.8,666 598.8,704 342.4,556"/>
+<polygon class="iso-face iso-right" points="716.6,598 598.8,666 598.8,704 716.6,636"/>
+<polygon class="iso-face iso-roof" points="460.2,450 716.6,598 598.8,666 342.4,518"/>
+</g>
+<g class="bb-node map-item cat-mustard status-planned" data-id="release" tabindex="0" role="button" aria-label="Open details for First evoclock release">
+<polygon class="iso-face iso-left" points="792.8,598 1049.1,746 1049.1,784 792.8,636"/>
+<polygon class="iso-face iso-right" points="1166.9,678 1049.1,746 1049.1,784 1166.9,716"/>
+<polygon class="iso-face iso-roof" points="910.6,530 1166.9,678 1049.1,746 792.8,598"/>
+</g>
+<g class="bb-node map-item cat-slate status-implemented" data-id="control" tabindex="0" role="button" aria-label="Open details for Cloud control plane">
+<polygon class="iso-face iso-left" points="186.6,608 442.9,756 442.9,794 186.6,646"/>
+<polygon class="iso-face iso-right" points="560.7,688 442.9,756 442.9,794 560.7,726"/>
+<polygon class="iso-face iso-roof" points="304.3,540 560.7,688 442.9,756 186.6,608"/>
+</g>
+<g class="bb-node map-item cat-slate status-implemented" data-id="coding" tabindex="0" role="button" aria-label="Open details for Coding runs">
+<polygon class="iso-face iso-left" points="636.9,688 893.2,836 893.2,874 636.9,726"/>
+<polygon class="iso-face iso-right" points="1011,768 893.2,836 893.2,874 1011,806"/>
+<polygon class="iso-face iso-roof" points="754.7,620 1011,768 893.2,836 636.9,688"/>
+</g>
+<g class="bb-node map-item cat-peach status-implemented" data-id="composio" tabindex="0" role="button" aria-label="Open details for Connected-apps broker">
+<polygon class="iso-face iso-left" points="481,778 737.4,926 737.4,964 481,816"/>
+<polygon class="iso-face iso-right" points="855.1,858 737.4,926 737.4,964 855.1,896"/>
+<polygon class="iso-face iso-roof" points="598.8,710 855.1,858 737.4,926 481,778"/>
+</g>
+<g class="bb-node map-item cat-slate status-partial" data-id="attach" tabindex="0" role="button" aria-label="Open details for Driver attach">
+<polygon class="iso-face iso-left" points="931.3,858 1187.7,1006 1187.7,1044 931.3,896"/>
+<polygon class="iso-face iso-right" points="1305.5,938 1187.7,1006 1187.7,1044 1305.5,976"/>
+<polygon class="iso-face iso-roof" points="1049.1,790 1305.5,938 1187.7,1006 931.3,858"/>
+<clipPath id="clip-attach"><polygon class="" points="1049.1,790 1305.5,938 1187.7,1006 931.3,858"/></clipPath><g class="iso-hatch" clip-path="url(#clip-attach)"><line x1="715.3" y1="1006" x2="931.3" y2="790"/><line x1="724.3" y1="1006" x2="940.3" y2="790"/><line x1="733.3" y1="1006" x2="949.3" y2="790"/><line x1="742.3" y1="1006" x2="958.3" y2="790"/><line x1="751.3" y1="1006" x2="967.3" y2="790"/><line x1="760.3" y1="1006" x2="976.3" y2="790"/><line x1="769.3" y1="1006" x2="985.3" y2="790"/><line x1="778.3" y1="1006" x2="994.3" y2="790"/><line x1="787.3" y1="1006" x2="1003.3" y2="790"/><line x1="796.3" y1="1006" x2="1012.3" y2="790"/><line x1="805.3" y1="1006" x2="1021.3" y2="790"/><line x1="814.3" y1="1006" x2="1030.3" y2="790"/><line x1="823.3" y1="1006" x2="1039.3" y2="790"/><line x1="832.3" y1="1006" x2="1048.3" y2="790"/><line x1="841.3" y1="1006" x2="1057.3" y2="790"/><line x1="850.3" y1="1006" x2="1066.3" y2="790"/><line x1="859.3" y1="1006" x2="1075.3" y2="790"/><line x1="868.3" y1="1006" x2="1084.3" y2="790"/><line x1="877.3" y1="1006" x2="1093.3" y2="790"/><line x1="886.3" y1="1006" x2="1102.3" y2="790"/><line x1="895.3" y1="1006" x2="1111.3" y2="790"/><line x1="904.3" y1="1006" x2="1120.3" y2="790"/><line x1="913.3" y1="1006" x2="1129.3" y2="790"/><line x1="922.3" y1="1006" x2="1138.3" y2="790"/><line x1="931.3" y1="1006" x2="1147.3" y2="790"/><line x1="940.3" y1="1006" x2="1156.3" y2="790"/><line x1="949.3" y1="1006" x2="1165.3" y2="790"/><line x1="958.3" y1="1006" x2="1174.3" y2="790"/><line x1="967.3" y1="1006" x2="1183.3" y2="790"/><line x1="976.3" y1="1006" x2="1192.3" y2="790"/><line x1="985.3" y1="1006" x2="1201.3" y2="790"/><line x1="994.3" y1="1006" x2="1210.3" y2="790"/><line x1="1003.3" y1="1006" x2="1219.3" y2="790"/><line x1="1012.3" y1="1006" x2="1228.3" y2="790"/><line x1="1021.3" y1="1006" x2="1237.3" y2="790"/><line x1="1030.3" y1="1006" x2="1246.3" y2="790"/><line x1="1039.3" y1="1006" x2="1255.3" y2="790"/><line x1="1048.3" y1="1006" x2="1264.3" y2="790"/><line x1="1057.3" y1="1006" x2="1273.3" y2="790"/><line x1="1066.3" y1="1006" x2="1282.3" y2="790"/><line x1="1075.3" y1="1006" x2="1291.3" y2="790"/><line x1="1084.3" y1="1006" x2="1300.3" y2="790"/><line x1="1093.3" y1="1006" x2="1309.3" y2="790"/><line x1="1102.3" y1="1006" x2="1318.3" y2="790"/><line x1="1111.3" y1="1006" x2="1327.3" y2="790"/><line x1="1120.3" y1="1006" x2="1336.3" y2="790"/><line x1="1129.3" y1="1006" x2="1345.3" y2="790"/><line x1="1138.3" y1="1006" x2="1354.3" y2="790"/><line x1="1147.3" y1="1006" x2="1363.3" y2="790"/><line x1="1156.3" y1="1006" x2="1372.3" y2="790"/><line x1="1165.3" y1="1006" x2="1381.3" y2="790"/><line x1="1174.3" y1="1006" x2="1390.3" y2="790"/><line x1="1183.3" y1="1006" x2="1399.3" y2="790"/><line x1="1192.3" y1="1006" x2="1408.3" y2="790"/><line x1="1201.3" y1="1006" x2="1417.3" y2="790"/><line x1="1210.3" y1="1006" x2="1426.3" y2="790"/><line x1="1219.3" y1="1006" x2="1435.3" y2="790"/><line x1="1228.3" y1="1006" x2="1444.3" y2="790"/><line x1="1237.3" y1="1006" x2="1453.3" y2="790"/><line x1="1246.3" y1="1006" x2="1462.3" y2="790"/><line x1="1255.3" y1="1006" x2="1471.3" y2="790"/><line x1="1264.3" y1="1006" x2="1480.3" y2="790"/><line x1="1273.3" y1="1006" x2="1489.3" y2="790"/><line x1="1282.3" y1="1006" x2="1498.3" y2="790"/><line x1="1291.3" y1="1006" x2="1507.3" y2="790"/><line x1="1300.3" y1="1006" x2="1516.3" y2="790"/></g>
+</g>
+<g class="bb-node map-item cat-slate status-partial" data-id="chain" tabindex="0" role="button" aria-label="Open details for Coding-run model chain">
+<polygon class="iso-face iso-left" points="775.5,948 1031.8,1096 1031.8,1134 775.5,986"/>
+<polygon class="iso-face iso-right" points="1149.6,1028 1031.8,1096 1031.8,1134 1149.6,1066"/>
+<polygon class="iso-face iso-roof" points="893.2,880 1149.6,1028 1031.8,1096 775.5,948"/>
+<clipPath id="clip-chain"><polygon class="" points="893.2,880 1149.6,1028 1031.8,1096 775.5,948"/></clipPath><g class="iso-hatch" clip-path="url(#clip-chain)"><line x1="559.5" y1="1096" x2="775.5" y2="880"/><line x1="568.5" y1="1096" x2="784.5" y2="880"/><line x1="577.5" y1="1096" x2="793.5" y2="880"/><line x1="586.5" y1="1096" x2="802.5" y2="880"/><line x1="595.5" y1="1096" x2="811.5" y2="880"/><line x1="604.5" y1="1096" x2="820.5" y2="880"/><line x1="613.5" y1="1096" x2="829.5" y2="880"/><line x1="622.5" y1="1096" x2="838.5" y2="880"/><line x1="631.5" y1="1096" x2="847.5" y2="880"/><line x1="640.5" y1="1096" x2="856.5" y2="880"/><line x1="649.5" y1="1096" x2="865.5" y2="880"/><line x1="658.5" y1="1096" x2="874.5" y2="880"/><line x1="667.5" y1="1096" x2="883.5" y2="880"/><line x1="676.5" y1="1096" x2="892.5" y2="880"/><line x1="685.5" y1="1096" x2="901.5" y2="880"/><line x1="694.5" y1="1096" x2="910.5" y2="880"/><line x1="703.5" y1="1096" x2="919.5" y2="880"/><line x1="712.5" y1="1096" x2="928.5" y2="880"/><line x1="721.5" y1="1096" x2="937.5" y2="880"/><line x1="730.5" y1="1096" x2="946.5" y2="880"/><line x1="739.5" y1="1096" x2="955.5" y2="880"/><line x1="748.5" y1="1096" x2="964.5" y2="880"/><line x1="757.5" y1="1096" x2="973.5" y2="880"/><line x1="766.5" y1="1096" x2="982.5" y2="880"/><line x1="775.5" y1="1096" x2="991.5" y2="880"/><line x1="784.5" y1="1096" x2="1000.5" y2="880"/><line x1="793.5" y1="1096" x2="1009.5" y2="880"/><line x1="802.5" y1="1096" x2="1018.5" y2="880"/><line x1="811.5" y1="1096" x2="1027.5" y2="880"/><line x1="820.5" y1="1096" x2="1036.5" y2="880"/><line x1="829.5" y1="1096" x2="1045.5" y2="880"/><line x1="838.5" y1="1096" x2="1054.5" y2="880"/><line x1="847.5" y1="1096" x2="1063.5" y2="880"/><line x1="856.5" y1="1096" x2="1072.5" y2="880"/><line x1="865.5" y1="1096" x2="1081.5" y2="880"/><line x1="874.5" y1="1096" x2="1090.5" y2="880"/><line x1="883.5" y1="1096" x2="1099.5" y2="880"/><line x1="892.5" y1="1096" x2="1108.5" y2="880"/><line x1="901.5" y1="1096" x2="1117.5" y2="880"/><line x1="910.5" y1="1096" x2="1126.5" y2="880"/><line x1="919.5" y1="1096" x2="1135.5" y2="880"/><line x1="928.5" y1="1096" x2="1144.5" y2="880"/><line x1="937.5" y1="1096" x2="1153.5" y2="880"/><line x1="946.5" y1="1096" x2="1162.5" y2="880"/><line x1="955.5" y1="1096" x2="1171.5" y2="880"/><line x1="964.5" y1="1096" x2="1180.5" y2="880"/><line x1="973.5" y1="1096" x2="1189.5" y2="880"/><line x1="982.5" y1="1096" x2="1198.5" y2="880"/><line x1="991.5" y1="1096" x2="1207.5" y2="880"/><line x1="1000.5" y1="1096" x2="1216.5" y2="880"/><line x1="1009.5" y1="1096" x2="1225.5" y2="880"/><line x1="1018.5" y1="1096" x2="1234.5" y2="880"/><line x1="1027.5" y1="1096" x2="1243.5" y2="880"/><line x1="1036.5" y1="1096" x2="1252.5" y2="880"/><line x1="1045.5" y1="1096" x2="1261.5" y2="880"/><line x1="1054.5" y1="1096" x2="1270.5" y2="880"/><line x1="1063.5" y1="1096" x2="1279.5" y2="880"/><line x1="1072.5" y1="1096" x2="1288.5" y2="880"/><line x1="1081.5" y1="1096" x2="1297.5" y2="880"/><line x1="1090.5" y1="1096" x2="1306.5" y2="880"/><line x1="1099.5" y1="1096" x2="1315.5" y2="880"/><line x1="1108.5" y1="1096" x2="1324.5" y2="880"/><line x1="1117.5" y1="1096" x2="1333.5" y2="880"/><line x1="1126.5" y1="1096" x2="1342.5" y2="880"/><line x1="1135.5" y1="1096" x2="1351.5" y2="880"/><line x1="1144.5" y1="1096" x2="1360.5" y2="880"/></g>
+</g>
+<g class="bb-edges">
+<path class="bb-edge data map-item" d="M 501.5 382.2 L 521.4 393.7 Q 525.7 396.2 521.4 398.7 L 409.5 463.3 Q 405.1 465.8 409.5 468.3 L 419 473.8" marker-end="url(#bb-arrow-data)"/>
+<path class="bb-flow map-item" d="M 501.5 382.2 L 521.4 393.7 Q 525.7 396.2 521.4 398.7 L 409.5 463.3 Q 405.1 465.8 409.5 468.3 L 419 473.8"/>
+<path class="bb-edge data map-item" d="M 363.2 462 L 383.2 473.5 Q 387.5 476 383.2 478.5 L 374.1 483.7 Q 369.8 486.2 374.1 488.7 L 383.7 494.2" marker-end="url(#bb-arrow-data)"/>
+<path class="bb-flow map-item" d="M 363.2 462 L 383.2 473.5 Q 387.5 476 383.2 478.5 L 374.1 483.7 Q 369.8 486.2 374.1 488.7 L 383.7 494.2"/>
+<path class="bb-edge data map-item" d="M 675.3 621.8 L 695.3 633.3 Q 699.6 635.8 695.3 638.3 L 686.3 643.5 Q 681.9 646 686.3 648.5 L 695.8 654" marker-end="url(#bb-arrow-data)"/>
+<path class="bb-flow map-item" d="M 675.3 621.8 L 695.3 633.3 Q 699.6 635.8 695.3 638.3 L 686.3 643.5 Q 681.9 646 686.3 648.5 L 695.8 654"/>
+<path class="bb-edge data map-item" d="M 969.8 791.8 L 989.7 803.3 Q 994 805.8 989.7 808.3 L 980.7 813.5 Q 976.4 816 980.7 818.5 L 990.2 824" marker-end="url(#bb-arrow-data)"/>
+<path class="bb-flow map-item" d="M 969.8 791.8 L 989.7 803.3 Q 994 805.8 989.7 808.3 L 980.7 813.5 Q 976.4 816 980.7 818.5 L 990.2 824"/>
+<path class="bb-edge data map-item" d="M 934.5 812.2 L 954.4 823.7 Q 958.7 826.2 954.4 828.7 L 824.8 903.5 Q 820.5 906 824.8 908.5 L 834.4 914" marker-end="url(#bb-arrow-data)"/>
+<path class="bb-flow map-item" d="M 934.5 812.2 L 954.4 823.7 Q 958.7 826.2 954.4 828.7 L 824.8 903.5 Q 820.5 906 824.8 908.5 L 834.4 914"/>
+<path class="bb-edge data map-item" d="M 470.6 592 L 432.5 614" marker-end="url(#bb-arrow-data)"/>
+<path class="bb-flow map-item" d="M 470.6 592 L 432.5 614"/>
+<path class="bb-edge data map-item" d="M 640 642.2 L 659.9 653.7 Q 664.3 656.2 659.9 658.7 L 530.4 733.5 Q 526 736 530.4 738.5 L 539.9 744" marker-end="url(#bb-arrow-data)"/>
+<path class="bb-flow map-item" d="M 640 642.2 L 659.9 653.7 Q 664.3 656.2 659.9 658.7 L 530.4 733.5 Q 526 736 530.4 738.5 L 539.9 744"/>
+<path class="bb-edge data map-item" d="M 536.8 361.8 L 556.7 373.3 Q 561 375.8 556.7 378.3 L 547.7 383.5 Q 543.4 386 547.7 388.5 L 557.2 394" marker-end="url(#bb-arrow-data)"/>
+<path class="bb-flow map-item" d="M 536.8 361.8 L 556.7 373.3 Q 561 375.8 556.7 378.3 L 547.7 383.5 Q 543.4 386 547.7 388.5 L 557.2 394"/>
+<path class="bb-edge data is-planned map-item" d="M 813.6 542 L 851.7 564" marker-end="url(#bb-arrow-data)"/>
+</g>
+<g class="iso-tag map-item cat-sage" data-for="desktop" pointer-events="none">
+<rect class="iso-tag-bg" x="320" y="272" width="141.9" height="42" rx="3"/>
+<circle class="bb-mark" cx="334.3" cy="284.5" r="3"/>
+<text class="bb-kicker" x="390.9" y="288" text-anchor="middle">MAIN · BUILT</text>
+<text class="bb-node-title" x="390.9" y="307" text-anchor="middle">Desktop app</text>
+</g>
+<g class="iso-tag map-item cat-sage" data-for="companion" pointer-events="none">
+<rect class="iso-tag-bg" x="143" y="362" width="184.1" height="42" rx="3"/>
+<circle class="bb-mark" cx="178.5" cy="374.5" r="3"/>
+<text class="bb-kicker" x="235.1" y="378" text-anchor="middle">MAIN · BUILT</text>
+<text class="bb-node-title" x="235.1" y="397" text-anchor="middle">Phone companion</text>
+</g>
+<g class="iso-tag map-item cat-mustard" data-for="updater" pointer-events="none">
+<rect class="iso-tag-bg" x="588.1" y="442" width="194.6" height="42" rx="3"/>
+<circle class="bb-mark" cx="612.6" cy="454.5" r="3"/>
+<text class="bb-kicker" x="685.4" y="458" text-anchor="middle">PR #40 · PARTIAL</text>
+<text class="bb-node-title" x="685.4" y="477" text-anchor="middle">evoclock updater</text>
+</g>
+<g class="iso-tag map-item cat-peach" data-for="server" pointer-events="none">
+<rect class="iso-tag-bg" x="453.3" y="532" width="152.5" height="42" rx="3"/>
+<circle class="bb-mark" cx="472.9" cy="544.5" r="3"/>
+<text class="bb-kicker" x="529.5" y="548" text-anchor="middle">MAIN · BUILT</text>
+<text class="bb-node-title" x="529.5" y="567" text-anchor="middle">Local server</text>
+</g>
+<g class="iso-tag map-item cat-mustard" data-for="release" pointer-events="none">
+<rect class="iso-tag-bg" x="850.9" y="612" width="257.9" height="42" rx="3"/>
+<circle class="bb-mark" cx="890.8" cy="624.5" r="3"/>
+<text class="bb-kicker" x="979.8" y="628" text-anchor="middle">UNVERIFIED · PLANNED</text>
+<text class="bb-node-title" x="979.8" y="647" text-anchor="middle">First evoclock release</text>
+</g>
+<g class="iso-tag map-item cat-slate" data-for="control" pointer-events="none">
+<rect class="iso-tag-bg" x="260.5" y="622" width="226.3" height="42" rx="3"/>
+<circle class="bb-mark" cx="317" cy="634.5" r="3"/>
+<text class="bb-kicker" x="373.6" y="638" text-anchor="middle">MAIN · BUILT</text>
+<text class="bb-node-title" x="373.6" y="657" text-anchor="middle">Cloud control plane</text>
+</g>
+<g class="iso-tag map-item cat-slate" data-for="coding" pointer-events="none">
+<rect class="iso-tag-bg" x="738.1" y="702" width="171.8" height="42" rx="3"/>
+<circle class="bb-mark" cx="743.1" cy="714.5" r="3"/>
+<text class="bb-kicker" x="824" y="718" text-anchor="middle">MERGED #38 · BUILT</text>
+<text class="bb-node-title" x="824" y="737" text-anchor="middle">Coding runs</text>
+</g>
+<g class="iso-tag map-item cat-peach" data-for="composio" pointer-events="none">
+<rect class="iso-tag-bg" x="544.4" y="792" width="247.3" height="42" rx="3"/>
+<circle class="bb-mark" cx="611.5" cy="804.5" r="3"/>
+<text class="bb-kicker" x="668.1" y="808" text-anchor="middle">MAIN · BUILT</text>
+<text class="bb-node-title" x="668.1" y="827" text-anchor="middle">Connected-apps broker</text>
+</g>
+<g class="iso-tag map-item cat-slate" data-for="attach" pointer-events="none">
+<rect class="iso-tag-bg" x="1036.9" y="872" width="163" height="42" rx="3"/>
+<circle class="bb-mark" cx="1045.6" cy="884.5" r="3"/>
+<text class="bb-kicker" x="1118.4" y="888" text-anchor="middle">PR #39 · PARTIAL</text>
+<text class="bb-node-title" x="1118.4" y="907" text-anchor="middle">Driver attach</text>
+</g>
+<g class="iso-tag map-item cat-slate" data-for="chain" pointer-events="none">
+<rect class="iso-tag-bg" x="833.6" y="962" width="257.9" height="42" rx="3"/>
+<circle class="bb-mark" cx="889.7" cy="974.5" r="3"/>
+<text class="bb-kicker" x="962.5" y="978" text-anchor="middle">PR #41 · PARTIAL</text>
+<text class="bb-node-title" x="962.5" y="997" text-anchor="middle">Coding-run model chain</text>
+</g>
+<g class="bb-legend" aria-label="Legend"><path class="bb-rule" d="M 40 1168 H 1314"/><circle class="bb-mark cat-sage" cx="52" cy="1186" r="4"/><text class="bb-legend-text" x="64" y="1190">Interface / app</text><circle class="bb-mark cat-peach" cx="180.875" cy="1186" r="4"/><text class="bb-legend-text" x="192.875" y="1190">Orchestration / agents</text><circle class="bb-mark cat-slate" cx="354.025" cy="1186" r="4"/><text class="bb-legend-text" x="366.025" y="1190">Runners / compute</text><circle class="bb-mark cat-mustard" cx="495.54999999999995" cy="1186" r="4"/><text class="bb-legend-text" x="507.54999999999995" y="1190">CI / release</text><text class="bb-legend-text" x="601.4499999999999" y="1190">Built = solid</text><text class="bb-legend-text" x="701.675" y="1190">Partial = hatched roof</text><text class="bb-legend-text" x="858.8249999999999" y="1190">Planned = wireframe</text></g>
+</svg>
+</div>
+<div class="nav" role="toolbar" aria-label="Zoom and navigation"><button id="zoom-out" type="button" aria-label="Zoom out (−)">−</button><button id="zoom-level" type="button" aria-label="Actual size (1)">100%</button><button id="zoom-in" type="button" aria-label="Zoom in (+)">+</button><button id="zoom-fit" type="button" aria-label="Fit to screen (F)">Fit</button><button id="fullscreen" type="button" aria-label="Fullscreen">⤢</button></div>
+<div class="minimap" id="minimap" aria-hidden="true"><img id="minimap-img" alt=""><div class="minimap-frame" id="minimap-frame"></div></div>
+<p class="stage-hint caps">Drag to pan · ⌘/Ctrl + scroll to zoom · F to fit</p>
+</div>
+<aside class="drawer" id="drawer" role="region" aria-labelledby="drawer-title" aria-live="polite" hidden><div class="drawer-head"><div><p class="caps" id="drawer-kicker">Component</p><h2 id="drawer-title"></h2></div><button id="drawer-close" type="button" aria-label="Close details">×</button></div><div class="drawer-body" id="drawer-body"></div></aside>
+<section class="details" aria-labelledby="details-h"><h2 id="details-h">Components</h2><details class="card" id="detail-desktop" data-kicker="main"><summary><span class="t">Desktop app</span><span class="st caps">implemented</span></summary><div class="detail"><p>Electron shell and React chat UI: bots in a sidebar, rooms, approvals.</p>
+<h4>Tracker status</h4><p>Built</p>
+<h4>Where</h4><ul><li>OpenMausBot · main · electron/, src/</li><li><a href="https://github.com/evoclock/OpenMausBot/tree/main/electron">github.com/evoclock/OpenMausBot/tree/main/electron</a></li></ul></div></details>
+<details class="card" id="detail-companion" data-kicker="main"><summary><span class="t">Phone companion</span><span class="st caps">implemented</span></summary><div class="detail"><p>Pairs a phone over mDNS or a tunnel and relays the viewer.</p>
+<h4>Tracker status</h4><p>Built</p>
+<h4>Where</h4><ul><li>OpenMausBot · main · companion/</li><li><a href="https://github.com/evoclock/OpenMausBot/tree/main/companion">github.com/evoclock/OpenMausBot/tree/main/companion</a></li></ul></div></details>
+<details class="card" id="detail-server" data-kicker="main"><summary><span class="t">Local server</span><span class="st caps">implemented</span></summary><div class="detail"><p>Rooms, bots, routines, memory, MCP gateway, approvals and spend caps.</p>
+<h4>Tracker status</h4><p>Built</p>
+<h4>Where</h4><ul><li>OpenMausBot · main · server/</li><li><a href="https://github.com/evoclock/OpenMausBot/tree/main/server">github.com/evoclock/OpenMausBot/tree/main/server</a></li></ul></div></details>
+<details class="card" id="detail-coding" data-kicker="merged #38"><summary><span class="t">Coding runs</span><span class="st caps">implemented</span></summary><div class="detail"><p>Coding loop in Treehouse workspaces with effect receipts and context kept across iterations (#33, #38).</p>
+<h4>Tracker status</h4><p>Built</p>
+<h4>Where</h4><ul><li>OpenMausBot · #38</li><li><a href="https://github.com/evoclock/OpenMausBot/pull/38">github.com/evoclock/OpenMausBot/pull/38</a></li></ul></div></details>
+<details class="card" id="detail-attach" data-kicker="PR #39"><summary><span class="t">Driver attach</span><span class="st caps">partial</span></summary><div class="detail"><p>Keeps coding runs safe across restarts by attaching to the driver.</p>
+<h4>Tracker status</h4><p>In progress</p>
+<h4>Where</h4><ul><li>OpenMausBot · PR #39</li><li><a href="https://github.com/evoclock/OpenMausBot/pull/39">github.com/evoclock/OpenMausBot/pull/39</a></li></ul></div></details>
+<details class="card" id="detail-chain" data-kicker="PR #41"><summary><span class="t">Coding-run model chain</span><span class="st caps">partial</span></summary><div class="detail"><p>Keeps coding runs on approved, predictable model routes.</p>
+<h4>Tracker status</h4><p>In progress</p>
+<h4>Where</h4><ul><li>OpenMausBot · PR #41</li><li><a href="https://github.com/evoclock/OpenMausBot/pull/41">github.com/evoclock/OpenMausBot/pull/41</a></li></ul></div></details>
+<details class="card" id="detail-control" data-kicker="main"><summary><span class="t">Cloud control plane</span><span class="st caps">implemented</span></summary><div class="detail"><p>Cloudflare control plane for hosted accounts and cloud computers.</p>
+<h4>Tracker status</h4><p>Built</p>
+<h4>Where</h4><ul><li>OpenMausBot · main · cloudflare/control-plane</li><li><a href="https://github.com/evoclock/OpenMausBot/tree/main/cloudflare/control-plane">github.com/evoclock/OpenMausBot/tree/main/cloudflare/control-plane</a></li></ul></div></details>
+<details class="card" id="detail-composio" data-kicker="main"><summary><span class="t">Connected-apps broker</span><span class="st caps">implemented</span></summary><div class="detail"><p>Cloudflare broker for connected apps.</p>
+<h4>Tracker status</h4><p>Built</p>
+<h4>Where</h4><ul><li>OpenMausBot · main · cloudflare/composio-broker</li><li><a href="https://github.com/evoclock/OpenMausBot/tree/main/cloudflare/composio-broker">github.com/evoclock/OpenMausBot/tree/main/cloudflare/composio-broker</a></li></ul></div></details>
+<details class="card" id="detail-updater" data-kicker="PR #40"><summary><span class="t">evoclock updater</span><span class="st caps">partial</span></summary><div class="detail"><p>Takes app updates from the evoclock fork (move C follows).</p>
+<h4>Tracker status</h4><p>In progress</p>
+<h4>Where</h4><ul><li>OpenMausBot · PR #40</li><li><a href="https://github.com/evoclock/OpenMausBot/pull/40">github.com/evoclock/OpenMausBot/pull/40</a></li></ul></div></details>
+<details class="card" id="detail-release" data-kicker="Unverified"><summary><span class="t">First evoclock release</span><span class="st caps">planned</span></summary><div class="detail"><p>Item 14 in Your steps. No release branch or spec found in the repo.</p>
+<h4>Tracker status</h4><p>Unverified. Not found in a repo yet, so the diagram draws it like a planned part.</p>
+<h4>Where</h4><ul><li>OpenMausBot · tracker · Your steps</li><li><a href="https://github.com/evoclock/OpenMausBot/releases">github.com/evoclock/OpenMausBot/releases</a></li></ul></div></details></section>
+<footer class="caps">OpenMausBot · generated by bowerbird from <code>openmausbot.bower.json</code> · standalone HTML</footer>
+</div>
+<script type="application/json" id="bb-standalone-css">{"dark":"\ntext{font-family:Geist,\"Geist Sans\",ui-sans-serif,system-ui,-apple-system,\"Segoe UI\",Helvetica,Arial,sans-serif;font-variant-numeric:tabular-nums}\n.bb-title{font-size:36px;font-weight:300;letter-spacing:-.015em}\n.bb-subtitle{font-size:14px;font-weight:400}\n.bb-kicker-top{font-size:10.5px;font-weight:500;letter-spacing:2.6px}\n.bb-meta{font-size:11px;font-weight:400;letter-spacing:.03em}\n.bb-meter-big{font-size:42px;font-weight:300;letter-spacing:-.02em}\n.bb-meter-unit{font-size:17px;font-weight:300}\n.bb-meter-track{stroke-width:1;fill:none}\n.bb-meter-solid,.bb-meter-part{stroke-width:3;fill:none}\n.bb-meter-part{stroke-dasharray:2 3}\n.bb-rule{stroke-width:1;fill:none}\n.bb-zone{stroke-width:1}\n.bb-zone-kicker{font-size:10.5px;font-weight:500;letter-spacing:2.6px}\n.bb-zone-title{font-size:21px;font-weight:400;letter-spacing:-.005em}\n.bb-zone-sub{font-size:11.5px}\n.bb-node-box{stroke-width:1}\n.bb-node.status-planned .bb-node-box{stroke-dasharray:4 4}\n.bb-kicker{font-size:10.5px;font-weight:500;letter-spacing:2.4px}\n.bb-node-title{font-size:17px;font-weight:500;letter-spacing:-.005em}\n.bb-copy{font-size:13.5px;font-weight:400}\n.bb-hint{font-size:11.5px;font-weight:400;letter-spacing:.02em}\n.bb-status-text{font-size:9.5px;font-weight:600;letter-spacing:1.9px}\n.bb-dot{stroke-width:1.1;fill:none}\n.bb-edge{fill:none;stroke-width:1.25;stroke-linejoin:round;stroke-linecap:round}\n.bb-edge.control{stroke-dasharray:3 4}\n.bb-edge.failure{stroke-dasharray:.1 4.5;stroke-width:1.8}\n.bb-edge.is-planned{opacity:.4}\n.bb-label{font-size:11.5px;font-weight:500;letter-spacing:.02em;paint-order:stroke;stroke-width:6px;stroke-linejoin:round}\n.bb-legend-text{font-size:12px;font-weight:400}\n.bb-finding-text{font-size:9px;font-weight:600;letter-spacing:1.6px}\n.iso-face{stroke-width:.8;stroke-linejoin:round}\n.bb-node.status-planned .iso-face{fill:none;stroke-dasharray:4 4;stroke-width:1}\n.iso-hatch line{stroke-width:.8;opacity:.45}\n.iso-label-knockout{paint-order:stroke;stroke-width:6px;stroke-linejoin:round}\n.bb-canvas{fill:#1a1816}\n.bb-title,.bb-zone-title,.bb-node-title,.bb-meter-big,.bb-meter-unit{fill:#ead1b5}\n.bb-subtitle,.bb-copy,.bb-hint,.bb-legend-text,.bb-meta,.bb-kicker,.bb-zone-kicker,.bb-kicker-top,.bb-zone-sub{fill:#b09080}\n.bb-rule,.bb-meter-track{stroke:#35302b}\n.bb-meter-solid{stroke:#ead1b5}\n.bb-meter-part{stroke:#b09080}\n.bb-zone{fill:#1f1c19;stroke:#35302b}\n.bb-node-box{fill:#272421;stroke:#35302b}\n.bb-node.status-planned .bb-node-box{fill:none;stroke:#4c443c}\n.bb-node.status-planned .bb-node-title{fill:#b09080}\n.bb-status-text{fill:#b09080}\n.bb-status.is-implemented .bb-status-text{fill:#b09080}\n.bb-dot{stroke:#b09080}\n.bb-dot-fill{fill:#b09080}\n.bb-status.is-implemented .bb-dot{stroke:#ead1b5}\n.bb-status.is-implemented .bb-dot-fill{fill:#ead1b5}\n.bb-edge.data{stroke:#958574}\n.bb-edge.control{stroke:#6b737e}\n.bb-edge.failure{stroke:#c27a5c}\n.bb-arrow.data{fill:#958574}\n.bb-arrow.control{fill:#6b737e}\n.bb-arrow.failure{fill:#c27a5c}\n.bb-label,.iso-label-knockout{stroke:#1a1816}\n.bb-label.data{fill:#b09080}\n.bb-label.control{fill:#a4a8ae}\n.bb-label.failure{fill:#c27a5c}\n.bb-flow{stroke:#ead1b5;stroke-opacity:.55}\n.bb-finding-text,.bb-finding-inline{fill:#c27a5c}\n.bb-node.has-finding .bb-node-box{stroke:#c27a5c}\n.bb-pseudo-fill{fill:#ead1b5}\n.bb-pseudo-ring{fill:#1a1816;stroke:#ead1b5;stroke-width:1.3}\n.bb-pseudo-choice{fill:#272421}\n.bb-node.is-selected .bb-node-box,.bb-node[tabindex]:focus .bb-node-box{stroke:#ead1b5}\n.cat-sage .bb-mark,.bb-mark.cat-sage{fill:#7fbd9e}\n.cat-sage .bb-kicker,.cat-sage .bb-zone-kicker{fill:#89b498}\n.cat-sage .bb-node-box{fill:#353c35;stroke:#475b4e}\n.cat-sage.status-planned .bb-node-box{fill:none;stroke:#476253}\n.bb-zone.cat-sage{fill:#212420;stroke:#344339}\n.cat-sage .iso-roof{fill:#8fb7a3;stroke:#48705c}\n.cat-sage .iso-left{fill:#70a48a;stroke:#48705c}\n.cat-sage .iso-right{fill:#5a8c73;stroke:#48705c}\n.cat-sage.status-planned .iso-face{stroke:#79c39e}\n.cat-peach .bb-mark,.bb-mark.cat-peach{fill:#ca9a7d}\n.cat-peach .bb-kicker,.cat-peach .bb-zone-kicker{fill:#c5987e}\n.cat-peach .bb-node-box{fill:#413730;stroke:#624e42}\n.cat-peach.status-planned .bb-node-box{fill:none;stroke:#695344}\n.bb-zone.cat-peach{fill:#26211d;stroke:#483a31}\n.cat-peach .iso-roof{fill:#b79e8f;stroke:#705748}\n.cat-peach .iso-left{fill:#a48370;stroke:#705748}\n.cat-peach .iso-right{fill:#8c6c5a;stroke:#705748}\n.cat-peach.status-planned .iso-face{stroke:#ee9b69}\n.cat-slate .bb-mark,.bb-mark.cat-slate{fill:#7a92ae}\n.cat-slate .bb-kicker,.cat-slate .bb-zone-kicker{fill:#8592a5}\n.cat-slate .bb-node-box{fill:#343638;stroke:#454c54}\n.cat-slate.status-planned .bb-node-box{fill:none;stroke:#454f5a}\n.bb-zone.cat-slate{fill:#212121;stroke:#33383e}\n.cat-slate .iso-roof{fill:#96a2b0;stroke:#4f5b69}\n.cat-slate .iso-left{fill:#79889a;stroke:#4f5b69}\n.cat-slate .iso-right{fill:#637183;stroke:#4f5b69}\n.cat-slate.status-planned .iso-face{stroke:#617082}\n.cat-mauve .bb-mark,.bb-mark.cat-mauve{fill:#ae7a9d}\n.cat-mauve .bb-kicker,.cat-mauve .bb-zone-kicker{fill:#ae7e97}\n.cat-mauve .bb-node-box{fill:#3d3235;stroke:#58434e}\n.cat-mauve.status-planned .bb-node-box{fill:none;stroke:#5d4453}\n.bb-zone.cat-mauve{fill:#241f1f;stroke:#403139}\n.cat-mauve .iso-roof{fill:#b196a8;stroke:#694e61}\n.cat-mauve .iso-left{fill:#9b7890;stroke:#694e61}\n.cat-mauve .iso-right{fill:#846279;stroke:#694e61}\n.cat-mauve.status-planned .iso-face{stroke:#76536b}\n.cat-mustard .bb-mark,.bb-mark.cat-mustard{fill:#c2aa6a}\n.cat-mustard .bb-kicker,.cat-mustard .bb-zone-kicker{fill:#bea56e}\n.cat-mustard .bb-node-box{fill:#40392d;stroke:#5f543b}\n.cat-mustard.status-planned .bb-node-box{fill:none;stroke:#665a3c}\n.bb-zone.cat-mustard{fill:#26221c;stroke:#463e2c}\n.cat-mustard .iso-roof{fill:#b7ad8f;stroke:#706548}\n.cat-mustard .iso-left{fill:#a49670;stroke:#706548}\n.cat-mustard .iso-right{fill:#8c7e5a;stroke:#706548}\n.cat-mustard.status-planned .iso-face{stroke:#ceb05e}\n.cat-teal .bb-mark,.bb-mark.cat-teal{fill:#7aadae}\n.cat-teal .bb-kicker,.cat-teal .bb-zone-kicker{fill:#85a7a5}\n.cat-teal .bb-node-box{fill:#343a38;stroke:#455554}\n.cat-teal.status-planned .bb-node-box{fill:none;stroke:#455b5a}\n.bb-zone.cat-teal{fill:#212221;stroke:#333f3e}\n.cat-teal .iso-roof{fill:#8fb7b7;stroke:#486f70}\n.cat-teal .iso-left{fill:#70a2a4;stroke:#486f70}\n.cat-teal .iso-right{fill:#5a8b8c;stroke:#486f70}\n.cat-teal.status-planned .iso-face{stroke:#3f6f70}\n.iso-shadow{fill:#000000;fill-opacity:0.32}\n.iso-hatch line{stroke:#1a1816}\n.iso-tag-bg,.iso-label-bg{fill:#1a1816;fill-opacity:.9}\n.bb-label.plain{stroke:none}\n.bb-node:not([class*=cat-]) .iso-face{fill:#272421;stroke:#35302b}","light":"\ntext{font-family:Geist,\"Geist Sans\",ui-sans-serif,system-ui,-apple-system,\"Segoe UI\",Helvetica,Arial,sans-serif;font-variant-numeric:tabular-nums}\n.bb-title{font-size:36px;font-weight:300;letter-spacing:-.015em}\n.bb-subtitle{font-size:14px;font-weight:400}\n.bb-kicker-top{font-size:10.5px;font-weight:500;letter-spacing:2.6px}\n.bb-meta{font-size:11px;font-weight:400;letter-spacing:.03em}\n.bb-meter-big{font-size:42px;font-weight:300;letter-spacing:-.02em}\n.bb-meter-unit{font-size:17px;font-weight:300}\n.bb-meter-track{stroke-width:1;fill:none}\n.bb-meter-solid,.bb-meter-part{stroke-width:3;fill:none}\n.bb-meter-part{stroke-dasharray:2 3}\n.bb-rule{stroke-width:1;fill:none}\n.bb-zone{stroke-width:1}\n.bb-zone-kicker{font-size:10.5px;font-weight:500;letter-spacing:2.6px}\n.bb-zone-title{font-size:21px;font-weight:400;letter-spacing:-.005em}\n.bb-zone-sub{font-size:11.5px}\n.bb-node-box{stroke-width:1}\n.bb-node.status-planned .bb-node-box{stroke-dasharray:4 4}\n.bb-kicker{font-size:10.5px;font-weight:500;letter-spacing:2.4px}\n.bb-node-title{font-size:17px;font-weight:500;letter-spacing:-.005em}\n.bb-copy{font-size:13.5px;font-weight:400}\n.bb-hint{font-size:11.5px;font-weight:400;letter-spacing:.02em}\n.bb-status-text{font-size:9.5px;font-weight:600;letter-spacing:1.9px}\n.bb-dot{stroke-width:1.1;fill:none}\n.bb-edge{fill:none;stroke-width:1.25;stroke-linejoin:round;stroke-linecap:round}\n.bb-edge.control{stroke-dasharray:3 4}\n.bb-edge.failure{stroke-dasharray:.1 4.5;stroke-width:1.8}\n.bb-edge.is-planned{opacity:.4}\n.bb-label{font-size:11.5px;font-weight:500;letter-spacing:.02em;paint-order:stroke;stroke-width:6px;stroke-linejoin:round}\n.bb-legend-text{font-size:12px;font-weight:400}\n.bb-finding-text{font-size:9px;font-weight:600;letter-spacing:1.6px}\n.iso-face{stroke-width:.8;stroke-linejoin:round}\n.bb-node.status-planned .iso-face{fill:none;stroke-dasharray:4 4;stroke-width:1}\n.iso-hatch line{stroke-width:.8;opacity:.45}\n.iso-label-knockout{paint-order:stroke;stroke-width:6px;stroke-linejoin:round}\n.bb-canvas{fill:#fbf9f6}\n.bb-title,.bb-zone-title,.bb-node-title,.bb-meter-big,.bb-meter-unit{fill:#2f2a27}\n.bb-subtitle,.bb-copy,.bb-hint,.bb-legend-text,.bb-meta,.bb-kicker,.bb-zone-kicker,.bb-kicker-top,.bb-zone-sub{fill:#716961}\n.bb-rule,.bb-meter-track{stroke:#dcdad7}\n.bb-meter-solid{stroke:#2f2a27}\n.bb-meter-part{stroke:#716961}\n.bb-zone{fill:#f5f3f0;stroke:#dcdad7}\n.bb-node-box{fill:#fffdfa;stroke:#dcdad7}\n.bb-node.status-planned .bb-node-box{fill:none;stroke:#c2bfbc}\n.bb-node.status-planned .bb-node-title{fill:#716961}\n.bb-status-text{fill:#716961}\n.bb-status.is-implemented .bb-status-text{fill:#716961}\n.bb-dot{stroke:#716961}\n.bb-dot-fill{fill:#716961}\n.bb-status.is-implemented .bb-dot{stroke:#2f2a27}\n.bb-status.is-implemented .bb-dot-fill{fill:#2f2a27}\n.bb-edge.data{stroke:#888079}\n.bb-edge.control{stroke:#747c86}\n.bb-edge.failure{stroke:#9b4a36}\n.bb-arrow.data{fill:#888079}\n.bb-arrow.control{fill:#747c86}\n.bb-arrow.failure{fill:#9b4a36}\n.bb-label,.iso-label-knockout{stroke:#fbf9f6}\n.bb-label.data{fill:#716961}\n.bb-label.control{fill:#4c535c}\n.bb-label.failure{fill:#9b4a36}\n.bb-flow{stroke:#2f2a27;stroke-opacity:.55}\n.bb-finding-text,.bb-finding-inline{fill:#9b4a36}\n.bb-node.has-finding .bb-node-box{stroke:#9b4a36}\n.bb-pseudo-fill{fill:#2f2a27}\n.bb-pseudo-ring{fill:#fbf9f6;stroke:#2f2a27;stroke-width:1.3}\n.bb-pseudo-choice{fill:#fffdfa}\n.bb-node.is-selected .bb-node-box,.bb-node[tabindex]:focus .bb-node-box{stroke:#2f2a27}\n.cat-sage .bb-mark,.bb-mark.cat-sage{fill:#427f61}\n.cat-sage .bb-kicker,.cat-sage .bb-zone-kicker{fill:#477d61}\n.cat-sage .bb-node-box{fill:#eaefe9;stroke:#b7cdc0}\n.cat-sage.status-planned .bb-node-box{fill:none;stroke:#9fbcac}\n.bb-zone.cat-sage{fill:#f0f2ed;stroke:#c0d2c6}\n.cat-sage .iso-roof{fill:#afd5c2;stroke:#54a17b}\n.cat-sage .iso-left{fill:#8dc3a9;stroke:#54a17b}\n.cat-sage .iso-right{fill:#6fb492;stroke:#54a17b}\n.cat-sage.status-planned .iso-face{stroke:#3d8461}\n.cat-peach .bb-mark,.bb-mark.cat-peach{fill:#a76644}\n.cat-peach .bb-kicker,.cat-peach .bb-zone-kicker{fill:#a26647}\n.cat-peach .bb-node-box{fill:#f5ece6;stroke:#dec4b5}\n.cat-peach.status-planned .bb-node-box{fill:none;stroke:#d1b09d}\n.bb-zone.cat-peach{fill:#f6f0eb;stroke:#e0cabd}\n.cat-peach .iso-roof{fill:#d6bcae;stroke:#a36e52}\n.cat-peach .iso-left{fill:#c59f8c;stroke:#a36e52}\n.cat-peach .iso-right{fill:#b6866d;stroke:#a36e52}\n.cat-peach.status-planned .iso-face{stroke:#b4643a}\n.cat-slate .bb-mark,.bb-mark.cat-slate{fill:#4a5c73}\n.cat-slate .bb-kicker,.cat-slate .bb-zone-kicker{fill:#4e5d71}\n.cat-slate .bb-node-box{fill:#ebebeb;stroke:#bac0c7}\n.cat-slate.status-planned .bb-node-box{fill:none;stroke:#a3abb5}\n.bb-zone.cat-slate{fill:#f0f0ee;stroke:#c2c7cc}\n.cat-slate .iso-roof{fill:#b5c1cf;stroke:#617894}\n.cat-slate .iso-left{fill:#96a7bb;stroke:#617894}\n.cat-slate .iso-right{fill:#7a8fa8;stroke:#617894}\n.cat-slate.status-planned .iso-face{stroke:#4f5d6e}\n.cat-mauve .bb-mark,.bb-mark.cat-mauve{fill:#7b4e6d}\n.cat-mauve .bb-kicker,.cat-mauve .bb-zone-kicker{fill:#7a516c}\n.cat-mauve .bb-node-box{fill:#f0eaea;stroke:#cdbbc4}\n.cat-mauve.status-planned .bb-node-box{fill:none;stroke:#bba4b2}\n.bb-zone.cat-mauve{fill:#f3efee;stroke:#d2c2ca}\n.cat-mauve .iso-roof{fill:#cfb5c7;stroke:#946184}\n.cat-mauve .iso-left{fill:#bb96af;stroke:#946184}\n.cat-mauve .iso-right{fill:#a87a9a;stroke:#946184}\n.cat-mauve.status-planned .iso-face{stroke:#76536b}\n.cat-mustard .bb-mark,.bb-mark.cat-mustard{fill:#7d6a33}\n.cat-mustard .bb-kicker,.cat-mustard .bb-zone-kicker{fill:#7c6a38}\n.cat-mustard .bb-node-box{fill:#f1ede4;stroke:#cec5ae}\n.cat-mustard.status-planned .bb-node-box{fill:none;stroke:#bcb295}\n.bb-zone.cat-mustard{fill:#f3f0ea;stroke:#d3cbb8}\n.cat-mustard .iso-roof{fill:#d6cbae;stroke:#a38e52}\n.cat-mustard .iso-left{fill:#c5b68c;stroke:#a38e52}\n.cat-mustard .iso-right{fill:#b6a36d;stroke:#a38e52}\n.cat-mustard.status-planned .iso-face{stroke:#8a7026}\n.cat-teal .bb-mark,.bb-mark.cat-teal{fill:#3b7273}\n.cat-teal .bb-kicker,.cat-teal .bb-zone-kicker{fill:#407171}\n.cat-teal .bb-node-box{fill:#e9eeeb;stroke:#b5c8c7}\n.cat-teal.status-planned .bb-node-box{fill:none;stroke:#9bb6b5}\n.bb-zone.cat-teal{fill:#eff1ee;stroke:#bececc}\n.cat-teal .iso-roof{fill:#aed5d6;stroke:#53a1a2}\n.cat-teal .iso-left{fill:#8cc3c4;stroke:#53a1a2}\n.cat-teal .iso-right{fill:#6eb4b5;stroke:#53a1a2}\n.cat-teal.status-planned .iso-face{stroke:#2f6869}\n.iso-shadow{fill:#3b2f26;fill-opacity:0.08}\n.iso-hatch line{stroke:#fbf9f6}\n.iso-tag-bg,.iso-label-bg{fill:#fbf9f6;fill-opacity:.9}\n.bb-label.plain{stroke:none}\n.bb-node:not([class*=cat-]) .iso-face{fill:#fffdfa;stroke:#dcdad7}"}</script>
+<script>(() => {
+  const root = document.documentElement;
+  const svg = document.querySelector("#viewport svg");
+  const themeHooks = [];
+  const drawer = document.getElementById("drawer");
+  const dTitle = document.getElementById("drawer-title");
+  const dBody = document.getElementById("drawer-body");
+  const items = [...svg.querySelectorAll(".map-item")];
+  let active = null;
+  const store = { get(k) { try { return localStorage.getItem(k); } catch { return null; } }, set(k, v) { try { localStorage.setItem(k, v); } catch {} } };
+  const key = "bowerbird:" + location.pathname;
+
+  function setTheme(t) { root.dataset.theme = t; store.set(key + ":theme", t); document.getElementById("theme").textContent = t === "dark" ? "Light" : "Dark"; themeHooks.forEach((f) => f()); }
+  function setMotion(on) { root.classList.toggle("motion", on); document.getElementById("motion").setAttribute("aria-pressed", String(on)); store.set(key + ":motion", on ? "1" : "0"); }
+  setTheme(store.get(key + ":theme") || root.dataset.theme);
+  setMotion((store.get(key + ":motion") ?? (root.classList.contains("motion") ? "1" : "0")) === "1" && !matchMedia("(prefers-reduced-motion: reduce)").matches);
+  document.getElementById("theme").onclick = () => setTheme(root.dataset.theme === "dark" ? "light" : "dark");
+  document.getElementById("motion").onclick = () => setMotion(!root.classList.contains("motion"));
+
+  const trace = document.getElementById("trace");
+  function applyTrace(v) {
+    for (const el of items) {
+      el.classList.remove("is-dimmed");
+      if (v === "all") continue;
+      const t = (el.dataset.traces || "").split(/\s+/);
+      if (!t.includes(v)) el.classList.add("is-dimmed");
+    }
+  }
+  if (trace) trace.onchange = () => applyTrace(trace.value);
+
+  function close(focus = true) {
+    if (drawer.hidden) return;
+    drawer.hidden = true; dBody.replaceChildren();
+    if (active) { active.classList.remove("is-selected"); active.setAttribute("aria-expanded", "false"); if (focus) active.focus({ preventScroll: true }); }
+    active = null;
+  }
+  function open(node) {
+    if (active === node && !drawer.hidden) return close();
+    const card = document.getElementById("detail-" + node.dataset.id);
+    if (!card) return;
+    if (active) { active.classList.remove("is-selected"); active.setAttribute("aria-expanded", "false"); }
+    active = node; node.classList.add("is-selected"); node.setAttribute("aria-expanded", "true");
+    dTitle.textContent = card.querySelector("summary .t").textContent;
+    document.getElementById("drawer-kicker").textContent = card.dataset.kicker || "Component";
+    dBody.innerHTML = card.querySelector(".detail").innerHTML;
+    const b = node.getBoundingClientRect();
+    drawer.classList.toggle("from-left", b.left + b.width / 2 > innerWidth / 2);
+    drawer.hidden = false;
+    document.getElementById("drawer-close").focus({ preventScroll: true });
+  }
+  for (const node of svg.querySelectorAll(".bb-node[data-id]")) {
+    node.setAttribute("aria-controls", "drawer"); node.setAttribute("aria-expanded", "false");
+    node.addEventListener("click", () => open(node));
+    node.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); open(node); } });
+  }
+  document.getElementById("drawer-close").onclick = () => close();
+  addEventListener("keydown", (e) => {
+    if (e.target.closest && e.target.closest("input,select,textarea")) return;
+    if (e.key === "Escape") close();
+    if (e.key === "t" || e.key === "T") document.getElementById("theme").click();
+    if (e.key === "m" || e.key === "M") document.getElementById("motion").click();
+  });
+
+  // Client-side export: rebuild a standalone SVG with the active theme's
+  // resolved CSS (no viewer state), then rasterise through a canvas.
+  const styles = JSON.parse(document.getElementById("bb-standalone-css").textContent);
+  function standalone() {
+    const clone = svg.cloneNode(true);
+    clone.querySelectorAll(".is-dimmed,.is-selected").forEach((el) => el.classList.remove("is-dimmed", "is-selected"));
+    clone.querySelectorAll(".bb-flow").forEach((el) => el.remove());
+    clone.querySelector("style").textContent = styles[root.dataset.theme];
+    clone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+    return new XMLSerializer().serializeToString(clone);
+  }
+  const base = document.body.dataset.basename;
+  function save(blob, ext) { const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = base + "." + root.dataset.theme + "." + ext; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000); }
+  function raster(type, ext) {
+    const img = new Image();
+    const vb = svg.viewBox.baseVal;
+    img.onload = () => {
+      const c = document.createElement("canvas"); c.width = vb.width * 2; c.height = vb.height * 2;
+      c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+      c.toBlob((b) => b && save(b, ext), type, 0.92);
+    };
+    img.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(standalone());
+  }
+  document.getElementById("export").onchange = (e) => {
+    const v = e.target.value; e.target.value = "";
+    if (v === "svg") save(new Blob([standalone()], { type: "image/svg+xml" }), "svg");
+    if (v === "png") raster("image/png", "png");
+    if (v === "webp") raster("image/webp", "webp");
+  };
+
+  // ---- Navigation: zoom, pan, fit, fullscreen, minimap ---------------------
+  // The SVG keeps its natural size inside a transformed viewport, so text stays
+  // crisp at any zoom and node positions map 1:1 to diagram coordinates.
+  const stage = document.getElementById("stage");
+  const vp = document.getElementById("viewport");
+  const level = document.getElementById("zoom-level");
+  const vb = svg.viewBox.baseVal;
+  const W = vb.width, H = vb.height;
+  svg.setAttribute("width", W); svg.setAttribute("height", H);
+  const MIN = 0.08, MAX = 4;
+  let k = 1, tx = 0, ty = 0, atFit = true;
+  const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+  const box = () => stage.getBoundingClientRect();
+  const fitScale = () => { const r = box(); return Math.min((r.width - 40) / W, (r.height - 40) / H); };
+
+  function apply() {
+    vp.style.transform = "translate(" + tx + "px," + ty + "px) scale(" + k + ")";
+    level.textContent = Math.round(k * 100) + "%";
+    stage.classList.toggle("at-fit", atFit);
+    drawMiniFrame();
+  }
+  function fit() {
+    const r = box();
+    k = clamp(fitScale(), MIN, MAX);
+    tx = (r.width - W * k) / 2; ty = (r.height - H * k) / 2;
+    atFit = true; apply();
+  }
+  function zoomAt(factor, cx, cy) {
+    const nk = clamp(k * factor, MIN, MAX);
+    tx = cx - (cx - tx) * (nk / k); ty = cy - (cy - ty) * (nk / k);
+    k = nk; atFit = false; apply();
+  }
+  const zoomCenter = (f) => { const r = box(); zoomAt(f, r.width / 2, r.height / 2); };
+  function actual() { const r = box(); zoomAt(1 / k, r.width / 2, r.height / 2); }
+  function panBy(dx, dy) { tx += dx; ty += dy; atFit = false; apply(); }
+
+  document.getElementById("zoom-in").onclick = () => zoomCenter(1.25);
+  document.getElementById("zoom-out").onclick = () => zoomCenter(0.8);
+  document.getElementById("zoom-fit").onclick = fit;
+  level.onclick = actual;
+  document.getElementById("fullscreen").onclick = () => {
+    if (document.fullscreenElement) document.exitFullscreen();
+    else if (stage.requestFullscreen) stage.requestFullscreen();
+  };
+  document.addEventListener("fullscreenchange", () => requestAnimationFrame(fit));
+
+  // Ctrl/Cmd + wheel (and trackpad pinch, which reports ctrlKey) zooms at the
+  // cursor. A plain wheel pans only once zoomed in, so the page still scrolls.
+  stage.addEventListener("wheel", (e) => {
+    const r = box();
+    if (e.ctrlKey || e.metaKey) { e.preventDefault(); zoomAt(Math.exp(-e.deltaY * 0.0022), e.clientX - r.left, e.clientY - r.top); }
+    else if (!atFit) { e.preventDefault(); panBy(-e.deltaX, -e.deltaY); }
+  }, { passive: false });
+
+  // Drag to pan anywhere; two pointers pinch-zoom. A drag never opens a node.
+  const pointers = new Map();
+  let moved = 0, pinch = null;
+  stage.addEventListener("pointerdown", (e) => {
+    // Every press starts fresh: a finished drag must never swallow the next
+    // click (that broke the zoom buttons after panning).
+    moved = 0;
+    if (e.target.closest(".nav,.minimap")) return;
+    // A new primary pointer means any earlier gesture is over; stale entries
+    // would otherwise turn the next drag into a phantom pinch.
+    if (e.isPrimary) { pointers.clear(); pinch = null; }
+    pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (pointers.size === 2) {
+      const [a, b] = [...pointers.values()];
+      pinch = { d: Math.hypot(a.x - b.x, a.y - b.y) };
+    }
+  });
+  stage.addEventListener("pointermove", (e) => {
+    const p = pointers.get(e.pointerId);
+    if (!p) return;
+    const dx = e.clientX - p.x, dy = e.clientY - p.y;
+    pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (pointers.size === 2 && pinch) {
+      const [a, b] = [...pointers.values()];
+      const d = Math.hypot(a.x - b.x, a.y - b.y), r = box();
+      zoomAt(d / pinch.d, (a.x + b.x) / 2 - r.left, (a.y + b.y) / 2 - r.top);
+      pinch.d = d; moved += 10; return;
+    }
+    moved += Math.abs(dx) + Math.abs(dy);
+    // Capture only once this is really a drag: capturing on pointerdown would
+    // retarget the click away from the node and break the detail drawer.
+    if (moved > 4) {
+      if (!stage.hasPointerCapture(e.pointerId)) stage.setPointerCapture(e.pointerId);
+      stage.classList.add("panning"); panBy(dx, dy);
+    }
+  });
+  const release = (e) => { pointers.delete(e.pointerId); if (pointers.size < 2) pinch = null; if (!pointers.size) stage.classList.remove("panning"); };
+  stage.addEventListener("pointerup", release);
+  stage.addEventListener("pointercancel", release);
+  stage.addEventListener("click", (e) => {
+    if (moved > 4 && !e.target.closest(".nav,.minimap")) { e.stopPropagation(); e.preventDefault(); }
+    moved = 0;
+  }, true);
+
+  // The stage must never scroll: focusing a node would scroll it to "reveal"
+  // the node and shift every coordinate the transform relies on. CSS uses
+  // overflow:clip; this guard covers browsers without it.
+  stage.addEventListener("scroll", () => { stage.scrollLeft = 0; stage.scrollTop = 0; });
+  // Keyboard focus on an off-screen node pans the view to it instead.
+  stage.addEventListener("focusin", (e) => {
+    const node = e.target.closest && e.target.closest(".bb-node");
+    if (!node) return;
+    const r = box(), b = node.getBoundingClientRect(), m = 40;
+    let dx = 0, dy = 0;
+    if (b.left < r.left + m) dx = r.left + m - b.left; else if (b.right > r.right - m) dx = r.right - m - b.right;
+    if (b.top < r.top + m) dy = r.top + m - b.top; else if (b.bottom > r.bottom - m) dy = r.bottom - m - b.bottom;
+    if (dx || dy) panBy(dx, dy);
+  });
+  stage.addEventListener("dblclick", (e) => {
+    if (e.target.closest(".bb-node,.nav,.minimap")) return;
+    const r = box(); zoomAt(e.shiftKey ? 0.6 : 1.6, e.clientX - r.left, e.clientY - r.top);
+  });
+
+  addEventListener("keydown", (e) => {
+    if (e.target.closest && e.target.closest("input,select,textarea")) return;
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    if (e.key === "+" || e.key === "=") zoomCenter(1.25);
+    else if (e.key === "-" || e.key === "_") zoomCenter(0.8);
+    else if (e.key === "0" || e.key === "f" || e.key === "F") fit();
+    else if (e.key === "1") actual();
+    else if (document.activeElement === stage && e.key.startsWith("Arrow")) {
+      e.preventDefault();
+      const s = e.shiftKey ? 200 : 60;
+      panBy(e.key === "ArrowLeft" ? s : e.key === "ArrowRight" ? -s : 0, e.key === "ArrowUp" ? s : e.key === "ArrowDown" ? -s : 0);
+    }
+  });
+
+  // Minimap: the standalone render as an image, with the current view framed.
+  const mini = document.getElementById("minimap");
+  const miniImg = document.getElementById("minimap-img");
+  const frame = document.getElementById("minimap-frame");
+  function paintMini() { miniImg.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(standalone()); }
+  function drawMiniFrame() {
+    const r = box(), m = mini.clientWidth / W;
+    frame.style.left = (-tx / k) * m + "px"; frame.style.top = (-ty / k) * m + "px";
+    frame.style.width = (r.width / k) * m + "px"; frame.style.height = (r.height / k) * m + "px";
+  }
+  function jump(e) {
+    const mr = mini.getBoundingClientRect(), m = mini.clientWidth / W, r = box();
+    const px = (e.clientX - mr.left) / m, py = (e.clientY - mr.top) / m;
+    tx = r.width / 2 - px * k; ty = r.height / 2 - py * k; atFit = false; apply();
+  }
+  let miniDrag = false;
+  mini.addEventListener("pointerdown", (e) => { miniDrag = true; mini.setPointerCapture(e.pointerId); jump(e); });
+  mini.addEventListener("pointermove", (e) => { if (miniDrag) jump(e); });
+  mini.addEventListener("pointerup", () => { miniDrag = false; });
+  themeHooks.push(paintMini);
+  paintMini();
+
+  new ResizeObserver(() => { if (atFit) fit(); else drawMiniFrame(); }).observe(stage);
+  fit();
+})();</script>
+</body>
+</html>

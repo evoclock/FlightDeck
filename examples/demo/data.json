@@ -1,5 +1,5 @@
 {
-  "title": "FlightDeck demo",
+  "title": "FlightDeck",
   "summary": "Static illustration of public evoclock repos. Example counts only. This page does not collect live data.",
   "bot_colors": {
     "FlightDeck": "#3f6f70",
@@ -69,7 +69,7 @@
     {
       "id": "dec-static-demo",
       "state": "open",
-      "title": "Keep the FlightDeck demo static?",
+      "title": "Keep this FlightDeck page static?",
       "meta": "template",
       "text": "- The demo lists public evoclock repos.\n- It is a file in the template.",
       "recommendation": "Yes.",
@@ -171,38 +171,70 @@
       "stream": "FlightDeck",
       "area": "Template",
       "items": [
-        {"text": "Sync hooks are in the template. This demo is a static page.", "state": "current", "src": "stream"}
+        {
+          "text": "Sync hooks are in the template. This demo is a static page.",
+          "state": "current",
+          "src": "stream"
+        }
       ]
     },
     {
       "stream": "OpenMausBot",
       "area": "App",
       "items": [
-        {"text": "Two draft pull requests are open on the public repo.", "state": "current", "src": "stream"},
-        {"text": "Read the drafts.", "state": "next", "src": "stream"}
+        {
+          "text": "Two draft pull requests are open on the public repo.",
+          "state": "current",
+          "src": "stream"
+        },
+        {
+          "text": "Read the drafts.",
+          "state": "next",
+          "src": "stream"
+        }
       ]
     },
     {
       "stream": "pi-agentic-driver",
       "area": "Driver",
       "items": [
-        {"text": "3.0.0 is marked released in the public README.", "state": "current", "src": "stream"},
-        {"text": "Mark 3.0.0 released in the README", "state": "done", "src": "ladder"}
+        {
+          "text": "3.0.0 is marked released in the public README.",
+          "state": "current",
+          "src": "stream"
+        },
+        {
+          "text": "Mark 3.0.0 released in the README",
+          "state": "done",
+          "src": "ladder"
+        }
       ]
     },
     {
       "stream": "pi-bowerbird",
       "area": "Diagrams",
       "items": [
-        {"text": "Two pull requests are open on the public repo.", "state": "current", "src": "stream"},
-        {"text": "Review both open pull requests.", "state": "next", "src": "stream"}
+        {
+          "text": "Two pull requests are open on the public repo.",
+          "state": "current",
+          "src": "stream"
+        },
+        {
+          "text": "Review both open pull requests.",
+          "state": "next",
+          "src": "stream"
+        }
       ]
     },
     {
       "stream": "Demeter",
       "area": "Populations",
       "items": [
-        {"text": "The public fieldnotes describe multilevel selection for populations of agents.", "state": "current", "src": "stream"}
+        {
+          "text": "The public fieldnotes describe multilevel selection for populations of agents.",
+          "state": "current",
+          "src": "stream"
+        }
       ]
     }
   ],
@@ -223,33 +255,106 @@
       "detail": "- evoclock/pi-agentic-driver#125 merged.\n- The public README marks the 3.0.0 tools as released."
     }
   ],
-  "metrics": {
-    "title": "Example host",
-    "at": "2026-10-25T11:40:00+00:00",
-    "note": "Example readings for this illustration.",
-    "items": [
-      {"key": "cpu", "label": "CPU", "pct": 23.0},
-      {"key": "mem", "label": "Memory", "pct": 61.5, "detail": "9.8 / 16 GB"},
-      {"key": "disk", "label": "Disk", "pct": 44.0}
+  "spark": {
+    "sample": true,
+    "cluster": "demo",
+    "nodes": [
+      {
+        "name": "demo-a",
+        "status": "online",
+        "read_at": "2026-10-25T16:20:00+00:00",
+        "gpu_util_pct": 98,
+        "mem_used_bytes": 52000000000,
+        "mem_total_bytes": 80000000000,
+        "temp_c": 74,
+        "power_w": 58
+      },
+      {
+        "name": "demo-b",
+        "status": "online",
+        "read_at": "2026-10-25T16:20:00+00:00",
+        "gpu_util_pct": 97,
+        "mem_used_bytes": 39000000000,
+        "mem_total_bytes": 80000000000,
+        "temp_c": 72,
+        "power_w": 55
+      }
+    ],
+    "history": [
+      {
+        "at": "2026-10-25T15:20:00+00:00",
+        "gpu": {
+          "demo-a": 97,
+          "demo-b": 96
+        }
+      },
+      {
+        "at": "2026-10-25T15:35:00+00:00",
+        "gpu": {
+          "demo-a": 98,
+          "demo-b": 95
+        }
+      },
+      {
+        "at": "2026-10-25T15:50:00+00:00",
+        "gpu": {
+          "demo-a": 96,
+          "demo-b": 97
+        }
+      },
+      {
+        "at": "2026-10-25T16:05:00+00:00",
+        "gpu": {
+          "demo-a": 99,
+          "demo-b": 98
+        }
+      },
+      {
+        "at": "2026-10-25T16:20:00+00:00",
+        "gpu": {
+          "demo-a": 98,
+          "demo-b": 97
+        }
+      }
     ]
   },
   "activity": {
     "window": "1h",
-    "commits": 3,
-    "prs_opened": 1,
-    "prs_merged": 1,
-    "at": "2026-10-25T11:40:00+00:00",
-    "note": "Example counts for this illustration. Not a live GitHub total.",
-    "sample": true
+    "commits": 14,
+    "prs_opened": 8,
+    "prs_merged": 8,
+    "at": "2026-10-25T23:40:00+00:00",
+    "note": "Public evoclock repos. Not a live GitHub total."
   },
   "activity_weekly": {
     "window": "week",
     "since": "2026-10-23T17:00:00+01:00",
-    "commits": 18,
-    "prs_opened": 4,
-    "prs_merged": 3,
-    "at": "2026-10-25T11:40:00+00:00",
-    "note": "Example counts for this illustration. Not a live GitHub total.",
-    "sample": true
+    "commits": 286,
+    "prs_opened": 104,
+    "prs_merged": 93,
+    "at": "2026-10-25T23:40:00+00:00",
+    "note": "Public evoclock repos. Not a live GitHub total."
+  },
+  "projects": {
+    "rule": "Built = merged on the default branch. In progress = open PR or pushed branch. Planned = TASKS.md card or spec. Unverified = named in a README but not found in a repo.",
+    "verified": "25 Oct 2026, example data",
+    "tabs": [
+      {
+        "id": "flightdeck",
+        "diagram": "architecture/flightdeck.bower.json"
+      },
+      {
+        "id": "omb",
+        "diagram": "architecture/openmausbot.bower.json"
+      },
+      {
+        "id": "bowerbird",
+        "diagram": "architecture/pi-bowerbird.bower.json"
+      },
+      {
+        "id": "demeter",
+        "diagram": "architecture/demeter.bower.json"
+      }
+    ]
   }
 }
