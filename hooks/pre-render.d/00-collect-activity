@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Activity counts. No owner, or no data file: skip. Token from the environment, else gh.
+# Activity counts. No owner, or no data file: skip.
+# Token from the environment, else gh. If the env token fails (exit 2), retry once with `gh auth token`.
 set -euo pipefail
 ROOT=$(cd "$(dirname "$0")/../.." && pwd)
 cd "$ROOT"
@@ -11,13 +12,23 @@ if [[ -z "${FLIGHTDECK_DATA:-}" && ! -f "$ROOT/data.json" ]]; then
   echo "00-collect-activity: no data file, skipping" >&2
   exit 0
 fi
-if [[ -z "${GITHUB_TOKEN:-}" && -z "${GH_TOKEN:-}" && -z "${GITHUB_PAT:-}" ]]; then
-  if [[ "${FLIGHTDECK_GH_DISABLE:-}" != "1" ]] && command -v gh >/dev/null 2>&1; then
-    tok=$(gh auth token 2>/dev/null || true)
-    if [[ -n "${tok}" ]]; then
-      export GITHUB_TOKEN="$tok"
-    fi
-    unset tok
-  fi
+gh_tok() {
+  [[ "${FLIGHTDECK_GH_DISABLE:-}" != "1" ]] || return 0
+  command -v gh >/dev/null 2>&1 && env -u GITHUB_TOKEN -u GH_TOKEN -u GITHUB_PAT gh auth token 2>/dev/null || true
+}
+if [[ -z "${GITHUB_TOKEN:-}${GH_TOKEN:-}${GITHUB_PAT:-}" ]]; then
+  tok="$(gh_tok)"; [[ -n "$tok" ]] && export GITHUB_TOKEN="$tok"
+  unset tok
 fi
-exec python3 -m collectors.activity
+status=0
+python3 -m collectors.activity || status=$?
+if [[ $status -ne 0 ]]; then
+  tok="$(gh_tok)"
+  if [[ -n "$tok" && "$tok" != "${GITHUB_TOKEN:-}" ]]; then
+    echo "00-collect-activity: env token failed (exit $status); retrying with gh auth token" >&2
+    status=0
+    env -u GH_TOKEN -u GITHUB_PAT GITHUB_TOKEN="$tok" python3 -m collectors.activity || status=$?
+  fi
+  unset tok
+fi
+exit "$status"
