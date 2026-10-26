@@ -263,57 +263,57 @@
         "name": "demo-a",
         "status": "online",
         "read_at": "2026-10-25T16:20:00+00:00",
-        "gpu_util_pct": 64,
+        "gpu_util_pct": 98,
         "mem_used_bytes": 52000000000,
         "mem_total_bytes": 80000000000,
-        "temp_c": 61,
-        "power_w": 42
+        "temp_c": 74,
+        "power_w": 58
       },
       {
         "name": "demo-b",
         "status": "online",
         "read_at": "2026-10-25T16:20:00+00:00",
-        "gpu_util_pct": 47,
+        "gpu_util_pct": 97,
         "mem_used_bytes": 39000000000,
         "mem_total_bytes": 80000000000,
-        "temp_c": 58,
-        "power_w": 38
+        "temp_c": 72,
+        "power_w": 55
       }
     ],
     "history": [
       {
         "at": "2026-10-25T15:20:00+00:00",
         "gpu": {
-          "demo-a": 82,
-          "demo-b": 45
+          "demo-a": 97,
+          "demo-b": 96
         }
       },
       {
         "at": "2026-10-25T15:35:00+00:00",
         "gpu": {
-          "demo-a": 80,
-          "demo-b": 47
+          "demo-a": 98,
+          "demo-b": 95
         }
       },
       {
         "at": "2026-10-25T15:50:00+00:00",
         "gpu": {
-          "demo-a": 76,
-          "demo-b": 51
+          "demo-a": 96,
+          "demo-b": 97
         }
       },
       {
         "at": "2026-10-25T16:05:00+00:00",
         "gpu": {
-          "demo-a": 58,
-          "demo-b": 44
+          "demo-a": 99,
+          "demo-b": 98
         }
       },
       {
         "at": "2026-10-25T16:20:00+00:00",
         "gpu": {
-          "demo-a": 64,
-          "demo-b": 47
+          "demo-a": 98,
+          "demo-b": 97
         }
       }
     ]
@@ -334,5 +334,23 @@
     "prs_merged": 93,
     "at": "2026-10-25T23:40:00+00:00",
     "note": "Public evoclock repos. Not a live GitHub total."
+  },
+  "projects": {
+    "rule": "Built = merged on the default branch. In progress = open PR or pushed branch. Planned = TASKS.md card or spec. Unverified = named in a README but not found in a repo.",
+    "verified": "25 Oct 2026, example data",
+    "tabs": [
+      {
+        "id": "flightdeck",
+        "diagram": "architecture/flightdeck.bower.json"
+      },
+      {
+        "id": "omb",
+        "diagram": "architecture/openmausbot.bower.json"
+      },
+      {
+        "id": "bowerbird",
+        "diagram": "architecture/pi-bowerbird.bower.json"
+      }
+    ]
   }
 }

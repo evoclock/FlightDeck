@@ -105,6 +105,29 @@ class DemoRenderTests(unittest.TestCase):
         self.assertNotIn('Example host', self.doc)
         self.assertIn('"sample": true', self.doc)
 
+    def test_demo_cluster_runs_hot(self):
+        spark = json.loads((DEMO / 'data.json').read_text())['spark']
+        for n in spark['nodes']:
+            self.assertGreaterEqual(n['gpu_util_pct'], 95, n['name'])
+            self.assertLessEqual(n['gpu_util_pct'], 100, n['name'])
+        for h in spark['history']:
+            for node in ('demo-a', 'demo-b'):
+                self.assertTrue(95 <= h['gpu'][node] <= 100, (h['at'], node))
+
+    def test_demo_fills_every_live_pane(self):
+        cfg = json.loads((DEMO / 'config.json').read_text())
+        self.assertEqual(cfg['slots'], {
+            'banner': 'banner.image', 'cluster': 'cluster.gpu', 'activity': 'activity.github',
+            'streams': 'streams.table', 'decisions': 'decisions.cards', 'steps': 'steps.checklist',
+            'merges': 'merges.table', 'priorities': 'priorities.list', 'settled': 'settled.list',
+            'architecture': 'architecture.diagrams',
+        })
+        self.assertIn('id="architecture"', self.doc)
+        self.assertIn('3 projects', self.doc)
+        for tab in ('tab-flightdeck', 'tab-omb', 'tab-bowerbird'):
+            self.assertIn(f'id="{tab}"', self.doc)
+        self.assertNotIn('No diagrams yet.', self.doc)
+
     def test_walkthrough_video_is_the_attached_file(self):
         video = DEMO / 'assets' / 'flightdeck-demo.mp4'
         self.assertTrue(video.is_file())

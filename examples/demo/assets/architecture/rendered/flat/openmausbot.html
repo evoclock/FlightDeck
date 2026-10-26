@@ -1,0 +1,641 @@
+<!doctype html>
+<html lang="en" data-theme="light" class="motion">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>OpenMausBot</title>
+<meta name="description" content="Chat app where each bot is a local agent with its own model, cloud computer and connected apps.">
+<meta name="generator" content="bowerbird">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@300..800&display=swap">
+<style>
+:root{color-scheme:light dark}
+*{box-sizing:border-box}
+html[data-theme=dark]{--bg:#1a1816;--panel:#272421;--line:#35302b;--ink:#ead1b5;--muted:#b09080;--accent:#79c39e}
+html[data-theme=light]{--bg:#fbf9f6;--panel:#fffdfa;--line:#dcdad7;--ink:#2f2a27;--muted:#716961;--accent:#3d8461}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.6 Geist,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialiased}
+a{color:var(--ink);text-decoration-color:var(--accent);text-decoration-thickness:1px;text-underline-offset:.22em}
+a:hover{color:var(--accent)}
+code{font:.84em ui-monospace,SFMono-Regular,Menlo,monospace;overflow-wrap:anywhere}
+.page{width:min(1680px,calc(100% - 48px));margin:0 auto}
+.caps{font-size:.68rem;font-weight:500;letter-spacing:.2em;text-transform:uppercase;color:var(--muted)}
+.toolbar{position:sticky;top:0;z-index:5;display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;justify-content:space-between;padding:14px 0;background:var(--bg);border-bottom:1px solid var(--line)}
+.toolbar .group{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.toolbar label{margin-right:4px}
+button,select{min-height:32px;padding:4px 12px;border:1px solid var(--line);border-radius:4px;background:transparent;color:var(--ink);font:inherit;font-size:.68rem;font-weight:500;letter-spacing:.16em;text-transform:uppercase;cursor:pointer}
+button:hover,select:hover{border-color:var(--muted)}
+button[aria-pressed=true]{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+select option{background:var(--bg);color:var(--ink);text-transform:none;letter-spacing:0}
+:focus-visible{outline:1.5px solid var(--accent);outline-offset:3px}
+.stage{position:relative;height:min(82vh,1100px);margin:24px 0;overflow:hidden;overflow:clip;border:1px solid var(--line);border-radius:6px;background:var(--bg);cursor:grab;touch-action:none;user-select:none}
+.stage.panning{cursor:grabbing}
+.stage:focus-visible{outline-offset:-2px}
+.stage:fullscreen{height:100vh;border:0;border-radius:0}
+.viewport{position:absolute;left:0;top:0;transform-origin:0 0;will-change:transform}
+.viewport svg{display:block}
+.nav{position:absolute;top:12px;right:12px;z-index:2;display:flex;gap:4px;padding:4px;border:1px solid var(--line);border-radius:6px;background:var(--bg)}
+.nav button{min-width:34px;min-height:30px;padding:0 9px;border-color:transparent;letter-spacing:.06em}
+.nav button:hover{border-color:var(--line)}
+.nav #zoom-level{min-width:58px;font-variant-numeric:tabular-nums}
+.minimap{position:absolute;right:12px;bottom:12px;z-index:2;width:clamp(140px,16vw,220px);overflow:hidden;border:1px solid var(--line);border-radius:4px;background:var(--bg);cursor:crosshair;transition:opacity .25s ease}
+.minimap img{display:block;width:100%;height:auto;pointer-events:none}
+.minimap-frame{position:absolute;border:1.5px solid var(--accent);border-radius:2px;box-shadow:0 0 0 999px rgb(0 0 0 / 22%);pointer-events:none}
+.stage.at-fit .minimap{opacity:0;pointer-events:none}
+.stage-hint{position:absolute;left:14px;bottom:10px;z-index:2;margin:0;pointer-events:none;opacity:.8}
+.stage:not(.at-fit) .stage-hint{opacity:0}
+.bb-node[tabindex]{cursor:pointer}
+.bb-node[tabindex]:hover .bb-node-box,.bb-node[tabindex]:focus .bb-node-box{stroke-width:1.6}
+.bb-node.is-selected .bb-node-box{stroke-width:2}
+.map-item{transition:opacity .25s ease}
+.map-item.is-dimmed{opacity:.12}
+html:not(.motion) .bb-flow{display:none}
+.motion .bb-node{animation:bb-enter .6s cubic-bezier(.2,.7,.2,1) both}
+@keyframes bb-enter{from{opacity:0}}
+.drawer[hidden]{display:none}
+.drawer{position:fixed;z-index:20;top:80px;right:24px;bottom:24px;display:flex;flex-direction:column;width:min(420px,calc(100vw - 48px));border:1px solid var(--line);border-radius:6px;background:var(--bg);box-shadow:0 24px 60px rgb(0 0 0 / 22%)}
+.drawer.from-left{right:auto;left:24px}
+.drawer-head{display:flex;gap:12px;justify-content:space-between;align-items:start;padding:20px 22px 16px;border-bottom:1px solid var(--line)}
+.drawer-head p{margin:0 0 6px}
+.drawer-head h2{margin:0;font-size:1.35rem;font-weight:400;letter-spacing:-.01em}
+.drawer-head button{min-height:28px;padding:0 9px;letter-spacing:0;font-size:1rem}
+.drawer-body{overflow:auto;padding:14px 22px 22px;font-size:.9rem}
+.drawer-body h4,.detail h4{margin:18px 0 6px;color:var(--muted);font-size:.66rem;font-weight:500;letter-spacing:.2em;text-transform:uppercase}
+.drawer-body ul,.detail ul{margin:6px 0;padding-left:16px}
+.evidence-list{margin-top:14px;padding-top:12px;border-top:1px solid var(--line);font-size:.84rem}
+.evidence-list b{display:block;margin-bottom:4px;color:var(--muted);font-size:.66rem;font-weight:500;letter-spacing:.2em;text-transform:uppercase}
+.details{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:0 32px;margin:40px 0 56px}
+.details>h2{grid-column:1/-1;margin:0 0 12px;font-size:1.5rem;font-weight:300;letter-spacing:-.01em}
+details.card{border-top:1px solid var(--line)}
+details.card summary{padding:14px 0;cursor:pointer;font-weight:500;list-style:none;display:flex;gap:10px;align-items:baseline}
+details.card summary::-webkit-details-marker{display:none}
+details.card summary .st{margin-left:auto}
+details.card .detail{padding:0 0 18px;font-size:.9rem;color:var(--ink)}
+footer{padding:18px 0 32px;border-top:1px solid var(--line)}
+@media (max-width:760px){.drawer,.drawer.from-left{top:auto;left:12px;right:12px;bottom:12px;width:auto;max-height:66vh}}
+@media (prefers-reduced-motion:reduce){.map-item{transition:none}.motion .bb-node{animation:none}}
+@media print{.toolbar,.drawer{display:none}details.card>*:not(summary){display:block!important}}
+</style>
+</head>
+<body data-basename="openmausbot">
+<div class="page">
+<div class="toolbar"><div class="group"><span class="caps">6 built · 3 partial · 1 planned</span></div>
+<div class="group"><button id="motion" type="button" aria-pressed="true" title="Toggle flow animation (M)">Motion</button><button id="theme" type="button" title="Toggle theme (T)">Light</button>
+<select id="export" aria-label="Export diagram"><option value="">Export…</option><option value="svg">SVG</option><option value="png">PNG (2×)</option><option value="webp">WebP (2×)</option></select></div></div>
+<div class="stage at-fit" id="stage" tabindex="0" aria-label="Diagram canvas. Drag to pan, Ctrl or Cmd plus scroll to zoom, F to fit.">
+<div class="viewport" id="viewport"><svg viewBox="0 0 1436 746" role="group" aria-labelledby="bb-t" xmlns="http://www.w3.org/2000/svg"><title id="bb-t">OpenMausBot</title><style>
+text{font-family:Geist,"Geist Sans",ui-sans-serif,system-ui,-apple-system,"Segoe UI",Helvetica,Arial,sans-serif;font-variant-numeric:tabular-nums}
+.bb-title{font-size:36px;font-weight:300;letter-spacing:-.015em}
+.bb-subtitle{font-size:14px;font-weight:400}
+.bb-kicker-top{font-size:10.5px;font-weight:500;letter-spacing:2.6px}
+.bb-meta{font-size:11px;font-weight:400;letter-spacing:.03em}
+.bb-meter-big{font-size:42px;font-weight:300;letter-spacing:-.02em}
+.bb-meter-unit{font-size:17px;font-weight:300}
+.bb-meter-track{stroke-width:1;fill:none}
+.bb-meter-solid,.bb-meter-part{stroke-width:3;fill:none}
+.bb-meter-part{stroke-dasharray:2 3}
+.bb-rule{stroke-width:1;fill:none}
+.bb-zone{stroke-width:1}
+.bb-zone-kicker{font-size:10.5px;font-weight:500;letter-spacing:2.6px}
+.bb-zone-title{font-size:21px;font-weight:400;letter-spacing:-.005em}
+.bb-zone-sub{font-size:11.5px}
+.bb-node-box{stroke-width:1}
+.bb-node.status-planned .bb-node-box{stroke-dasharray:4 4}
+.bb-kicker{font-size:10.5px;font-weight:500;letter-spacing:2.4px}
+.bb-node-title{font-size:17px;font-weight:500;letter-spacing:-.005em}
+.bb-copy{font-size:13.5px;font-weight:400}
+.bb-hint{font-size:11.5px;font-weight:400;letter-spacing:.02em}
+.bb-status-text{font-size:9.5px;font-weight:600;letter-spacing:1.9px}
+.bb-dot{stroke-width:1.1;fill:none}
+.bb-edge{fill:none;stroke-width:1.25;stroke-linejoin:round;stroke-linecap:round}
+.bb-edge.control{stroke-dasharray:3 4}
+.bb-edge.failure{stroke-dasharray:.1 4.5;stroke-width:1.8}
+.bb-edge.is-planned{opacity:.4}
+.bb-label{font-size:11.5px;font-weight:500;letter-spacing:.02em;paint-order:stroke;stroke-width:6px;stroke-linejoin:round}
+.bb-legend-text{font-size:12px;font-weight:400}
+.bb-finding-text{font-size:9px;font-weight:600;letter-spacing:1.6px}
+.iso-face{stroke-width:.8;stroke-linejoin:round}
+.bb-node.status-planned .iso-face{fill:none;stroke-dasharray:4 4;stroke-width:1}
+.iso-hatch line{stroke-width:.8;opacity:.45}
+.iso-label-knockout{paint-order:stroke;stroke-width:6px;stroke-linejoin:round}
+html[data-theme=dark] .bb-canvas{fill:#1a1816}
+html[data-theme=dark] .bb-title,html[data-theme=dark] .bb-zone-title,html[data-theme=dark] .bb-node-title,html[data-theme=dark] .bb-meter-big,html[data-theme=dark] .bb-meter-unit{fill:#ead1b5}
+html[data-theme=dark] .bb-subtitle,html[data-theme=dark] .bb-copy,html[data-theme=dark] .bb-hint,html[data-theme=dark] .bb-legend-text,html[data-theme=dark] .bb-meta,html[data-theme=dark] .bb-kicker,html[data-theme=dark] .bb-zone-kicker,html[data-theme=dark] .bb-kicker-top,html[data-theme=dark] .bb-zone-sub{fill:#b09080}
+html[data-theme=dark] .bb-rule,html[data-theme=dark] .bb-meter-track{stroke:#35302b}
+html[data-theme=dark] .bb-meter-solid{stroke:#ead1b5}
+html[data-theme=dark] .bb-meter-part{stroke:#b09080}
+html[data-theme=dark] .bb-zone{fill:#1f1c19;stroke:#35302b}
+html[data-theme=dark] .bb-node-box{fill:#272421;stroke:#35302b}
+html[data-theme=dark] .bb-node.status-planned .bb-node-box{fill:none;stroke:#4c443c}
+html[data-theme=dark] .bb-node.status-planned .bb-node-title{fill:#b09080}
+html[data-theme=dark] .bb-status-text{fill:#b09080}
+html[data-theme=dark] .bb-status.is-implemented .bb-status-text{fill:#b09080}
+html[data-theme=dark] .bb-dot{stroke:#b09080}
+html[data-theme=dark] .bb-dot-fill{fill:#b09080}
+html[data-theme=dark] .bb-status.is-implemented .bb-dot{stroke:#ead1b5}
+html[data-theme=dark] .bb-status.is-implemented .bb-dot-fill{fill:#ead1b5}
+html[data-theme=dark] .bb-edge.data{stroke:#958574}
+html[data-theme=dark] .bb-edge.control{stroke:#6b737e}
+html[data-theme=dark] .bb-edge.failure{stroke:#c27a5c}
+html[data-theme=dark] .bb-arrow.data{fill:#958574}
+html[data-theme=dark] .bb-arrow.control{fill:#6b737e}
+html[data-theme=dark] .bb-arrow.failure{fill:#c27a5c}
+html[data-theme=dark] .bb-label,html[data-theme=dark] .iso-label-knockout{stroke:#1a1816}
+html[data-theme=dark] .bb-label.data{fill:#b09080}
+html[data-theme=dark] .bb-label.control{fill:#a4a8ae}
+html[data-theme=dark] .bb-label.failure{fill:#c27a5c}
+html[data-theme=dark] .bb-flow{stroke:#ead1b5;stroke-opacity:.55}
+html[data-theme=dark] .bb-finding-text,html[data-theme=dark] .bb-finding-inline{fill:#c27a5c}
+html[data-theme=dark] .bb-node.has-finding .bb-node-box{stroke:#c27a5c}
+html[data-theme=dark] .bb-pseudo-fill{fill:#ead1b5}
+html[data-theme=dark] .bb-pseudo-ring{fill:#1a1816;stroke:#ead1b5;stroke-width:1.3}
+html[data-theme=dark] .bb-pseudo-choice{fill:#272421}
+html[data-theme=dark] .bb-node.is-selected .bb-node-box,html[data-theme=dark] .bb-node[tabindex]:focus .bb-node-box{stroke:#ead1b5}
+html[data-theme=dark] .cat-sage .bb-mark,html[data-theme=dark] .bb-mark.cat-sage{fill:#7fbd9e}
+html[data-theme=dark] .cat-sage .bb-kicker,html[data-theme=dark] .cat-sage .bb-zone-kicker{fill:#89b498}
+html[data-theme=dark] .cat-sage .bb-node-box{fill:#353c35;stroke:#475b4e}
+html[data-theme=dark] .cat-sage.status-planned .bb-node-box{fill:none;stroke:#476253}
+html[data-theme=dark] .bb-zone.cat-sage{fill:#212420;stroke:#344339}
+html[data-theme=dark] .cat-peach .bb-mark,html[data-theme=dark] .bb-mark.cat-peach{fill:#ca9a7d}
+html[data-theme=dark] .cat-peach .bb-kicker,html[data-theme=dark] .cat-peach .bb-zone-kicker{fill:#c5987e}
+html[data-theme=dark] .cat-peach .bb-node-box{fill:#413730;stroke:#624e42}
+html[data-theme=dark] .cat-peach.status-planned .bb-node-box{fill:none;stroke:#695344}
+html[data-theme=dark] .bb-zone.cat-peach{fill:#26211d;stroke:#483a31}
+html[data-theme=dark] .cat-slate .bb-mark,html[data-theme=dark] .bb-mark.cat-slate{fill:#7a92ae}
+html[data-theme=dark] .cat-slate .bb-kicker,html[data-theme=dark] .cat-slate .bb-zone-kicker{fill:#8592a5}
+html[data-theme=dark] .cat-slate .bb-node-box{fill:#343638;stroke:#454c54}
+html[data-theme=dark] .cat-slate.status-planned .bb-node-box{fill:none;stroke:#454f5a}
+html[data-theme=dark] .bb-zone.cat-slate{fill:#212121;stroke:#33383e}
+html[data-theme=dark] .cat-mauve .bb-mark,html[data-theme=dark] .bb-mark.cat-mauve{fill:#ae7a9d}
+html[data-theme=dark] .cat-mauve .bb-kicker,html[data-theme=dark] .cat-mauve .bb-zone-kicker{fill:#ae7e97}
+html[data-theme=dark] .cat-mauve .bb-node-box{fill:#3d3235;stroke:#58434e}
+html[data-theme=dark] .cat-mauve.status-planned .bb-node-box{fill:none;stroke:#5d4453}
+html[data-theme=dark] .bb-zone.cat-mauve{fill:#241f1f;stroke:#403139}
+html[data-theme=dark] .cat-mustard .bb-mark,html[data-theme=dark] .bb-mark.cat-mustard{fill:#c2aa6a}
+html[data-theme=dark] .cat-mustard .bb-kicker,html[data-theme=dark] .cat-mustard .bb-zone-kicker{fill:#bea56e}
+html[data-theme=dark] .cat-mustard .bb-node-box{fill:#40392d;stroke:#5f543b}
+html[data-theme=dark] .cat-mustard.status-planned .bb-node-box{fill:none;stroke:#665a3c}
+html[data-theme=dark] .bb-zone.cat-mustard{fill:#26221c;stroke:#463e2c}
+html[data-theme=dark] .cat-teal .bb-mark,html[data-theme=dark] .bb-mark.cat-teal{fill:#7aadae}
+html[data-theme=dark] .cat-teal .bb-kicker,html[data-theme=dark] .cat-teal .bb-zone-kicker{fill:#85a7a5}
+html[data-theme=dark] .cat-teal .bb-node-box{fill:#343a38;stroke:#455554}
+html[data-theme=dark] .cat-teal.status-planned .bb-node-box{fill:none;stroke:#455b5a}
+html[data-theme=dark] .bb-zone.cat-teal{fill:#212221;stroke:#333f3e}html[data-theme=light] .bb-canvas{fill:#fbf9f6}
+html[data-theme=light] .bb-title,html[data-theme=light] .bb-zone-title,html[data-theme=light] .bb-node-title,html[data-theme=light] .bb-meter-big,html[data-theme=light] .bb-meter-unit{fill:#2f2a27}
+html[data-theme=light] .bb-subtitle,html[data-theme=light] .bb-copy,html[data-theme=light] .bb-hint,html[data-theme=light] .bb-legend-text,html[data-theme=light] .bb-meta,html[data-theme=light] .bb-kicker,html[data-theme=light] .bb-zone-kicker,html[data-theme=light] .bb-kicker-top,html[data-theme=light] .bb-zone-sub{fill:#716961}
+html[data-theme=light] .bb-rule,html[data-theme=light] .bb-meter-track{stroke:#dcdad7}
+html[data-theme=light] .bb-meter-solid{stroke:#2f2a27}
+html[data-theme=light] .bb-meter-part{stroke:#716961}
+html[data-theme=light] .bb-zone{fill:#f5f3f0;stroke:#dcdad7}
+html[data-theme=light] .bb-node-box{fill:#fffdfa;stroke:#dcdad7}
+html[data-theme=light] .bb-node.status-planned .bb-node-box{fill:none;stroke:#c2bfbc}
+html[data-theme=light] .bb-node.status-planned .bb-node-title{fill:#716961}
+html[data-theme=light] .bb-status-text{fill:#716961}
+html[data-theme=light] .bb-status.is-implemented .bb-status-text{fill:#716961}
+html[data-theme=light] .bb-dot{stroke:#716961}
+html[data-theme=light] .bb-dot-fill{fill:#716961}
+html[data-theme=light] .bb-status.is-implemented .bb-dot{stroke:#2f2a27}
+html[data-theme=light] .bb-status.is-implemented .bb-dot-fill{fill:#2f2a27}
+html[data-theme=light] .bb-edge.data{stroke:#888079}
+html[data-theme=light] .bb-edge.control{stroke:#747c86}
+html[data-theme=light] .bb-edge.failure{stroke:#9b4a36}
+html[data-theme=light] .bb-arrow.data{fill:#888079}
+html[data-theme=light] .bb-arrow.control{fill:#747c86}
+html[data-theme=light] .bb-arrow.failure{fill:#9b4a36}
+html[data-theme=light] .bb-label,html[data-theme=light] .iso-label-knockout{stroke:#fbf9f6}
+html[data-theme=light] .bb-label.data{fill:#716961}
+html[data-theme=light] .bb-label.control{fill:#4c535c}
+html[data-theme=light] .bb-label.failure{fill:#9b4a36}
+html[data-theme=light] .bb-flow{stroke:#2f2a27;stroke-opacity:.55}
+html[data-theme=light] .bb-finding-text,html[data-theme=light] .bb-finding-inline{fill:#9b4a36}
+html[data-theme=light] .bb-node.has-finding .bb-node-box{stroke:#9b4a36}
+html[data-theme=light] .bb-pseudo-fill{fill:#2f2a27}
+html[data-theme=light] .bb-pseudo-ring{fill:#fbf9f6;stroke:#2f2a27;stroke-width:1.3}
+html[data-theme=light] .bb-pseudo-choice{fill:#fffdfa}
+html[data-theme=light] .bb-node.is-selected .bb-node-box,html[data-theme=light] .bb-node[tabindex]:focus .bb-node-box{stroke:#2f2a27}
+html[data-theme=light] .cat-sage .bb-mark,html[data-theme=light] .bb-mark.cat-sage{fill:#427f61}
+html[data-theme=light] .cat-sage .bb-kicker,html[data-theme=light] .cat-sage .bb-zone-kicker{fill:#477d61}
+html[data-theme=light] .cat-sage .bb-node-box{fill:#eaefe9;stroke:#b7cdc0}
+html[data-theme=light] .cat-sage.status-planned .bb-node-box{fill:none;stroke:#9fbcac}
+html[data-theme=light] .bb-zone.cat-sage{fill:#f0f2ed;stroke:#c0d2c6}
+html[data-theme=light] .cat-peach .bb-mark,html[data-theme=light] .bb-mark.cat-peach{fill:#a76644}
+html[data-theme=light] .cat-peach .bb-kicker,html[data-theme=light] .cat-peach .bb-zone-kicker{fill:#a26647}
+html[data-theme=light] .cat-peach .bb-node-box{fill:#f5ece6;stroke:#dec4b5}
+html[data-theme=light] .cat-peach.status-planned .bb-node-box{fill:none;stroke:#d1b09d}
+html[data-theme=light] .bb-zone.cat-peach{fill:#f6f0eb;stroke:#e0cabd}
+html[data-theme=light] .cat-slate .bb-mark,html[data-theme=light] .bb-mark.cat-slate{fill:#4a5c73}
+html[data-theme=light] .cat-slate .bb-kicker,html[data-theme=light] .cat-slate .bb-zone-kicker{fill:#4e5d71}
+html[data-theme=light] .cat-slate .bb-node-box{fill:#ebebeb;stroke:#bac0c7}
+html[data-theme=light] .cat-slate.status-planned .bb-node-box{fill:none;stroke:#a3abb5}
+html[data-theme=light] .bb-zone.cat-slate{fill:#f0f0ee;stroke:#c2c7cc}
+html[data-theme=light] .cat-mauve .bb-mark,html[data-theme=light] .bb-mark.cat-mauve{fill:#7b4e6d}
+html[data-theme=light] .cat-mauve .bb-kicker,html[data-theme=light] .cat-mauve .bb-zone-kicker{fill:#7a516c}
+html[data-theme=light] .cat-mauve .bb-node-box{fill:#f0eaea;stroke:#cdbbc4}
+html[data-theme=light] .cat-mauve.status-planned .bb-node-box{fill:none;stroke:#bba4b2}
+html[data-theme=light] .bb-zone.cat-mauve{fill:#f3efee;stroke:#d2c2ca}
+html[data-theme=light] .cat-mustard .bb-mark,html[data-theme=light] .bb-mark.cat-mustard{fill:#7d6a33}
+html[data-theme=light] .cat-mustard .bb-kicker,html[data-theme=light] .cat-mustard .bb-zone-kicker{fill:#7c6a38}
+html[data-theme=light] .cat-mustard .bb-node-box{fill:#f1ede4;stroke:#cec5ae}
+html[data-theme=light] .cat-mustard.status-planned .bb-node-box{fill:none;stroke:#bcb295}
+html[data-theme=light] .bb-zone.cat-mustard{fill:#f3f0ea;stroke:#d3cbb8}
+html[data-theme=light] .cat-teal .bb-mark,html[data-theme=light] .bb-mark.cat-teal{fill:#3b7273}
+html[data-theme=light] .cat-teal .bb-kicker,html[data-theme=light] .cat-teal .bb-zone-kicker{fill:#407171}
+html[data-theme=light] .cat-teal .bb-node-box{fill:#e9eeeb;stroke:#b5c8c7}
+html[data-theme=light] .cat-teal.status-planned .bb-node-box{fill:none;stroke:#9bb6b5}
+html[data-theme=light] .bb-zone.cat-teal{fill:#eff1ee;stroke:#bececc}
+.bb-flow{fill:none;stroke-width:2.4;stroke-linecap:round;stroke-dasharray:.1 28;animation:bb-flow 2.6s linear infinite}
+@keyframes bb-flow{to{stroke-dashoffset:-28.1}}
+@media (prefers-reduced-motion:reduce){.bb-flow{animation:none;opacity:0}}
+</style><defs><marker id="bb-arrow-data" viewBox="0 0 10 10" refX="8.6" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path class="bb-arrow data" d="M 0 1 L 10 5 L 0 9 z"/></marker><marker id="bb-arrow-control" viewBox="0 0 10 10" refX="8.6" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path class="bb-arrow control" d="M 0 1 L 10 5 L 0 9 z"/></marker><marker id="bb-arrow-failure" viewBox="0 0 10 10" refX="8.6" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path class="bb-arrow failure" d="M 0 1 L 10 5 L 0 9 z"/></marker></defs><rect class="bb-canvas" x="0" y="0" width="1436" height="746"/>
+<path class="bb-rule" d="M 40 48 H 62"/>
+<text class="bb-kicker-top" x="74" y="52">FLIGHTDECK · ARCHITECTURE</text>
+<text class="bb-title" x="40" y="100">OpenMausBot</text>
+<text class="bb-subtitle" x="40" y="130">Chat app where each bot is a local agent with its own model, cloud computer and connected apps.</text>
+<g class="bb-meter" aria-label="60% built"><text class="bb-kicker-top" x="1396" y="52" text-anchor="end">COMPLETION</text><text x="1396" y="96" text-anchor="end"><tspan class="bb-meter-big">60</tspan><tspan class="bb-meter-unit" dx="3">%</tspan></text><path class="bb-meter-track" d="M 1176 110 H 1396"/><path class="bb-meter-solid" d="M 1176 110 H 1308"/><path class="bb-meter-part" d="M 1308 110 H 1374"/><text class="bb-meta" x="1396" y="132" text-anchor="end">6 built · 3 partial · 1 planned</text></g>
+<g class="bb-edges">
+<path class="bb-edge data map-item" d="M 376 260.4 L 398 260.4 Q 404 260.4 404 266.4 L 404 393.6 Q 404 399.6 410 399.6 L 420 399.6" marker-end="url(#bb-arrow-data)" data-from="desktop" data-to="server"/>
+<path class="bb-flow map-item" d="M 376 260.4 L 398 260.4 Q 404 260.4 404 266.4 L 404 393.6 Q 404 399.6 410 399.6 L 420 399.6"/>
+<path class="bb-edge data map-item" d="M 376 420 L 398 420 Q 404 420 404 426 L 404 434.4 Q 404 440.4 410 440.4 L 420 440.4" marker-end="url(#bb-arrow-data)" data-from="companion" data-to="server"/>
+<path class="bb-flow map-item" d="M 376 420 L 398 420 Q 404 420 404 426 L 404 434.4 Q 404 440.4 410 440.4 L 420 440.4"/>
+<path class="bb-edge data map-item" d="M 716 399.6 L 738 399.6 Q 744 399.6 744 405.6 L 744 414 Q 744 420 750 420 L 760 420" marker-end="url(#bb-arrow-data)" data-from="server" data-to="coding"/>
+<path class="bb-flow map-item" d="M 716 399.6 L 738 399.6 Q 744 399.6 744 405.6 L 744 414 Q 744 420 750 420 L 760 420"/>
+<path class="bb-edge data map-item" d="M 1056 399.6 L 1078 399.6 Q 1084 399.6 1084 405.6 L 1084 414 Q 1084 420 1090 420 L 1100 420" marker-end="url(#bb-arrow-data)" data-from="coding" data-to="attach"/>
+<path class="bb-flow map-item" d="M 1056 399.6 L 1078 399.6 Q 1084 399.6 1084 405.6 L 1084 414 Q 1084 420 1090 420 L 1100 420"/>
+<path class="bb-edge data map-item" d="M 1056 440.4 L 1078 440.4 Q 1084 440.4 1084 446.4 L 1084 594 Q 1084 600 1090 600 L 1100 600" marker-end="url(#bb-arrow-data)" data-from="coding" data-to="chain"/>
+<path class="bb-flow map-item" d="M 1056 440.4 L 1078 440.4 Q 1084 440.4 1084 446.4 L 1084 594 Q 1084 600 1090 600 L 1100 600"/>
+<path class="bb-edge data map-item" d="M 568 488 L 568 532" marker-end="url(#bb-arrow-data)" data-from="server" data-to="control"/>
+<path class="bb-flow map-item" d="M 568 488 L 568 532"/>
+<path class="bb-edge data map-item" d="M 716 440.4 L 738 440.4 Q 744 440.4 744 446.4 L 744 594 Q 744 600 750 600 L 760 600" marker-end="url(#bb-arrow-data)" data-from="server" data-to="composio"/>
+<path class="bb-flow map-item" d="M 716 440.4 L 738 440.4 Q 744 440.4 744 446.4 L 744 594 Q 744 600 750 600 L 760 600"/>
+<path class="bb-edge data map-item" d="M 376 219.6 L 398 219.6 Q 404 219.6 404 225.6 L 404 234 Q 404 240 410 240 L 420 240" marker-end="url(#bb-arrow-data)" data-from="desktop" data-to="updater"/>
+<path class="bb-flow map-item" d="M 376 219.6 L 398 219.6 Q 404 219.6 404 225.6 L 404 234 Q 404 240 410 240 L 420 240"/>
+<path class="bb-edge data is-planned map-item" d="M 716 240 L 760 240" marker-end="url(#bb-arrow-data)" data-from="updater" data-to="release"/>
+</g>
+<g class="bb-node map-item cat-sage status-implemented" data-id="desktop" tabindex="0" role="button" aria-label="Open details for Desktop app">
+<rect class="bb-node-box" x="80" y="172" width="296" height="136" rx="7"/>
+<circle class="bb-mark" cx="106" cy="198" r="4"/>
+<text class="bb-kicker" x="117" y="202">MAIN</text>
+<g class="bb-status is-implemented" aria-label="status: implemented"><circle class="bb-dot bb-dot-fill" cx="305.1" cy="287.6" r="3.4"/><text class="bb-status-text" x="354" y="291" text-anchor="end">BUILT</text></g>
+<text class="bb-node-title" x="102" y="230">Desktop app</text>
+<text class="bb-hint" x="102" y="266">electron/, src/</text>
+</g>
+<g class="bb-node map-item cat-sage status-implemented" data-id="companion" tabindex="0" role="button" aria-label="Open details for Phone companion">
+<rect class="bb-node-box" x="80" y="352" width="296" height="136" rx="7"/>
+<circle class="bb-mark" cx="106" cy="378" r="4"/>
+<text class="bb-kicker" x="117" y="382">MAIN</text>
+<g class="bb-status is-implemented" aria-label="status: implemented"><circle class="bb-dot bb-dot-fill" cx="305.1" cy="467.6" r="3.4"/><text class="bb-status-text" x="354" y="471" text-anchor="end">BUILT</text></g>
+<text class="bb-node-title" x="102" y="410">Phone companion</text>
+<text class="bb-hint" x="102" y="446">companion/</text>
+</g>
+<g class="bb-node map-item cat-peach status-implemented" data-id="server" tabindex="0" role="button" aria-label="Open details for Local server">
+<rect class="bb-node-box" x="420" y="352" width="296" height="136" rx="7"/>
+<circle class="bb-mark" cx="446" cy="378" r="4"/>
+<text class="bb-kicker" x="457" y="382">MAIN</text>
+<g class="bb-status is-implemented" aria-label="status: implemented"><circle class="bb-dot bb-dot-fill" cx="645.1" cy="467.6" r="3.4"/><text class="bb-status-text" x="694" y="471" text-anchor="end">BUILT</text></g>
+<text class="bb-node-title" x="442" y="410">Local server</text>
+<text class="bb-hint" x="442" y="446">server/</text>
+</g>
+<g class="bb-node map-item cat-slate status-implemented" data-id="coding" tabindex="0" role="button" aria-label="Open details for Coding runs">
+<rect class="bb-node-box" x="760" y="352" width="296" height="136" rx="7"/>
+<circle class="bb-mark" cx="786" cy="378" r="4"/>
+<text class="bb-kicker" x="797" y="382">MERGED #38</text>
+<g class="bb-status is-implemented" aria-label="status: implemented"><circle class="bb-dot bb-dot-fill" cx="985.1" cy="467.6" r="3.4"/><text class="bb-status-text" x="1034" y="471" text-anchor="end">BUILT</text></g>
+<text class="bb-node-title" x="782" y="410">Coding runs</text>
+<text class="bb-hint" x="782" y="446">OpenMausBot</text>
+</g>
+<g class="bb-node map-item cat-slate status-partial" data-id="attach" tabindex="0" role="button" aria-label="Open details for Driver attach">
+<rect class="bb-node-box" x="1100" y="352" width="296" height="136" rx="7"/>
+<circle class="bb-mark" cx="1126" cy="378" r="4"/>
+<text class="bb-kicker" x="1137" y="382">PR #39</text>
+<g class="bb-status is-partial" aria-label="status: partial"><circle class="bb-dot" cx="1308.4" cy="467.6" r="3.4"/><path class="bb-dot-fill" d="M 1308.4 464.2 A 3.4 3.4 0 0 0 1308.4 471 Z"/><text class="bb-status-text" x="1374" y="471" text-anchor="end">PARTIAL</text></g>
+<text class="bb-node-title" x="1122" y="410">Driver attach</text>
+<text class="bb-hint" x="1122" y="446">OpenMausBot</text>
+</g>
+<g class="bb-node map-item cat-slate status-partial" data-id="chain" tabindex="0" role="button" aria-label="Open details for Coding-run model chain">
+<rect class="bb-node-box" x="1100" y="532" width="296" height="136" rx="7"/>
+<circle class="bb-mark" cx="1126" cy="558" r="4"/>
+<text class="bb-kicker" x="1137" y="562">PR #41</text>
+<g class="bb-status is-partial" aria-label="status: partial"><circle class="bb-dot" cx="1308.4" cy="647.6" r="3.4"/><path class="bb-dot-fill" d="M 1308.4 644.2 A 3.4 3.4 0 0 0 1308.4 651 Z"/><text class="bb-status-text" x="1374" y="651" text-anchor="end">PARTIAL</text></g>
+<text class="bb-node-title" x="1122" y="590">Coding-run model chain</text>
+<text class="bb-hint" x="1122" y="626">OpenMausBot</text>
+</g>
+<g class="bb-node map-item cat-slate status-implemented" data-id="control" tabindex="0" role="button" aria-label="Open details for Cloud control plane">
+<rect class="bb-node-box" x="420" y="532" width="296" height="136" rx="7"/>
+<circle class="bb-mark" cx="446" cy="558" r="4"/>
+<text class="bb-kicker" x="457" y="562">MAIN</text>
+<g class="bb-status is-implemented" aria-label="status: implemented"><circle class="bb-dot bb-dot-fill" cx="645.1" cy="647.6" r="3.4"/><text class="bb-status-text" x="694" y="651" text-anchor="end">BUILT</text></g>
+<text class="bb-node-title" x="442" y="590">Cloud control plane</text>
+<text class="bb-hint" x="442" y="626">cloudflare/control-plane</text>
+</g>
+<g class="bb-node map-item cat-peach status-implemented" data-id="composio" tabindex="0" role="button" aria-label="Open details for Connected-apps broker">
+<rect class="bb-node-box" x="760" y="532" width="296" height="136" rx="7"/>
+<circle class="bb-mark" cx="786" cy="558" r="4"/>
+<text class="bb-kicker" x="797" y="562">MAIN</text>
+<g class="bb-status is-implemented" aria-label="status: implemented"><circle class="bb-dot bb-dot-fill" cx="985.1" cy="647.6" r="3.4"/><text class="bb-status-text" x="1034" y="651" text-anchor="end">BUILT</text></g>
+<text class="bb-node-title" x="782" y="590">Connected-apps broker</text>
+<text class="bb-hint" x="782" y="626">cloudflare/composio-broker</text>
+</g>
+<g class="bb-node map-item cat-mustard status-partial" data-id="updater" tabindex="0" role="button" aria-label="Open details for evoclock updater">
+<rect class="bb-node-box" x="420" y="172" width="296" height="136" rx="7"/>
+<circle class="bb-mark" cx="446" cy="198" r="4"/>
+<text class="bb-kicker" x="457" y="202">PR #40</text>
+<g class="bb-status is-partial" aria-label="status: partial"><circle class="bb-dot" cx="628.4" cy="287.6" r="3.4"/><path class="bb-dot-fill" d="M 628.4 284.2 A 3.4 3.4 0 0 0 628.4 291 Z"/><text class="bb-status-text" x="694" y="291" text-anchor="end">PARTIAL</text></g>
+<text class="bb-node-title" x="442" y="230">evoclock updater</text>
+<text class="bb-hint" x="442" y="266">OpenMausBot</text>
+</g>
+<g class="bb-node map-item cat-mustard status-planned" data-id="release" tabindex="0" role="button" aria-label="Open details for First evoclock release">
+<rect class="bb-node-box" x="760" y="172" width="296" height="136" rx="7"/>
+<circle class="bb-mark" cx="786" cy="198" r="4"/>
+<text class="bb-kicker" x="797" y="202">UNVERIFIED</text>
+<g class="bb-status is-planned" aria-label="status: planned"><circle class="bb-dot" cx="968.4" cy="287.6" r="3.4"/><text class="bb-status-text" x="1034" y="291" text-anchor="end">PLANNED</text></g>
+<text class="bb-node-title" x="782" y="230">First evoclock release</text>
+<text class="bb-hint" x="782" y="266">tracker</text>
+</g>
+<g class="bb-legend" aria-label="Legend"><path class="bb-rule" d="M 40 694 H 1396"/><circle class="bb-mark cat-sage" cx="44" cy="712" r="4"/><text class="bb-legend-text" x="56" y="716">Interface / app</text><circle class="bb-mark cat-peach" cx="172.875" cy="712" r="4"/><text class="bb-legend-text" x="184.875" y="716">Orchestration / agents</text><circle class="bb-mark cat-slate" cx="346.025" cy="712" r="4"/><text class="bb-legend-text" x="358.025" y="716">Runners / compute</text><circle class="bb-mark cat-mustard" cx="487.54999999999995" cy="712" r="4"/><text class="bb-legend-text" x="499.54999999999995" y="716">CI / release</text><path class="bb-edge data" d="M 593.4499999999999 712 L 615.4499999999999 712"/><text class="bb-legend-text" x="623.4499999999999" y="716">Data flow</text><g class="bb-status is-implemented"><circle class="bb-dot bb-dot-fill" cx="702.4" cy="712" r="3.4"/></g><text class="bb-legend-text" x="714.3749999999999" y="716">Built</text><g class="bb-status is-partial"><circle class="bb-dot" cx="768" cy="712" r="3.4"/><path class="bb-dot-fill" d="M 768 708.6 A 3.4 3.4 0 0 0 768 715.4 Z"/></g><text class="bb-legend-text" x="779.9999999999999" y="716">Partial</text><g class="bb-status is-planned"><circle class="bb-dot" cx="846.3" cy="712" r="3.4"/></g><text class="bb-legend-text" x="858.2749999999999" y="716">Planned</text></g></svg></div>
+<div class="nav" role="toolbar" aria-label="Zoom and navigation"><button id="zoom-out" type="button" aria-label="Zoom out (−)">−</button><button id="zoom-level" type="button" aria-label="Actual size (1)">100%</button><button id="zoom-in" type="button" aria-label="Zoom in (+)">+</button><button id="zoom-fit" type="button" aria-label="Fit to screen (F)">Fit</button><button id="fullscreen" type="button" aria-label="Fullscreen">⤢</button></div>
+<div class="minimap" id="minimap" aria-hidden="true"><img id="minimap-img" alt=""><div class="minimap-frame" id="minimap-frame"></div></div>
+<p class="stage-hint caps">Drag to pan · ⌘/Ctrl + scroll to zoom · F to fit</p>
+</div>
+<aside class="drawer" id="drawer" role="region" aria-labelledby="drawer-title" aria-live="polite" hidden><div class="drawer-head"><div><p class="caps" id="drawer-kicker">Component</p><h2 id="drawer-title"></h2></div><button id="drawer-close" type="button" aria-label="Close details">×</button></div><div class="drawer-body" id="drawer-body"></div></aside>
+<section class="details" aria-labelledby="details-h"><h2 id="details-h">Components</h2><details class="card" id="detail-desktop" data-kicker="main"><summary><span class="t">Desktop app</span><span class="st caps">implemented</span></summary><div class="detail"><p>Electron shell and React chat UI: bots in a sidebar, rooms, approvals.</p>
+<h4>Tracker status</h4><p>Built</p>
+<h4>Where</h4><ul><li>OpenMausBot · main · electron/, src/</li><li><a href="https://github.com/evoclock/OpenMausBot/tree/main/electron">github.com/evoclock/OpenMausBot/tree/main/electron</a></li></ul></div></details>
+<details class="card" id="detail-companion" data-kicker="main"><summary><span class="t">Phone companion</span><span class="st caps">implemented</span></summary><div class="detail"><p>Pairs a phone over mDNS or a tunnel and relays the viewer.</p>
+<h4>Tracker status</h4><p>Built</p>
+<h4>Where</h4><ul><li>OpenMausBot · main · companion/</li><li><a href="https://github.com/evoclock/OpenMausBot/tree/main/companion">github.com/evoclock/OpenMausBot/tree/main/companion</a></li></ul></div></details>
+<details class="card" id="detail-server" data-kicker="main"><summary><span class="t">Local server</span><span class="st caps">implemented</span></summary><div class="detail"><p>Rooms, bots, routines, memory, MCP gateway, approvals and spend caps.</p>
+<h4>Tracker status</h4><p>Built</p>
+<h4>Where</h4><ul><li>OpenMausBot · main · server/</li><li><a href="https://github.com/evoclock/OpenMausBot/tree/main/server">github.com/evoclock/OpenMausBot/tree/main/server</a></li></ul></div></details>
+<details class="card" id="detail-coding" data-kicker="merged #38"><summary><span class="t">Coding runs</span><span class="st caps">implemented</span></summary><div class="detail"><p>Coding loop in Treehouse workspaces with effect receipts and context kept across iterations (#33, #38).</p>
+<h4>Tracker status</h4><p>Built</p>
+<h4>Where</h4><ul><li>OpenMausBot · #38</li><li><a href="https://github.com/evoclock/OpenMausBot/pull/38">github.com/evoclock/OpenMausBot/pull/38</a></li></ul></div></details>
+<details class="card" id="detail-attach" data-kicker="PR #39"><summary><span class="t">Driver attach</span><span class="st caps">partial</span></summary><div class="detail"><p>Keeps coding runs safe across restarts by attaching to the driver.</p>
+<h4>Tracker status</h4><p>In progress</p>
+<h4>Where</h4><ul><li>OpenMausBot · PR #39</li><li><a href="https://github.com/evoclock/OpenMausBot/pull/39">github.com/evoclock/OpenMausBot/pull/39</a></li></ul></div></details>
+<details class="card" id="detail-chain" data-kicker="PR #41"><summary><span class="t">Coding-run model chain</span><span class="st caps">partial</span></summary><div class="detail"><p>Keeps coding runs on approved, predictable model routes.</p>
+<h4>Tracker status</h4><p>In progress</p>
+<h4>Where</h4><ul><li>OpenMausBot · PR #41</li><li><a href="https://github.com/evoclock/OpenMausBot/pull/41">github.com/evoclock/OpenMausBot/pull/41</a></li></ul></div></details>
+<details class="card" id="detail-control" data-kicker="main"><summary><span class="t">Cloud control plane</span><span class="st caps">implemented</span></summary><div class="detail"><p>Cloudflare control plane for hosted accounts and cloud computers.</p>
+<h4>Tracker status</h4><p>Built</p>
+<h4>Where</h4><ul><li>OpenMausBot · main · cloudflare/control-plane</li><li><a href="https://github.com/evoclock/OpenMausBot/tree/main/cloudflare/control-plane">github.com/evoclock/OpenMausBot/tree/main/cloudflare/control-plane</a></li></ul></div></details>
+<details class="card" id="detail-composio" data-kicker="main"><summary><span class="t">Connected-apps broker</span><span class="st caps">implemented</span></summary><div class="detail"><p>Cloudflare broker for connected apps.</p>
+<h4>Tracker status</h4><p>Built</p>
+<h4>Where</h4><ul><li>OpenMausBot · main · cloudflare/composio-broker</li><li><a href="https://github.com/evoclock/OpenMausBot/tree/main/cloudflare/composio-broker">github.com/evoclock/OpenMausBot/tree/main/cloudflare/composio-broker</a></li></ul></div></details>
+<details class="card" id="detail-updater" data-kicker="PR #40"><summary><span class="t">evoclock updater</span><span class="st caps">partial</span></summary><div class="detail"><p>Takes app updates from the evoclock fork (move C follows).</p>
+<h4>Tracker status</h4><p>In progress</p>
+<h4>Where</h4><ul><li>OpenMausBot · PR #40</li><li><a href="https://github.com/evoclock/OpenMausBot/pull/40">github.com/evoclock/OpenMausBot/pull/40</a></li></ul></div></details>
+<details class="card" id="detail-release" data-kicker="Unverified"><summary><span class="t">First evoclock release</span><span class="st caps">planned</span></summary><div class="detail"><p>Item 14 in Your steps. No release branch or spec found in the repo.</p>
+<h4>Tracker status</h4><p>Unverified. Not found in a repo yet, so the diagram draws it like a planned part.</p>
+<h4>Where</h4><ul><li>OpenMausBot · tracker · Your steps</li><li><a href="https://github.com/evoclock/OpenMausBot/releases">github.com/evoclock/OpenMausBot/releases</a></li></ul></div></details></section>
+<footer class="caps">OpenMausBot · generated by bowerbird from <code>openmausbot.bower.json</code> · standalone HTML</footer>
+</div>
+<script type="application/json" id="bb-standalone-css">{"dark":"\ntext{font-family:Geist,\"Geist Sans\",ui-sans-serif,system-ui,-apple-system,\"Segoe UI\",Helvetica,Arial,sans-serif;font-variant-numeric:tabular-nums}\n.bb-title{font-size:36px;font-weight:300;letter-spacing:-.015em}\n.bb-subtitle{font-size:14px;font-weight:400}\n.bb-kicker-top{font-size:10.5px;font-weight:500;letter-spacing:2.6px}\n.bb-meta{font-size:11px;font-weight:400;letter-spacing:.03em}\n.bb-meter-big{font-size:42px;font-weight:300;letter-spacing:-.02em}\n.bb-meter-unit{font-size:17px;font-weight:300}\n.bb-meter-track{stroke-width:1;fill:none}\n.bb-meter-solid,.bb-meter-part{stroke-width:3;fill:none}\n.bb-meter-part{stroke-dasharray:2 3}\n.bb-rule{stroke-width:1;fill:none}\n.bb-zone{stroke-width:1}\n.bb-zone-kicker{font-size:10.5px;font-weight:500;letter-spacing:2.6px}\n.bb-zone-title{font-size:21px;font-weight:400;letter-spacing:-.005em}\n.bb-zone-sub{font-size:11.5px}\n.bb-node-box{stroke-width:1}\n.bb-node.status-planned .bb-node-box{stroke-dasharray:4 4}\n.bb-kicker{font-size:10.5px;font-weight:500;letter-spacing:2.4px}\n.bb-node-title{font-size:17px;font-weight:500;letter-spacing:-.005em}\n.bb-copy{font-size:13.5px;font-weight:400}\n.bb-hint{font-size:11.5px;font-weight:400;letter-spacing:.02em}\n.bb-status-text{font-size:9.5px;font-weight:600;letter-spacing:1.9px}\n.bb-dot{stroke-width:1.1;fill:none}\n.bb-edge{fill:none;stroke-width:1.25;stroke-linejoin:round;stroke-linecap:round}\n.bb-edge.control{stroke-dasharray:3 4}\n.bb-edge.failure{stroke-dasharray:.1 4.5;stroke-width:1.8}\n.bb-edge.is-planned{opacity:.4}\n.bb-label{font-size:11.5px;font-weight:500;letter-spacing:.02em;paint-order:stroke;stroke-width:6px;stroke-linejoin:round}\n.bb-legend-text{font-size:12px;font-weight:400}\n.bb-finding-text{font-size:9px;font-weight:600;letter-spacing:1.6px}\n.iso-face{stroke-width:.8;stroke-linejoin:round}\n.bb-node.status-planned .iso-face{fill:none;stroke-dasharray:4 4;stroke-width:1}\n.iso-hatch line{stroke-width:.8;opacity:.45}\n.iso-label-knockout{paint-order:stroke;stroke-width:6px;stroke-linejoin:round}\n.bb-canvas{fill:#1a1816}\n.bb-title,.bb-zone-title,.bb-node-title,.bb-meter-big,.bb-meter-unit{fill:#ead1b5}\n.bb-subtitle,.bb-copy,.bb-hint,.bb-legend-text,.bb-meta,.bb-kicker,.bb-zone-kicker,.bb-kicker-top,.bb-zone-sub{fill:#b09080}\n.bb-rule,.bb-meter-track{stroke:#35302b}\n.bb-meter-solid{stroke:#ead1b5}\n.bb-meter-part{stroke:#b09080}\n.bb-zone{fill:#1f1c19;stroke:#35302b}\n.bb-node-box{fill:#272421;stroke:#35302b}\n.bb-node.status-planned .bb-node-box{fill:none;stroke:#4c443c}\n.bb-node.status-planned .bb-node-title{fill:#b09080}\n.bb-status-text{fill:#b09080}\n.bb-status.is-implemented .bb-status-text{fill:#b09080}\n.bb-dot{stroke:#b09080}\n.bb-dot-fill{fill:#b09080}\n.bb-status.is-implemented .bb-dot{stroke:#ead1b5}\n.bb-status.is-implemented .bb-dot-fill{fill:#ead1b5}\n.bb-edge.data{stroke:#958574}\n.bb-edge.control{stroke:#6b737e}\n.bb-edge.failure{stroke:#c27a5c}\n.bb-arrow.data{fill:#958574}\n.bb-arrow.control{fill:#6b737e}\n.bb-arrow.failure{fill:#c27a5c}\n.bb-label,.iso-label-knockout{stroke:#1a1816}\n.bb-label.data{fill:#b09080}\n.bb-label.control{fill:#a4a8ae}\n.bb-label.failure{fill:#c27a5c}\n.bb-flow{stroke:#ead1b5;stroke-opacity:.55}\n.bb-finding-text,.bb-finding-inline{fill:#c27a5c}\n.bb-node.has-finding .bb-node-box{stroke:#c27a5c}\n.bb-pseudo-fill{fill:#ead1b5}\n.bb-pseudo-ring{fill:#1a1816;stroke:#ead1b5;stroke-width:1.3}\n.bb-pseudo-choice{fill:#272421}\n.bb-node.is-selected .bb-node-box,.bb-node[tabindex]:focus .bb-node-box{stroke:#ead1b5}\n.cat-sage .bb-mark,.bb-mark.cat-sage{fill:#7fbd9e}\n.cat-sage .bb-kicker,.cat-sage .bb-zone-kicker{fill:#89b498}\n.cat-sage .bb-node-box{fill:#353c35;stroke:#475b4e}\n.cat-sage.status-planned .bb-node-box{fill:none;stroke:#476253}\n.bb-zone.cat-sage{fill:#212420;stroke:#344339}\n.cat-peach .bb-mark,.bb-mark.cat-peach{fill:#ca9a7d}\n.cat-peach .bb-kicker,.cat-peach .bb-zone-kicker{fill:#c5987e}\n.cat-peach .bb-node-box{fill:#413730;stroke:#624e42}\n.cat-peach.status-planned .bb-node-box{fill:none;stroke:#695344}\n.bb-zone.cat-peach{fill:#26211d;stroke:#483a31}\n.cat-slate .bb-mark,.bb-mark.cat-slate{fill:#7a92ae}\n.cat-slate .bb-kicker,.cat-slate .bb-zone-kicker{fill:#8592a5}\n.cat-slate .bb-node-box{fill:#343638;stroke:#454c54}\n.cat-slate.status-planned .bb-node-box{fill:none;stroke:#454f5a}\n.bb-zone.cat-slate{fill:#212121;stroke:#33383e}\n.cat-mauve .bb-mark,.bb-mark.cat-mauve{fill:#ae7a9d}\n.cat-mauve .bb-kicker,.cat-mauve .bb-zone-kicker{fill:#ae7e97}\n.cat-mauve .bb-node-box{fill:#3d3235;stroke:#58434e}\n.cat-mauve.status-planned .bb-node-box{fill:none;stroke:#5d4453}\n.bb-zone.cat-mauve{fill:#241f1f;stroke:#403139}\n.cat-mustard .bb-mark,.bb-mark.cat-mustard{fill:#c2aa6a}\n.cat-mustard .bb-kicker,.cat-mustard .bb-zone-kicker{fill:#bea56e}\n.cat-mustard .bb-node-box{fill:#40392d;stroke:#5f543b}\n.cat-mustard.status-planned .bb-node-box{fill:none;stroke:#665a3c}\n.bb-zone.cat-mustard{fill:#26221c;stroke:#463e2c}\n.cat-teal .bb-mark,.bb-mark.cat-teal{fill:#7aadae}\n.cat-teal .bb-kicker,.cat-teal .bb-zone-kicker{fill:#85a7a5}\n.cat-teal .bb-node-box{fill:#343a38;stroke:#455554}\n.cat-teal.status-planned .bb-node-box{fill:none;stroke:#455b5a}\n.bb-zone.cat-teal{fill:#212221;stroke:#333f3e}","light":"\ntext{font-family:Geist,\"Geist Sans\",ui-sans-serif,system-ui,-apple-system,\"Segoe UI\",Helvetica,Arial,sans-serif;font-variant-numeric:tabular-nums}\n.bb-title{font-size:36px;font-weight:300;letter-spacing:-.015em}\n.bb-subtitle{font-size:14px;font-weight:400}\n.bb-kicker-top{font-size:10.5px;font-weight:500;letter-spacing:2.6px}\n.bb-meta{font-size:11px;font-weight:400;letter-spacing:.03em}\n.bb-meter-big{font-size:42px;font-weight:300;letter-spacing:-.02em}\n.bb-meter-unit{font-size:17px;font-weight:300}\n.bb-meter-track{stroke-width:1;fill:none}\n.bb-meter-solid,.bb-meter-part{stroke-width:3;fill:none}\n.bb-meter-part{stroke-dasharray:2 3}\n.bb-rule{stroke-width:1;fill:none}\n.bb-zone{stroke-width:1}\n.bb-zone-kicker{font-size:10.5px;font-weight:500;letter-spacing:2.6px}\n.bb-zone-title{font-size:21px;font-weight:400;letter-spacing:-.005em}\n.bb-zone-sub{font-size:11.5px}\n.bb-node-box{stroke-width:1}\n.bb-node.status-planned .bb-node-box{stroke-dasharray:4 4}\n.bb-kicker{font-size:10.5px;font-weight:500;letter-spacing:2.4px}\n.bb-node-title{font-size:17px;font-weight:500;letter-spacing:-.005em}\n.bb-copy{font-size:13.5px;font-weight:400}\n.bb-hint{font-size:11.5px;font-weight:400;letter-spacing:.02em}\n.bb-status-text{font-size:9.5px;font-weight:600;letter-spacing:1.9px}\n.bb-dot{stroke-width:1.1;fill:none}\n.bb-edge{fill:none;stroke-width:1.25;stroke-linejoin:round;stroke-linecap:round}\n.bb-edge.control{stroke-dasharray:3 4}\n.bb-edge.failure{stroke-dasharray:.1 4.5;stroke-width:1.8}\n.bb-edge.is-planned{opacity:.4}\n.bb-label{font-size:11.5px;font-weight:500;letter-spacing:.02em;paint-order:stroke;stroke-width:6px;stroke-linejoin:round}\n.bb-legend-text{font-size:12px;font-weight:400}\n.bb-finding-text{font-size:9px;font-weight:600;letter-spacing:1.6px}\n.iso-face{stroke-width:.8;stroke-linejoin:round}\n.bb-node.status-planned .iso-face{fill:none;stroke-dasharray:4 4;stroke-width:1}\n.iso-hatch line{stroke-width:.8;opacity:.45}\n.iso-label-knockout{paint-order:stroke;stroke-width:6px;stroke-linejoin:round}\n.bb-canvas{fill:#fbf9f6}\n.bb-title,.bb-zone-title,.bb-node-title,.bb-meter-big,.bb-meter-unit{fill:#2f2a27}\n.bb-subtitle,.bb-copy,.bb-hint,.bb-legend-text,.bb-meta,.bb-kicker,.bb-zone-kicker,.bb-kicker-top,.bb-zone-sub{fill:#716961}\n.bb-rule,.bb-meter-track{stroke:#dcdad7}\n.bb-meter-solid{stroke:#2f2a27}\n.bb-meter-part{stroke:#716961}\n.bb-zone{fill:#f5f3f0;stroke:#dcdad7}\n.bb-node-box{fill:#fffdfa;stroke:#dcdad7}\n.bb-node.status-planned .bb-node-box{fill:none;stroke:#c2bfbc}\n.bb-node.status-planned .bb-node-title{fill:#716961}\n.bb-status-text{fill:#716961}\n.bb-status.is-implemented .bb-status-text{fill:#716961}\n.bb-dot{stroke:#716961}\n.bb-dot-fill{fill:#716961}\n.bb-status.is-implemented .bb-dot{stroke:#2f2a27}\n.bb-status.is-implemented .bb-dot-fill{fill:#2f2a27}\n.bb-edge.data{stroke:#888079}\n.bb-edge.control{stroke:#747c86}\n.bb-edge.failure{stroke:#9b4a36}\n.bb-arrow.data{fill:#888079}\n.bb-arrow.control{fill:#747c86}\n.bb-arrow.failure{fill:#9b4a36}\n.bb-label,.iso-label-knockout{stroke:#fbf9f6}\n.bb-label.data{fill:#716961}\n.bb-label.control{fill:#4c535c}\n.bb-label.failure{fill:#9b4a36}\n.bb-flow{stroke:#2f2a27;stroke-opacity:.55}\n.bb-finding-text,.bb-finding-inline{fill:#9b4a36}\n.bb-node.has-finding .bb-node-box{stroke:#9b4a36}\n.bb-pseudo-fill{fill:#2f2a27}\n.bb-pseudo-ring{fill:#fbf9f6;stroke:#2f2a27;stroke-width:1.3}\n.bb-pseudo-choice{fill:#fffdfa}\n.bb-node.is-selected .bb-node-box,.bb-node[tabindex]:focus .bb-node-box{stroke:#2f2a27}\n.cat-sage .bb-mark,.bb-mark.cat-sage{fill:#427f61}\n.cat-sage .bb-kicker,.cat-sage .bb-zone-kicker{fill:#477d61}\n.cat-sage .bb-node-box{fill:#eaefe9;stroke:#b7cdc0}\n.cat-sage.status-planned .bb-node-box{fill:none;stroke:#9fbcac}\n.bb-zone.cat-sage{fill:#f0f2ed;stroke:#c0d2c6}\n.cat-peach .bb-mark,.bb-mark.cat-peach{fill:#a76644}\n.cat-peach .bb-kicker,.cat-peach .bb-zone-kicker{fill:#a26647}\n.cat-peach .bb-node-box{fill:#f5ece6;stroke:#dec4b5}\n.cat-peach.status-planned .bb-node-box{fill:none;stroke:#d1b09d}\n.bb-zone.cat-peach{fill:#f6f0eb;stroke:#e0cabd}\n.cat-slate .bb-mark,.bb-mark.cat-slate{fill:#4a5c73}\n.cat-slate .bb-kicker,.cat-slate .bb-zone-kicker{fill:#4e5d71}\n.cat-slate .bb-node-box{fill:#ebebeb;stroke:#bac0c7}\n.cat-slate.status-planned .bb-node-box{fill:none;stroke:#a3abb5}\n.bb-zone.cat-slate{fill:#f0f0ee;stroke:#c2c7cc}\n.cat-mauve .bb-mark,.bb-mark.cat-mauve{fill:#7b4e6d}\n.cat-mauve .bb-kicker,.cat-mauve .bb-zone-kicker{fill:#7a516c}\n.cat-mauve .bb-node-box{fill:#f0eaea;stroke:#cdbbc4}\n.cat-mauve.status-planned .bb-node-box{fill:none;stroke:#bba4b2}\n.bb-zone.cat-mauve{fill:#f3efee;stroke:#d2c2ca}\n.cat-mustard .bb-mark,.bb-mark.cat-mustard{fill:#7d6a33}\n.cat-mustard .bb-kicker,.cat-mustard .bb-zone-kicker{fill:#7c6a38}\n.cat-mustard .bb-node-box{fill:#f1ede4;stroke:#cec5ae}\n.cat-mustard.status-planned .bb-node-box{fill:none;stroke:#bcb295}\n.bb-zone.cat-mustard{fill:#f3f0ea;stroke:#d3cbb8}\n.cat-teal .bb-mark,.bb-mark.cat-teal{fill:#3b7273}\n.cat-teal .bb-kicker,.cat-teal .bb-zone-kicker{fill:#407171}\n.cat-teal .bb-node-box{fill:#e9eeeb;stroke:#b5c8c7}\n.cat-teal.status-planned .bb-node-box{fill:none;stroke:#9bb6b5}\n.bb-zone.cat-teal{fill:#eff1ee;stroke:#bececc}"}</script>
+<script>(() => {
+  const root = document.documentElement;
+  const svg = document.querySelector("#viewport svg");
+  const themeHooks = [];
+  const drawer = document.getElementById("drawer");
+  const dTitle = document.getElementById("drawer-title");
+  const dBody = document.getElementById("drawer-body");
+  const items = [...svg.querySelectorAll(".map-item")];
+  let active = null;
+  const store = { get(k) { try { return localStorage.getItem(k); } catch { return null; } }, set(k, v) { try { localStorage.setItem(k, v); } catch {} } };
+  const key = "bowerbird:" + location.pathname;
+
+  function setTheme(t) { root.dataset.theme = t; store.set(key + ":theme", t); document.getElementById("theme").textContent = t === "dark" ? "Light" : "Dark"; themeHooks.forEach((f) => f()); }
+  function setMotion(on) { root.classList.toggle("motion", on); document.getElementById("motion").setAttribute("aria-pressed", String(on)); store.set(key + ":motion", on ? "1" : "0"); }
+  setTheme(store.get(key + ":theme") || root.dataset.theme);
+  setMotion((store.get(key + ":motion") ?? (root.classList.contains("motion") ? "1" : "0")) === "1" && !matchMedia("(prefers-reduced-motion: reduce)").matches);
+  document.getElementById("theme").onclick = () => setTheme(root.dataset.theme === "dark" ? "light" : "dark");
+  document.getElementById("motion").onclick = () => setMotion(!root.classList.contains("motion"));
+
+  const trace = document.getElementById("trace");
+  function applyTrace(v) {
+    for (const el of items) {
+      el.classList.remove("is-dimmed");
+      if (v === "all") continue;
+      const t = (el.dataset.traces || "").split(/\s+/);
+      if (!t.includes(v)) el.classList.add("is-dimmed");
+    }
+  }
+  if (trace) trace.onchange = () => applyTrace(trace.value);
+
+  function close(focus = true) {
+    if (drawer.hidden) return;
+    drawer.hidden = true; dBody.replaceChildren();
+    if (active) { active.classList.remove("is-selected"); active.setAttribute("aria-expanded", "false"); if (focus) active.focus({ preventScroll: true }); }
+    active = null;
+  }
+  function open(node) {
+    if (active === node && !drawer.hidden) return close();
+    const card = document.getElementById("detail-" + node.dataset.id);
+    if (!card) return;
+    if (active) { active.classList.remove("is-selected"); active.setAttribute("aria-expanded", "false"); }
+    active = node; node.classList.add("is-selected"); node.setAttribute("aria-expanded", "true");
+    dTitle.textContent = card.querySelector("summary .t").textContent;
+    document.getElementById("drawer-kicker").textContent = card.dataset.kicker || "Component";
+    dBody.innerHTML = card.querySelector(".detail").innerHTML;
+    const b = node.getBoundingClientRect();
+    drawer.classList.toggle("from-left", b.left + b.width / 2 > innerWidth / 2);
+    drawer.hidden = false;
+    document.getElementById("drawer-close").focus({ preventScroll: true });
+  }
+  for (const node of svg.querySelectorAll(".bb-node[data-id]")) {
+    node.setAttribute("aria-controls", "drawer"); node.setAttribute("aria-expanded", "false");
+    node.addEventListener("click", () => open(node));
+    node.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); open(node); } });
+  }
+  document.getElementById("drawer-close").onclick = () => close();
+  addEventListener("keydown", (e) => {
+    if (e.target.closest && e.target.closest("input,select,textarea")) return;
+    if (e.key === "Escape") close();
+    if (e.key === "t" || e.key === "T") document.getElementById("theme").click();
+    if (e.key === "m" || e.key === "M") document.getElementById("motion").click();
+  });
+
+  // Client-side export: rebuild a standalone SVG with the active theme's
+  // resolved CSS (no viewer state), then rasterise through a canvas.
+  const styles = JSON.parse(document.getElementById("bb-standalone-css").textContent);
+  function standalone() {
+    const clone = svg.cloneNode(true);
+    clone.querySelectorAll(".is-dimmed,.is-selected").forEach((el) => el.classList.remove("is-dimmed", "is-selected"));
+    clone.querySelectorAll(".bb-flow").forEach((el) => el.remove());
+    clone.querySelector("style").textContent = styles[root.dataset.theme];
+    clone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+    return new XMLSerializer().serializeToString(clone);
+  }
+  const base = document.body.dataset.basename;
+  function save(blob, ext) { const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = base + "." + root.dataset.theme + "." + ext; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000); }
+  function raster(type, ext) {
+    const img = new Image();
+    const vb = svg.viewBox.baseVal;
+    img.onload = () => {
+      const c = document.createElement("canvas"); c.width = vb.width * 2; c.height = vb.height * 2;
+      c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+      c.toBlob((b) => b && save(b, ext), type, 0.92);
+    };
+    img.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(standalone());
+  }
+  document.getElementById("export").onchange = (e) => {
+    const v = e.target.value; e.target.value = "";
+    if (v === "svg") save(new Blob([standalone()], { type: "image/svg+xml" }), "svg");
+    if (v === "png") raster("image/png", "png");
+    if (v === "webp") raster("image/webp", "webp");
+  };
+
+  // ---- Navigation: zoom, pan, fit, fullscreen, minimap ---------------------
+  // The SVG keeps its natural size inside a transformed viewport, so text stays
+  // crisp at any zoom and node positions map 1:1 to diagram coordinates.
+  const stage = document.getElementById("stage");
+  const vp = document.getElementById("viewport");
+  const level = document.getElementById("zoom-level");
+  const vb = svg.viewBox.baseVal;
+  const W = vb.width, H = vb.height;
+  svg.setAttribute("width", W); svg.setAttribute("height", H);
+  const MIN = 0.08, MAX = 4;
+  let k = 1, tx = 0, ty = 0, atFit = true;
+  const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+  const box = () => stage.getBoundingClientRect();
+  const fitScale = () => { const r = box(); return Math.min((r.width - 40) / W, (r.height - 40) / H); };
+
+  function apply() {
+    vp.style.transform = "translate(" + tx + "px," + ty + "px) scale(" + k + ")";
+    level.textContent = Math.round(k * 100) + "%";
+    stage.classList.toggle("at-fit", atFit);
+    drawMiniFrame();
+  }
+  function fit() {
+    const r = box();
+    k = clamp(fitScale(), MIN, MAX);
+    tx = (r.width - W * k) / 2; ty = (r.height - H * k) / 2;
+    atFit = true; apply();
+  }
+  function zoomAt(factor, cx, cy) {
+    const nk = clamp(k * factor, MIN, MAX);
+    tx = cx - (cx - tx) * (nk / k); ty = cy - (cy - ty) * (nk / k);
+    k = nk; atFit = false; apply();
+  }
+  const zoomCenter = (f) => { const r = box(); zoomAt(f, r.width / 2, r.height / 2); };
+  function actual() { const r = box(); zoomAt(1 / k, r.width / 2, r.height / 2); }
+  function panBy(dx, dy) { tx += dx; ty += dy; atFit = false; apply(); }
+
+  document.getElementById("zoom-in").onclick = () => zoomCenter(1.25);
+  document.getElementById("zoom-out").onclick = () => zoomCenter(0.8);
+  document.getElementById("zoom-fit").onclick = fit;
+  level.onclick = actual;
+  document.getElementById("fullscreen").onclick = () => {
+    if (document.fullscreenElement) document.exitFullscreen();
+    else if (stage.requestFullscreen) stage.requestFullscreen();
+  };
+  document.addEventListener("fullscreenchange", () => requestAnimationFrame(fit));
+
+  // Ctrl/Cmd + wheel (and trackpad pinch, which reports ctrlKey) zooms at the
+  // cursor. A plain wheel pans only once zoomed in, so the page still scrolls.
+  stage.addEventListener("wheel", (e) => {
+    const r = box();
+    if (e.ctrlKey || e.metaKey) { e.preventDefault(); zoomAt(Math.exp(-e.deltaY * 0.0022), e.clientX - r.left, e.clientY - r.top); }
+    else if (!atFit) { e.preventDefault(); panBy(-e.deltaX, -e.deltaY); }
+  }, { passive: false });
+
+  // Drag to pan anywhere; two pointers pinch-zoom. A drag never opens a node.
+  const pointers = new Map();
+  let moved = 0, pinch = null;
+  stage.addEventListener("pointerdown", (e) => {
+    // Every press starts fresh: a finished drag must never swallow the next
+    // click (that broke the zoom buttons after panning).
+    moved = 0;
+    if (e.target.closest(".nav,.minimap")) return;
+    // A new primary pointer means any earlier gesture is over; stale entries
+    // would otherwise turn the next drag into a phantom pinch.
+    if (e.isPrimary) { pointers.clear(); pinch = null; }
+    pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (pointers.size === 2) {
+      const [a, b] = [...pointers.values()];
+      pinch = { d: Math.hypot(a.x - b.x, a.y - b.y) };
+    }
+  });
+  stage.addEventListener("pointermove", (e) => {
+    const p = pointers.get(e.pointerId);
+    if (!p) return;
+    const dx = e.clientX - p.x, dy = e.clientY - p.y;
+    pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (pointers.size === 2 && pinch) {
+      const [a, b] = [...pointers.values()];
+      const d = Math.hypot(a.x - b.x, a.y - b.y), r = box();
+      zoomAt(d / pinch.d, (a.x + b.x) / 2 - r.left, (a.y + b.y) / 2 - r.top);
+      pinch.d = d; moved += 10; return;
+    }
+    moved += Math.abs(dx) + Math.abs(dy);
+    // Capture only once this is really a drag: capturing on pointerdown would
+    // retarget the click away from the node and break the detail drawer.
+    if (moved > 4) {
+      if (!stage.hasPointerCapture(e.pointerId)) stage.setPointerCapture(e.pointerId);
+      stage.classList.add("panning"); panBy(dx, dy);
+    }
+  });
+  const release = (e) => { pointers.delete(e.pointerId); if (pointers.size < 2) pinch = null; if (!pointers.size) stage.classList.remove("panning"); };
+  stage.addEventListener("pointerup", release);
+  stage.addEventListener("pointercancel", release);
+  stage.addEventListener("click", (e) => {
+    if (moved > 4 && !e.target.closest(".nav,.minimap")) { e.stopPropagation(); e.preventDefault(); }
+    moved = 0;
+  }, true);
+
+  // The stage must never scroll: focusing a node would scroll it to "reveal"
+  // the node and shift every coordinate the transform relies on. CSS uses
+  // overflow:clip; this guard covers browsers without it.
+  stage.addEventListener("scroll", () => { stage.scrollLeft = 0; stage.scrollTop = 0; });
+  // Keyboard focus on an off-screen node pans the view to it instead.
+  stage.addEventListener("focusin", (e) => {
+    const node = e.target.closest && e.target.closest(".bb-node");
+    if (!node) return;
+    const r = box(), b = node.getBoundingClientRect(), m = 40;
+    let dx = 0, dy = 0;
+    if (b.left < r.left + m) dx = r.left + m - b.left; else if (b.right > r.right - m) dx = r.right - m - b.right;
+    if (b.top < r.top + m) dy = r.top + m - b.top; else if (b.bottom > r.bottom - m) dy = r.bottom - m - b.bottom;
+    if (dx || dy) panBy(dx, dy);
+  });
+  stage.addEventListener("dblclick", (e) => {
+    if (e.target.closest(".bb-node,.nav,.minimap")) return;
+    const r = box(); zoomAt(e.shiftKey ? 0.6 : 1.6, e.clientX - r.left, e.clientY - r.top);
+  });
+
+  addEventListener("keydown", (e) => {
+    if (e.target.closest && e.target.closest("input,select,textarea")) return;
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    if (e.key === "+" || e.key === "=") zoomCenter(1.25);
+    else if (e.key === "-" || e.key === "_") zoomCenter(0.8);
+    else if (e.key === "0" || e.key === "f" || e.key === "F") fit();
+    else if (e.key === "1") actual();
+    else if (document.activeElement === stage && e.key.startsWith("Arrow")) {
+      e.preventDefault();
+      const s = e.shiftKey ? 200 : 60;
+      panBy(e.key === "ArrowLeft" ? s : e.key === "ArrowRight" ? -s : 0, e.key === "ArrowUp" ? s : e.key === "ArrowDown" ? -s : 0);
+    }
+  });
+
+  // Minimap: the standalone render as an image, with the current view framed.
+  const mini = document.getElementById("minimap");
+  const miniImg = document.getElementById("minimap-img");
+  const frame = document.getElementById("minimap-frame");
+  function paintMini() { miniImg.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(standalone()); }
+  function drawMiniFrame() {
+    const r = box(), m = mini.clientWidth / W;
+    frame.style.left = (-tx / k) * m + "px"; frame.style.top = (-ty / k) * m + "px";
+    frame.style.width = (r.width / k) * m + "px"; frame.style.height = (r.height / k) * m + "px";
+  }
+  function jump(e) {
+    const mr = mini.getBoundingClientRect(), m = mini.clientWidth / W, r = box();
+    const px = (e.clientX - mr.left) / m, py = (e.clientY - mr.top) / m;
+    tx = r.width / 2 - px * k; ty = r.height / 2 - py * k; atFit = false; apply();
+  }
+  let miniDrag = false;
+  mini.addEventListener("pointerdown", (e) => { miniDrag = true; mini.setPointerCapture(e.pointerId); jump(e); });
+  mini.addEventListener("pointermove", (e) => { if (miniDrag) jump(e); });
+  mini.addEventListener("pointerup", () => { miniDrag = false; });
+  themeHooks.push(paintMini);
+  paintMini();
+
+  new ResizeObserver(() => { if (atFit) fit(); else drawMiniFrame(); }).observe(stage);
+  fit();
+})();</script>
+</body>
+</html>
