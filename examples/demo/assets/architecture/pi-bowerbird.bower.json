@@ -1,0 +1,374 @@
+{
+  "schema": "bowerbird/v1",
+  "meta": {
+    "title": "Bowerbird architecture",
+    "kicker": "FlightDeck · architecture",
+    "subtitle": "One JSON source renders to interactive HTML, theme-aware SVG, and PNG/WebP rasters.",
+    "statusTracking": true,
+    "animation": "trace",
+    "repository": {
+      "url": "https://github.com/evoclock/pi-bowerbird",
+      "ref": "main"
+    },
+    "repos": [
+      "evoclock/pi-bowerbird"
+    ]
+  },
+  "categories": {
+    "sage": {
+      "label": "Authoring"
+    },
+    "slate": {
+      "label": "Layout"
+    },
+    "peach": {
+      "label": "Rendering"
+    },
+    "mustard": {
+      "label": "Export"
+    },
+    "mauve": {
+      "label": "Status"
+    }
+  },
+  "zones": [
+    {
+      "id": "author",
+      "title": "Author",
+      "kicker": "01 / input",
+      "category": "sage"
+    },
+    {
+      "id": "engine",
+      "title": "Engine",
+      "kicker": "02 / layout",
+      "category": "slate"
+    },
+    {
+      "id": "render",
+      "title": "Render",
+      "kicker": "03 / output",
+      "category": "peach"
+    }
+  ],
+  "traces": [
+    {
+      "id": "render",
+      "label": "Render a diagram"
+    },
+    {
+      "id": "sync",
+      "label": "Sync status on commit"
+    }
+  ],
+  "nodes": [
+    {
+      "status": "implemented",
+      "id": "agent",
+      "zone": "author",
+      "at": [
+        0,
+        0
+      ],
+      "type": "pi skill",
+      "title": "Agent authoring",
+      "lines": [
+        "SKILL.md teaches the IR",
+        "grid placement, no pixels"
+      ],
+      "category": "sage",
+      "traces": [
+        "render"
+      ],
+      "evidence": {
+        "paths": [
+          "skills/bowerbird/SKILL.md"
+        ]
+      },
+      "details": "The skill teaches an agent to write a `*.bower.json` file: zones, nodes on a `[col,row]` grid, edges, traces and Markdown details.\n\n#### Code\n- [skills/bowerbird/SKILL.md](skills/bowerbird/SKILL.md)"
+    },
+    {
+      "status": "implemented",
+      "id": "source",
+      "zone": "author",
+      "at": [
+        0,
+        1
+      ],
+      "type": "json",
+      "title": "Diagram source",
+      "lines": [
+        "*.bower.json",
+        "single source of truth"
+      ],
+      "category": "sage",
+      "traces": [
+        "render",
+        "sync"
+      ],
+      "evidence": {
+        "paths": [
+          "examples/bowerbird.bower.json"
+        ]
+      },
+      "details": "Every output is regenerated from this file, so diagrams are reproducible and diff cleanly in review.\n\n#### Example\n- [examples/bowerbird.bower.json](examples/bowerbird.bower.json)"
+    },
+    {
+      "status": "implemented",
+      "id": "model",
+      "zone": "engine",
+      "at": [
+        1,
+        0
+      ],
+      "type": "module",
+      "title": "Model + validate",
+      "lines": [
+        "schema, ids, grid cells",
+        "stable problem codes"
+      ],
+      "category": "slate",
+      "traces": [
+        "render",
+        "sync"
+      ],
+      "evidence": {
+        "paths": [
+          "lib/model.mjs"
+        ],
+        "tests": [
+          "tests/model.test.mjs"
+        ]
+      },
+      "details": "Normalises the source and rejects broken references, overlapping cells and unknown categories.\n\n#### Code\n- [lib/model.mjs](lib/model.mjs): `normalise`, `statusSummary`"
+    },
+    {
+      "status": "implemented",
+      "id": "layout",
+      "zone": "engine",
+      "at": [
+        1,
+        1
+      ],
+      "type": "module",
+      "title": "Route + place",
+      "lines": [
+        "A* orthogonal routes",
+        "label clearance"
+      ],
+      "category": "slate",
+      "traces": [
+        "render"
+      ],
+      "evidence": {
+        "paths": [
+          "lib/layout.mjs"
+        ],
+        "tests": [
+          "tests/layout.test.mjs"
+        ]
+      },
+      "details": "Spreads shared endpoints, aligns facing ports, routes with bend and overlap penalties, and places labels clear of nodes.\n\n#### Code\n- [lib/layout.mjs](lib/layout.mjs): `layout`, `routeOne`, `placeLabels`"
+    },
+    {
+      "status": "partial",
+      "id": "status",
+      "zone": "engine",
+      "at": [
+        1,
+        2
+      ],
+      "type": "module",
+      "title": "Status sync",
+      "lines": [
+        "git evidence -> status",
+        "pre-commit hook"
+      ],
+      "category": "mauve",
+      "traces": [
+        "sync"
+      ],
+      "evidence": {
+        "paths": [
+          "lib/status.mjs",
+          "templates/hooks/pre-commit"
+        ],
+        "tests": [
+          "tests/status.test.mjs"
+        ]
+      },
+      "details": "Reads tracked files and decides implemented, partial or planned per node.\n\n#### Code\n- [lib/status.mjs](lib/status.mjs): `gatherFacts`, `deriveNodeStatus`, `syncFile`"
+    },
+    {
+      "status": "implemented",
+      "id": "html",
+      "zone": "render",
+      "at": [
+        2,
+        0
+      ],
+      "type": "renderer",
+      "title": "Interactive HTML",
+      "lines": [
+        "drawer, traces, motion",
+        "light/dark toggle"
+      ],
+      "category": "peach",
+      "traces": [
+        "render"
+      ],
+      "evidence": {
+        "paths": [
+          "lib/render-html.mjs"
+        ]
+      },
+      "details": "Archify-style canvas with a detail drawer per component. Details stay in real `<details>` cards.\n\n#### Code\n- [lib/render-html.mjs](lib/render-html.mjs)"
+    },
+    {
+      "status": "implemented",
+      "id": "svg",
+      "zone": "render",
+      "at": [
+        2,
+        1
+      ],
+      "type": "renderer",
+      "title": "Flat + iso SVG",
+      "lines": [
+        "no var(), no JS",
+        "README <picture>"
+      ],
+      "category": "peach",
+      "traces": [
+        "render"
+      ],
+      "evidence": {
+        "paths": [
+          "lib/render-svg.mjs",
+          "lib/render-iso.mjs"
+        ]
+      },
+      "details": "Standalone SVGs carry resolved colours so they render the same in browsers, GitHub, MARP and librsvg.\n\n#### Code\n- [lib/render-svg.mjs](lib/render-svg.mjs)\n- [lib/render-iso.mjs](lib/render-iso.mjs)"
+    },
+    {
+      "status": "implemented",
+      "id": "raster",
+      "zone": "render",
+      "at": [
+        2,
+        2
+      ],
+      "type": "export",
+      "title": "PNG + WebP",
+      "lines": [
+        "rsvg-convert + cwebp",
+        "resvg/sharp fallback"
+      ],
+      "category": "mustard",
+      "traces": [
+        "render"
+      ],
+      "evidence": {
+        "paths": [
+          "lib/export.mjs"
+        ]
+      },
+      "details": "Rasterises the static themed SVG at 2x.\n\n#### Code\n- [lib/export.mjs](lib/export.mjs): `build`, `rasterise`"
+    },
+    {
+      "status": "planned",
+      "id": "pages",
+      "zone": "render",
+      "at": [
+        2,
+        3
+      ],
+      "type": "workflow",
+      "title": "Pages publish",
+      "lines": [
+        "CI renders on push",
+        "gallery site"
+      ],
+      "category": "mustard",
+      "evidence": {
+        "paths": [
+          ".github/workflows/bowerbird.yml"
+        ]
+      },
+      "details": "Not built yet: a workflow that renders every `*.bower.json` on push and publishes the HTML to GitHub Pages."
+    }
+  ],
+  "edges": [
+    {
+      "from": "agent",
+      "to": "source",
+      "label": "writes",
+      "traces": [
+        "render"
+      ]
+    },
+    {
+      "from": "source",
+      "to": "model",
+      "label": "parse",
+      "traces": [
+        "render",
+        "sync"
+      ]
+    },
+    {
+      "from": "model",
+      "to": "layout",
+      "traces": [
+        "render"
+      ]
+    },
+    {
+      "from": "model",
+      "to": "status",
+      "kind": "control",
+      "label": "on commit",
+      "traces": [
+        "sync"
+      ]
+    },
+    {
+      "from": "status",
+      "to": "source",
+      "kind": "control",
+      "label": "status",
+      "traces": [
+        "sync"
+      ]
+    },
+    {
+      "from": "layout",
+      "to": "html",
+      "traces": [
+        "render"
+      ]
+    },
+    {
+      "from": "layout",
+      "to": "svg",
+      "label": "routes",
+      "traces": [
+        "render"
+      ]
+    },
+    {
+      "from": "svg",
+      "to": "raster",
+      "label": "static frame",
+      "traces": [
+        "render"
+      ]
+    },
+    {
+      "from": "raster",
+      "to": "pages",
+      "kind": "failure",
+      "label": "not yet"
+    }
+  ]
+}

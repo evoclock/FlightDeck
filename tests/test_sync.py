@@ -600,17 +600,25 @@ class PublishTests(unittest.TestCase):
         self.assertNotIn("gmail.com", text.lower())
 
     def test_new_surface_has_no_private_markers(self):
-        blob = []
-        for path in [ROOT / "publish.sh", ROOT / "config" / "sync.example.json", ROOT / "README.md"]:
+        readme = (ROOT / "README.md").read_text(encoding="utf-8")
+        self.assertIn("ADHD Neuromancer", readme)
+        blob = [readme]
+        for path in [ROOT / "publish.sh", ROOT / "config" / "sync.example.json"]:
             blob.append(path.read_text(encoding="utf-8"))
+        code = []
+        for path in [ROOT / "publish.sh", ROOT / "config" / "sync.example.json"]:
+            code.append(path.read_text(encoding="utf-8"))
         for folder in (ROOT / "hooks", ROOT / "scripts", ROOT / "collectors"):
             for path in folder.rglob("*"):
                 if path.is_file() and path.suffix in {".py", ".sh", ""} or path.parent.name == "pre-render.d":
                     if path.is_file():
-                        blob.append(path.read_text(encoding="utf-8"))
+                        text = path.read_text(encoding="utf-8")
+                        blob.append(text)
+                        code.append(text)
         low = "\n".join(blob).lower()
-        for bad in ("neuromancer", "gmail.com", "519a5896bd3a41e4b2d5696b051f147d", "flockmate", "j.a.r.gamboa"):
+        for bad in ("gmail.com", "519a5896bd3a41e4b2d5696b051f147d", "flockmate", "j.a.r.gamboa"):
             self.assertNotIn(bad, low, bad)
+        self.assertNotIn("neuromancer", "\n".join(code).lower())
 
 
 if __name__ == "__main__":

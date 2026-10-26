@@ -200,6 +200,33 @@ class WidgetPortTests(Base):
         self.assertIn('No nodes configured.', out)
         self.assertIn('0 online', out)
 
+    def test_sample_spark_keeps_the_chart_after_the_hour(self):
+        d = fake_data()
+        end = NOW - datetime.timedelta(days=3)
+        hist = []
+        for i in range(0, 61, 5):
+            at = end - datetime.timedelta(minutes=60 - i)
+            hist.append({'at': at.isoformat(), 'gpu': {'demo-a': 40 + (i % 20), 'demo-b': 30 + (i % 15)}})
+        d['spark'] = {
+            'sample': True, 'cluster': 'demo',
+            'nodes': [
+                {'name': 'demo-a', 'status': 'online', 'read_at': end.isoformat(), 'gpu_util_pct': 55.0,
+                 'mem_used_bytes': 40e9, 'mem_total_bytes': 80e9, 'temp_c': 60, 'power_w': 40},
+                {'name': 'demo-b', 'status': 'online', 'read_at': end.isoformat(), 'gpu_util_pct': 42.0,
+                 'mem_used_bytes': 30e9, 'mem_total_bytes': 80e9, 'temp_c': 55, 'power_w': 35},
+            ],
+            'history': hist,
+        }
+        out = cluster.render(self.ctx(d), now=NOW)
+        self.assertIn('class="tr-empty" hidden', out)
+        self.assertIn('class="nrow s-online"', out)
+        self.assertIn('"sample": true', out)
+        self.assertIn('data-node="demo-a"', out)
+
+    def test_sample_spark_page_never_polls_live_readings(self):
+        from flightdeck.page_js import JS
+        self.assertIn("&&!(TR&&TR.sample)){var poll=", JS)
+
     def test_activity_counts_and_weekly_staleness(self):
         d = fake_data()
         start = week_start(NOW, LONDON)

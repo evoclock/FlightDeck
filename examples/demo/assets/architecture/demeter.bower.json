@@ -1,0 +1,139 @@
+{
+  "schema": "bowerbird/v1",
+  "meta": {
+    "title": "Demeter",
+    "kicker": "FlightDeck \u00b7 architecture",
+    "subtitle": "Multilevel selection and heritability applied to populations of AI agents, as described in the public fieldnotes.",
+    "statusTracking": true,
+    "grid": {
+      "col": 340,
+      "row": 180,
+      "gap": 44
+    },
+    "repos": [
+      "evoclock/fieldnotes"
+    ]
+  },
+  "categories": {
+    "sage": {
+      "label": "Interface / app"
+    },
+    "peach": {
+      "label": "Orchestration / agents"
+    },
+    "slate": {
+      "label": "Runners / compute"
+    },
+    "mauve": {
+      "label": "Data / storage"
+    },
+    "mustard": {
+      "label": "CI / release"
+    },
+    "teal": {
+      "label": "Docs / contracts"
+    }
+  },
+  "nodes": [
+    {
+      "id": "pop",
+      "at": [
+        0,
+        0
+      ],
+      "type": "main",
+      "title": "Agent populations",
+      "hint": "groups of AI agents",
+      "category": "peach",
+      "status": "implemented",
+      "details": "Populations of AI agents are the unit of study.\n\n#### Tracker status\nDescribed in the public fieldnotes\n\n#### Where\n- [Public fieldnotes \u00b7 weekly recap 2026-10-23](https://github.com/evoclock/fieldnotes/blob/main/drafts/2026-10-23-weekly-recap-linkedin.md)"
+    },
+    {
+      "id": "mls",
+      "at": [
+        1,
+        0
+      ],
+      "type": "main",
+      "title": "Multilevel selection",
+      "hint": "individual and group level",
+      "category": "peach",
+      "status": "implemented",
+      "details": "Selection acts on agents and on the groups they form.\n\n#### Tracker status\nDescribed in the public fieldnotes\n\n#### Where\n- [Public fieldnotes \u00b7 weekly recap 2026-10-23](https://github.com/evoclock/fieldnotes/blob/main/drafts/2026-10-23-weekly-recap-linkedin.md)"
+    },
+    {
+      "id": "herit",
+      "at": [
+        2,
+        0
+      ],
+      "type": "main",
+      "title": "Heritability",
+      "hint": "what passes between generations",
+      "category": "mauve",
+      "status": "implemented",
+      "details": "Heritability of agent traits across generations of the population.\n\n#### Tracker status\nDescribed in the public fieldnotes\n\n#### Where\n- [Public fieldnotes \u00b7 weekly recap 2026-10-23](https://github.com/evoclock/fieldnotes/blob/main/drafts/2026-10-23-weekly-recap-linkedin.md)"
+    },
+    {
+      "id": "aims",
+      "at": [
+        0,
+        1
+      ],
+      "type": "main",
+      "title": "Three aims",
+      "hint": "written up",
+      "category": "teal",
+      "status": "implemented",
+      "details": "Three aims are written up.\n\n#### Tracker status\nWritten up, per the public fieldnotes\n\n#### Where\n- [Public fieldnotes \u00b7 weekly recap 2026-10-23](https://github.com/evoclock/fieldnotes/blob/main/drafts/2026-10-23-weekly-recap-linkedin.md)"
+    },
+    {
+      "id": "prereg",
+      "at": [
+        1,
+        1
+      ],
+      "type": "main",
+      "title": "Preregistered run",
+      "hint": "first run started",
+      "category": "slate",
+      "status": "partial",
+      "details": "The first preregistered run has started.\n\n#### Tracker status\nIn progress, per the public fieldnotes\n\n#### Where\n- [Public fieldnotes \u00b7 weekly recap 2026-10-23](https://github.com/evoclock/fieldnotes/blob/main/drafts/2026-10-23-weekly-recap-linkedin.md)"
+    },
+    {
+      "id": "results",
+      "at": [
+        2,
+        1
+      ],
+      "type": "main",
+      "title": "Results write-up",
+      "hint": "after the first run",
+      "category": "teal",
+      "status": "planned",
+      "details": "Results follow the preregistered run.\n\n#### Tracker status\nPlanned\n\n#### Where\n- [Public fieldnotes \u00b7 weekly recap 2026-10-23](https://github.com/evoclock/fieldnotes/blob/main/drafts/2026-10-23-weekly-recap-linkedin.md)"
+    }
+  ],
+  "edges": [
+    {
+      "from": "pop",
+      "to": "mls"
+    },
+    {
+      "from": "mls",
+      "to": "herit"
+    },
+    {
+      "from": "aims",
+      "to": "prereg"
+    },
+    {
+      "from": "mls",
+      "to": "prereg"
+    },
+    {
+      "from": "prereg",
+      "to": "results"
+    }
+  ]
+}

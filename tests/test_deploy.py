@@ -11,9 +11,9 @@ SITE = ROOT / 'site'
 DEMO = ROOT / 'examples' / 'demo'
 
 # Product and host markers that belong in the private instance, not this tree.
+# The public demo banner is the ADHD Neuromancer artwork, so that name is allowed.
 FORBIDDEN = (
     'flockmate',
-    'neuromancer',
     'crew-tracker',
     'gmail.com',
 )
@@ -27,7 +27,7 @@ def _text(path):
 class DemoBannerAltTests(unittest.TestCase):
     def test_demo_alt_names_the_banner(self):
         cfg = json.loads(_text(DEMO / 'config.json'))
-        self.assertEqual(cfg['banner']['alt'], 'FlightDeck demo banner')
+        self.assertEqual(cfg['banner']['alt'], 'ADHD Neuromancer')
         self.assertNotIn('placeholder', cfg['banner']['alt'].lower())
 
 
@@ -56,8 +56,12 @@ class PublishTests(unittest.TestCase):
             html = _text(out / 'index.html')
             self.assertIn('<!doctype html>', html)
             self.assertIn('OpenMausBot', html)
-            self.assertIn('alt="FlightDeck demo banner"', html)
+            self.assertIn('alt="ADHD Neuromancer"', html)
+            self.assertIn('<h1>FlightDeck</h1>', html)
+            self.assertNotIn('FlightDeck demo', html)
             self.assertTrue((out / 'assets' / 'banner.webp').is_file())
+            self.assertTrue((out / 'assets' / 'flightdeck-demo.mp4').is_file())
+            self.assertFalse((out / 'assets' / 'flock-tracker-demo.mp4').exists())
 
     def test_cloudflare_build_embeds_that_html(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -76,7 +80,7 @@ class PublishTests(unittest.TestCase):
             self.assertIn(json.dumps(html), worker)
             self.assertIn('OpenMausBot', worker)
             # The page is embedded as a JSON string, so attribute quotes are escaped.
-            self.assertIn(json.dumps('alt="FlightDeck demo banner"')[1:-1], worker)
+            self.assertIn(json.dumps('alt="ADHD Neuromancer"')[1:-1], worker)
             self.assertEqual(wrangler['name'], 'flightdeck-demo')
             self.assertEqual(wrangler['account_id'], 'ACCOUNT_ID')
             self.assertTrue(wrangler['observability']['enabled'])
@@ -129,13 +133,16 @@ class PublicTreeSecretTests(unittest.TestCase):
         self.assertNotIn('claude', low)
         self.assertIsNone(HEX_ID.search(low), '32-hex account or namespace id in public sources')
 
-    def test_docs_attribute_the_demo_banner_to_gpt_astra(self):
+    def test_docs_name_the_shipped_banner(self):
         spec = _text(ROOT / 'docs' / 'superpowers' / 'specs' / '2026-10-25-flightdeck-design.md')
         plan = _text(ROOT / 'docs' / 'superpowers' / 'plans' / '2026-10-25-flightdeck.md')
         readme = _text(ROOT / 'README.md')
         for label, text in (('spec', spec), ('plan', plan), ('readme', readme)):
             self.assertNotIn('Claude', text, label)
-            self.assertIn('GPT Astra', text, label)
+        self.assertIn('GPT Astra', spec)
+        self.assertIn('GPT Astra', plan)
+        self.assertIn('ADHD Neuromancer', readme)
+        self.assertNotIn('GPT Astra', readme)
 
 
 if __name__ == '__main__':

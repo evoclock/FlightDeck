@@ -1,10 +1,10 @@
 {
   "assets_dir": "assets",
   "timezone": "Europe/London",
-  "banner": {"alt": "FlightDeck demo banner"},
+  "banner": {"alt": "ADHD Neuromancer"},
   "slots": {
     "banner": "banner.image",
-    "cluster": "metrics.generic",
+    "cluster": "cluster.gpu",
     "activity": "activity.github",
     "streams": "streams.table",
     "decisions": "decisions.cards",
@@ -12,6 +12,6 @@
     "merges": "merges.table",
     "priorities": "priorities.list",
     "settled": "settled.list",
-    "architecture": "empty"
+    "architecture": "architecture.diagrams"
   }
 }
