@@ -43,6 +43,8 @@ select option{background:var(--bg);color:var(--ink);text-transform:none;letter-s
 .stage-hint{position:absolute;left:14px;bottom:10px;z-index:2;margin:0;pointer-events:none;opacity:.8}
 .stage:not(.at-fit) .stage-hint{opacity:0}
 .bb-node[tabindex]{cursor:pointer}
+.bb-node:has(.iso-focus):focus{outline:none}
+.bb-node:focus .iso-focus,.bb-node.is-selected .iso-focus{stroke:var(--accent);stroke-width:7;stroke-linejoin:round}
 .bb-node[tabindex]:hover .bb-node-box,.bb-node[tabindex]:focus .bb-node-box{stroke-width:1.6}
 .bb-node.is-selected .bb-node-box{stroke-width:2}
 .map-item{transition:opacity .25s ease}
@@ -318,32 +320,38 @@ html[data-theme=light] .bb-node:not([class*=cat-]) .iso-face{fill:#fffdfa;stroke
 <polygon class="iso-shadow" points="472.2,495 728.6,643 610.8,711 354.4,563"/>
 <polygon class="iso-shadow" points="922.6,575 1178.9,723 1061.1,791 804.8,643"/>
 <g class="bb-node map-item cat-peach status-implemented" data-id="pop" tabindex="0" role="button" aria-label="Open details for Agent populations">
+<polygon class="iso-focus" points="203.9,258 321.7,190 578,338 578,376 460.2,444 203.9,296" fill="none" stroke="none"/>
 <polygon class="iso-face iso-left" points="203.9,258 460.2,406 460.2,444 203.9,296"/>
 <polygon class="iso-face iso-right" points="578,338 460.2,406 460.2,444 578,376"/>
 <polygon class="iso-face iso-roof" points="321.7,190 578,338 460.2,406 203.9,258"/>
 </g>
 <g class="bb-node map-item cat-teal status-implemented" data-id="aims" tabindex="0" role="button" aria-label="Open details for Three aims">
+<polygon class="iso-focus" points="48,348 165.8,280 422.1,428 422.1,466 304.3,534 48,386" fill="none" stroke="none"/>
 <polygon class="iso-face iso-left" points="48,348 304.3,496 304.3,534 48,386"/>
 <polygon class="iso-face iso-right" points="422.1,428 304.3,496 304.3,534 422.1,466"/>
 <polygon class="iso-face iso-roof" points="165.8,280 422.1,428 304.3,496 48,348"/>
 </g>
 <g class="bb-node map-item cat-peach status-implemented" data-id="mls" tabindex="0" role="button" aria-label="Open details for Multilevel selection">
+<polygon class="iso-focus" points="498.3,428 616.1,360 872.5,508 872.5,546 754.7,614 498.3,466" fill="none" stroke="none"/>
 <polygon class="iso-face iso-left" points="498.3,428 754.7,576 754.7,614 498.3,466"/>
 <polygon class="iso-face iso-right" points="872.5,508 754.7,576 754.7,614 872.5,546"/>
 <polygon class="iso-face iso-roof" points="616.1,360 872.5,508 754.7,576 498.3,428"/>
 </g>
 <g class="bb-node map-item cat-slate status-partial" data-id="prereg" tabindex="0" role="button" aria-label="Open details for Preregistered run">
+<polygon class="iso-focus" points="342.4,518 460.2,450 716.6,598 716.6,636 598.8,704 342.4,556" fill="none" stroke="none"/>
 <polygon class="iso-face iso-left" points="342.4,518 598.8,666 598.8,704 342.4,556"/>
 <polygon class="iso-face iso-right" points="716.6,598 598.8,666 598.8,704 716.6,636"/>
 <polygon class="iso-face iso-roof" points="460.2,450 716.6,598 598.8,666 342.4,518"/>
 <clipPath id="clip-prereg"><polygon class="" points="460.2,450 716.6,598 598.8,666 342.4,518"/></clipPath><g class="iso-hatch" clip-path="url(#clip-prereg)"><line x1="126.4" y1="666" x2="342.4" y2="450"/><line x1="135.4" y1="666" x2="351.4" y2="450"/><line x1="144.4" y1="666" x2="360.4" y2="450"/><line x1="153.4" y1="666" x2="369.4" y2="450"/><line x1="162.4" y1="666" x2="378.4" y2="450"/><line x1="171.4" y1="666" x2="387.4" y2="450"/><line x1="180.4" y1="666" x2="396.4" y2="450"/><line x1="189.4" y1="666" x2="405.4" y2="450"/><line x1="198.4" y1="666" x2="414.4" y2="450"/><line x1="207.4" y1="666" x2="423.4" y2="450"/><line x1="216.4" y1="666" x2="432.4" y2="450"/><line x1="225.4" y1="666" x2="441.4" y2="450"/><line x1="234.4" y1="666" x2="450.4" y2="450"/><line x1="243.4" y1="666" x2="459.4" y2="450"/><line x1="252.4" y1="666" x2="468.4" y2="450"/><line x1="261.4" y1="666" x2="477.4" y2="450"/><line x1="270.4" y1="666" x2="486.4" y2="450"/><line x1="279.4" y1="666" x2="495.4" y2="450"/><line x1="288.4" y1="666" x2="504.4" y2="450"/><line x1="297.4" y1="666" x2="513.4" y2="450"/><line x1="306.4" y1="666" x2="522.4" y2="450"/><line x1="315.4" y1="666" x2="531.4" y2="450"/><line x1="324.4" y1="666" x2="540.4" y2="450"/><line x1="333.4" y1="666" x2="549.4" y2="450"/><line x1="342.4" y1="666" x2="558.4" y2="450"/><line x1="351.4" y1="666" x2="567.4" y2="450"/><line x1="360.4" y1="666" x2="576.4" y2="450"/><line x1="369.4" y1="666" x2="585.4" y2="450"/><line x1="378.4" y1="666" x2="594.4" y2="450"/><line x1="387.4" y1="666" x2="603.4" y2="450"/><line x1="396.4" y1="666" x2="612.4" y2="450"/><line x1="405.4" y1="666" x2="621.4" y2="450"/><line x1="414.4" y1="666" x2="630.4" y2="450"/><line x1="423.4" y1="666" x2="639.4" y2="450"/><line x1="432.4" y1="666" x2="648.4" y2="450"/><line x1="441.4" y1="666" x2="657.4" y2="450"/><line x1="450.4" y1="666" x2="666.4" y2="450"/><line x1="459.4" y1="666" x2="675.4" y2="450"/><line x1="468.4" y1="666" x2="684.4" y2="450"/><line x1="477.4" y1="666" x2="693.4" y2="450"/><line x1="486.4" y1="666" x2="702.4" y2="450"/><line x1="495.4" y1="666" x2="711.4" y2="450"/><line x1="504.4" y1="666" x2="720.4" y2="450"/><line x1="513.4" y1="666" x2="729.4" y2="450"/><line x1="522.4" y1="666" x2="738.4" y2="450"/><line x1="531.4" y1="666" x2="747.4" y2="450"/><line x1="540.4" y1="666" x2="756.4" y2="450"/><line x1="549.4" y1="666" x2="765.4" y2="450"/><line x1="558.4" y1="666" x2="774.4" y2="450"/><line x1="567.4" y1="666" x2="783.4" y2="450"/><line x1="576.4" y1="666" x2="792.4" y2="450"/><line x1="585.4" y1="666" x2="801.4" y2="450"/><line x1="594.4" y1="666" x2="810.4" y2="450"/><line x1="603.4" y1="666" x2="819.4" y2="450"/><line x1="612.4" y1="666" x2="828.4" y2="450"/><line x1="621.4" y1="666" x2="837.4" y2="450"/><line x1="630.4" y1="666" x2="846.4" y2="450"/><line x1="639.4" y1="666" x2="855.4" y2="450"/><line x1="648.4" y1="666" x2="864.4" y2="450"/><line x1="657.4" y1="666" x2="873.4" y2="450"/><line x1="666.4" y1="666" x2="882.4" y2="450"/><line x1="675.4" y1="666" x2="891.4" y2="450"/><line x1="684.4" y1="666" x2="900.4" y2="450"/><line x1="693.4" y1="666" x2="909.4" y2="450"/><line x1="702.4" y1="666" x2="918.4" y2="450"/><line x1="711.4" y1="666" x2="927.4" y2="450"/></g>
 </g>
 <g class="bb-node map-item cat-mauve status-implemented" data-id="herit" tabindex="0" role="button" aria-label="Open details for Heritability">
+<polygon class="iso-focus" points="792.8,598 910.6,530 1166.9,678 1166.9,716 1049.1,784 792.8,636" fill="none" stroke="none"/>
 <polygon class="iso-face iso-left" points="792.8,598 1049.1,746 1049.1,784 792.8,636"/>
 <polygon class="iso-face iso-right" points="1166.9,678 1049.1,746 1049.1,784 1166.9,716"/>
 <polygon class="iso-face iso-roof" points="910.6,530 1166.9,678 1049.1,746 792.8,598"/>
 </g>
 <g class="bb-node map-item cat-teal status-planned" data-id="results" tabindex="0" role="button" aria-label="Open details for Results write-up">
+<polygon class="iso-focus" points="636.9,688 754.7,620 1011,768 1011,806 893.2,874 636.9,726" fill="none" stroke="none"/>
 <polygon class="iso-face iso-left" points="636.9,688 893.2,836 893.2,874 636.9,726"/>
 <polygon class="iso-face iso-right" points="1011,768 893.2,836 893.2,874 1011,806"/>
 <polygon class="iso-face iso-roof" points="754.7,620 1011,768 893.2,836 636.9,688"/>

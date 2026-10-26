@@ -43,6 +43,8 @@ select option{background:var(--bg);color:var(--ink);text-transform:none;letter-s
 .stage-hint{position:absolute;left:14px;bottom:10px;z-index:2;margin:0;pointer-events:none;opacity:.8}
 .stage:not(.at-fit) .stage-hint{opacity:0}
 .bb-node[tabindex]{cursor:pointer}
+.bb-node:has(.iso-focus):focus{outline:none}
+.bb-node:focus .iso-focus,.bb-node.is-selected .iso-focus{stroke:var(--accent);stroke-width:7;stroke-linejoin:round}
 .bb-node[tabindex]:hover .bb-node-box,.bb-node[tabindex]:focus .bb-node-box{stroke-width:1.6}
 .bb-node.is-selected .bb-node-box{stroke-width:2}
 .map-item{transition:opacity .25s ease}
@@ -317,37 +319,44 @@ html[data-theme=light] .bb-node:not([class*=cat-]) .iso-face{fill:#fffdfa;stroke
 <polygon class="iso-shadow" points="922.6,575 1178.9,723 1061.1,791 804.8,643"/>
 <polygon class="iso-shadow" points="766.7,665 1023,813 905.2,881 648.9,733"/>
 <g class="bb-node map-item cat-teal status-partial" data-id="demo" tabindex="0" role="button" aria-label="Open details for Scrubbed demo">
+<polygon class="iso-focus" points="203.9,258 321.7,190 578,338 578,376 460.2,444 203.9,296" fill="none" stroke="none"/>
 <polygon class="iso-face iso-left" points="203.9,258 460.2,406 460.2,444 203.9,296"/>
 <polygon class="iso-face iso-right" points="578,338 460.2,406 460.2,444 578,376"/>
 <polygon class="iso-face iso-roof" points="321.7,190 578,338 460.2,406 203.9,258"/>
 <clipPath id="clip-demo"><polygon class="" points="321.7,190 578,338 460.2,406 203.9,258"/></clipPath><g class="iso-hatch" clip-path="url(#clip-demo)"><line x1="-12.1" y1="406" x2="203.9" y2="190"/><line x1="-3.1" y1="406" x2="212.9" y2="190"/><line x1="5.9" y1="406" x2="221.9" y2="190"/><line x1="14.9" y1="406" x2="230.9" y2="190"/><line x1="23.9" y1="406" x2="239.9" y2="190"/><line x1="32.9" y1="406" x2="248.9" y2="190"/><line x1="41.9" y1="406" x2="257.9" y2="190"/><line x1="50.9" y1="406" x2="266.9" y2="190"/><line x1="59.9" y1="406" x2="275.9" y2="190"/><line x1="68.9" y1="406" x2="284.9" y2="190"/><line x1="77.9" y1="406" x2="293.9" y2="190"/><line x1="86.9" y1="406" x2="302.9" y2="190"/><line x1="95.9" y1="406" x2="311.9" y2="190"/><line x1="104.9" y1="406" x2="320.9" y2="190"/><line x1="113.9" y1="406" x2="329.9" y2="190"/><line x1="122.9" y1="406" x2="338.9" y2="190"/><line x1="131.9" y1="406" x2="347.9" y2="190"/><line x1="140.9" y1="406" x2="356.9" y2="190"/><line x1="149.9" y1="406" x2="365.9" y2="190"/><line x1="158.9" y1="406" x2="374.9" y2="190"/><line x1="167.9" y1="406" x2="383.9" y2="190"/><line x1="176.9" y1="406" x2="392.9" y2="190"/><line x1="185.9" y1="406" x2="401.9" y2="190"/><line x1="194.9" y1="406" x2="410.9" y2="190"/><line x1="203.9" y1="406" x2="419.9" y2="190"/><line x1="212.9" y1="406" x2="428.9" y2="190"/><line x1="221.9" y1="406" x2="437.9" y2="190"/><line x1="230.9" y1="406" x2="446.9" y2="190"/><line x1="239.9" y1="406" x2="455.9" y2="190"/><line x1="248.9" y1="406" x2="464.9" y2="190"/><line x1="257.9" y1="406" x2="473.9" y2="190"/><line x1="266.9" y1="406" x2="482.9" y2="190"/><line x1="275.9" y1="406" x2="491.9" y2="190"/><line x1="284.9" y1="406" x2="500.9" y2="190"/><line x1="293.9" y1="406" x2="509.9" y2="190"/><line x1="302.9" y1="406" x2="518.9" y2="190"/><line x1="311.9" y1="406" x2="527.9" y2="190"/><line x1="320.9" y1="406" x2="536.9" y2="190"/><line x1="329.9" y1="406" x2="545.9" y2="190"/><line x1="338.9" y1="406" x2="554.9" y2="190"/><line x1="347.9" y1="406" x2="563.9" y2="190"/><line x1="356.9" y1="406" x2="572.9" y2="190"/><line x1="365.9" y1="406" x2="581.9" y2="190"/><line x1="374.9" y1="406" x2="590.9" y2="190"/><line x1="383.9" y1="406" x2="599.9" y2="190"/><line x1="392.9" y1="406" x2="608.9" y2="190"/><line x1="401.9" y1="406" x2="617.9" y2="190"/><line x1="410.9" y1="406" x2="626.9" y2="190"/><line x1="419.9" y1="406" x2="635.9" y2="190"/><line x1="428.9" y1="406" x2="644.9" y2="190"/><line x1="437.9" y1="406" x2="653.9" y2="190"/><line x1="446.9" y1="406" x2="662.9" y2="190"/><line x1="455.9" y1="406" x2="671.9" y2="190"/><line x1="464.9" y1="406" x2="680.9" y2="190"/><line x1="473.9" y1="406" x2="689.9" y2="190"/><line x1="482.9" y1="406" x2="698.9" y2="190"/><line x1="491.9" y1="406" x2="707.9" y2="190"/><line x1="500.9" y1="406" x2="716.9" y2="190"/><line x1="509.9" y1="406" x2="725.9" y2="190"/><line x1="518.9" y1="406" x2="734.9" y2="190"/><line x1="527.9" y1="406" x2="743.9" y2="190"/><line x1="536.9" y1="406" x2="752.9" y2="190"/><line x1="545.9" y1="406" x2="761.9" y2="190"/><line x1="554.9" y1="406" x2="770.9" y2="190"/><line x1="563.9" y1="406" x2="779.9" y2="190"/><line x1="572.9" y1="406" x2="788.9" y2="190"/></g>
 </g>
 <g class="bb-node map-item cat-mustard status-planned" data-id="cf" tabindex="0" role="button" aria-label="Open details for Deploy recipes">
+<polygon class="iso-focus" points="48,348 165.8,280 422.1,428 422.1,466 304.3,534 48,386" fill="none" stroke="none"/>
 <polygon class="iso-face iso-left" points="48,348 304.3,496 304.3,534 48,386"/>
 <polygon class="iso-face iso-right" points="422.1,428 304.3,496 304.3,534 422.1,466"/>
 <polygon class="iso-face iso-roof" points="165.8,280 422.1,428 304.3,496 48,348"/>
 </g>
 <g class="bb-node map-item cat-sage status-implemented" data-id="pkg" tabindex="0" role="button" aria-label="Open details for flightdeck package">
+<polygon class="iso-focus" points="498.3,428 616.1,360 872.5,508 872.5,546 754.7,614 498.3,466" fill="none" stroke="none"/>
 <polygon class="iso-face iso-left" points="498.3,428 754.7,576 754.7,614 498.3,466"/>
 <polygon class="iso-face iso-right" points="872.5,508 754.7,576 754.7,614 872.5,546"/>
 <polygon class="iso-face iso-roof" points="616.1,360 872.5,508 754.7,576 498.3,428"/>
 </g>
 <g class="bb-node map-item cat-teal status-planned" data-id="readme" tabindex="0" role="button" aria-label="Open details for Public README">
+<polygon class="iso-focus" points="342.4,518 460.2,450 716.6,598 716.6,636 598.8,704 342.4,556" fill="none" stroke="none"/>
 <polygon class="iso-face iso-left" points="342.4,518 598.8,666 598.8,704 342.4,556"/>
 <polygon class="iso-face iso-right" points="716.6,598 598.8,666 598.8,704 716.6,636"/>
 <polygon class="iso-face iso-roof" points="460.2,450 716.6,598 598.8,666 342.4,518"/>
 </g>
 <g class="bb-node map-item cat-sage status-implemented" data-id="widgets" tabindex="0" role="button" aria-label="Open details for Slot widgets">
+<polygon class="iso-focus" points="792.8,598 910.6,530 1166.9,678 1166.9,716 1049.1,784 792.8,636" fill="none" stroke="none"/>
 <polygon class="iso-face iso-left" points="792.8,598 1049.1,746 1049.1,784 792.8,636"/>
 <polygon class="iso-face iso-right" points="1166.9,678 1049.1,746 1049.1,784 1166.9,716"/>
 <polygon class="iso-face iso-roof" points="910.6,530 1166.9,678 1049.1,746 792.8,598"/>
 </g>
 <g class="bb-node map-item cat-peach status-planned" data-id="instance" tabindex="0" role="button" aria-label="Open details for Live instance">
+<polygon class="iso-focus" points="186.6,608 304.3,540 560.7,688 560.7,726 442.9,794 186.6,646" fill="none" stroke="none"/>
 <polygon class="iso-face iso-left" points="186.6,608 442.9,756 442.9,794 186.6,646"/>
 <polygon class="iso-face iso-right" points="560.7,688 442.9,756 442.9,794 560.7,726"/>
 <polygon class="iso-face iso-roof" points="304.3,540 560.7,688 442.9,756 186.6,608"/>
 </g>
 <g class="bb-node map-item cat-mauve status-implemented" data-id="collectors" tabindex="0" role="button" aria-label="Open details for Collectors">
+<polygon class="iso-focus" points="636.9,688 754.7,620 1011,768 1011,806 893.2,874 636.9,726" fill="none" stroke="none"/>
 <polygon class="iso-face iso-left" points="636.9,688 893.2,836 893.2,874 636.9,726"/>
 <polygon class="iso-face iso-right" points="1011,768 893.2,836 893.2,874 1011,806"/>
 <polygon class="iso-face iso-roof" points="754.7,620 1011,768 893.2,836 636.9,688"/>
