@@ -22,11 +22,9 @@ python3 -m flightdeck.render examples/demo/config.json examples/demo/data.json d
 
 Do not deploy a Worker for this public demo.
 
-<video src="examples/demo/assets/flightdeck-demo.mp4" controls playsinline width="100%"></video>
+[![FlightDeck walkthrough — Architecture diagrams](examples/demo/assets/flightdeck-demo-readme.gif)](examples/demo/assets/flightdeck-demo.mp4)
 
-![FlightDeck](examples/demo/demo-still.png)
-
-The walkthrough above is [examples/demo/assets/flightdeck-demo.mp4](examples/demo/assets/flightdeck-demo.mp4). The still is the same static page in a browser. To preview locally (leave the file offline; do not upload a Worker):
+Short Architecture walkthrough preview (GitHub cannot play a repo `<video>` in the README). Full click-through: [examples/demo/assets/flightdeck-demo.mp4](examples/demo/assets/flightdeck-demo.mp4). Still: [examples/demo/demo-still.png](examples/demo/demo-still.png) (one Architecture frame). To preview locally (leave the file offline; do not upload a Worker):
 
 ```bash
 ./publish.sh
