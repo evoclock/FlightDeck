@@ -8,6 +8,9 @@ responses ids in sync config are set. Never edits data.json. Run ./publish.sh af
 
 Usage: record_chat_accept.py --id dec-... [--value accepted|rejected|comment] [--comment '...']
        [--at 2026-10-26T14:18:00Z] [--ref 'chat <message id>'] [--email ...] [--no-kv]
+
+Worker path (no bot memory): POST /api/chat-accept with an Access JWT merges one
+{id, value?, comment?, timestamp?, ref?} into the FLIGHTDECK_RESPONSES KV value.
 """
 import sys
 from pathlib import Path

@@ -305,6 +305,7 @@ def normalize_pull(full, pr, checks=""):
         "checks": checks,
         "updated_at": pr.get("updated_at") or pr.get("updatedAt"),
         "closed_at": pr.get("closed_at") or pr.get("closedAt"),
+        "merged_at": merged_at,
         "merged": bool(merged_at) or str(state).lower() == "merged",
     }
 
@@ -358,12 +359,87 @@ def repo_listed(repo, names):
     return False
 
 
-def add_settled(data, title, detail, now, src_id):
+# Settled hard ceiling: Settled rows and settled Decision cards keep at most one day.
+SETTLED_KEEP = datetime.timedelta(hours=24)
+
+
+def iso_z(moment):
+    """ISO 8601 UTC with milliseconds and a Z suffix, or None."""
+    if moment is None:
+        return None
+    moment = aware(moment).astimezone(datetime.timezone.utc)
+    return moment.strftime("%Y-%m-%dT%H:%M:%S.") + f"{moment.microsecond // 1000:03d}Z"
+
+
+def add_settled(data, title, detail, now, src_id, at=None):
+    """One Settled row. Every new row carries ISO `at` (the event time) for the one-day prune."""
     rows = data.setdefault("settled", [])
     for row in rows:
         if isinstance(row, dict) and row.get("src_id") == src_id:
             return
-    rows.append({"meta": format_meta(now), "title": title, "detail": detail, "src_id": src_id})
+    when = (parse_time(at) if isinstance(at, str) else at) or aware(now)
+    rows.append({"meta": format_meta(now), "title": title, "detail": detail, "src_id": src_id,
+                 "at": iso_z(when)})
+
+
+def _entry_when(entry, closed_by_src=None):
+    """Best event time for a Settled row or a Decision card, or None."""
+    for key in ("at", "settled_at", "timestamp"):
+        moment = parse_time(entry.get(key))
+        if moment:
+            return moment
+    src = str(entry.get("src_id") or entry.get("src") or "")
+    if closed_by_src and src in closed_by_src:
+        pr = closed_by_src[src]
+        return parse_time(pr.get("merged_at") or pr.get("closed_at"))
+    return None
+
+
+def prune_settled(data, closed=None, now=None):
+    """Drop Settled rows and settled Decision cards older than SETTLED_KEEP (one day).
+
+    A row without `at` resolves through the closed-PR cache (src_id merged:<key> or
+    merged-dec:<key>). A row that still has no time is dropped. Returns notes.
+    """
+    notes = []
+    cutoff = aware(now) - SETTLED_KEEP
+    closed_by_src = {}
+    for pr in closed or []:
+        if isinstance(pr, dict) and pr.get("repo") and pr.get("number") is not None:
+            key = pr_key(pr)
+            closed_by_src[f"merged:{key}"] = pr
+            closed_by_src[f"merged-dec:{key}"] = pr
+    if "settled" in data:
+        rows = list(data.get("settled") or [])
+        keep = []
+        for row in rows:
+            when = _entry_when(row, closed_by_src) if isinstance(row, dict) else None
+            if when is not None and when >= cutoff:
+                keep.append(row)
+        if len(keep) != len(rows):
+            data["settled"] = keep
+            notes.append(f"pruned {len(rows) - len(keep)} Settled rows older than 1 day (kept {len(keep)})")
+    else:
+        keep = []
+    if "decisions" in data:
+        decs = list(data.get("decisions") or [])
+        keep_d = []
+        for x in decs:
+            if not isinstance(x, dict) or x.get("state") != "settled":
+                keep_d.append(x)
+                continue
+            when = _entry_when(x, closed_by_src)
+            if when is None and x.get("id"):
+                for row in keep:
+                    if isinstance(row, dict) and row.get("src_id") == x.get("id"):
+                        when = _entry_when(row, closed_by_src)
+                        break
+            if when is not None and when >= cutoff:
+                keep_d.append(x)
+        if len(keep_d) != len(decs):
+            data["decisions"] = keep_d
+            notes.append(f"pruned {len(decs) - len(keep_d)} settled Decision cards older than 1 day (kept {len(keep_d)})")
+    return notes
 
 
 def mentions(pr, *parts):
@@ -636,18 +712,22 @@ def reconcile_responses(data, cfg, opener=None, now=None):
     except DiscoveryError as exc:
         print(f"reconcile_responses: {exc}", file=sys.stderr)
         return 2
+    applied = []
     if payload is None:
         print("reconcile_responses: no responses cache, skipping", file=sys.stderr)
-        return 0
-    responses = payload.get("responses") if isinstance(payload, dict) else payload
-    if not isinstance(responses, list):
-        print("reconcile_responses: responses payload has no list, skipping", file=sys.stderr)
-        return 0
-    handled_doc = read_json(cache_path(cfg, "responses-handled.json"), {"ids": []}) or {"ids": []}
-    handled = set(handled_doc.get("ids") or [])
-    applied = apply_responses(data, responses, handled, now)
-    if applied:
-        write_json(cache_path(cfg, "responses-handled.json"), {"ids": sorted(handled | set(applied))})
+    else:
+        responses = payload.get("responses") if isinstance(payload, dict) else payload
+        if not isinstance(responses, list):
+            print("reconcile_responses: responses payload has no list, skipping", file=sys.stderr)
+        else:
+            handled_doc = read_json(cache_path(cfg, "responses-handled.json"), {"ids": []}) or {"ids": []}
+            handled = set(handled_doc.get("ids") or [])
+            applied = apply_responses(data, responses, handled, now)
+            if applied:
+                write_json(cache_path(cfg, "responses-handled.json"), {"ids": sorted(handled | set(applied))})
+    # Settled hard ceiling: every publish drops Settled rows and settled Decisions older than one day.
+    for note in prune_settled(data, read_cache_rows(cfg, "prs-closed.json", "prs"), now):
+        print(f"reconcile_responses: {note}")
     print(f"reconcile_responses: applied={len(applied)}")
     return 0
 
@@ -908,21 +988,25 @@ def apply_responses(data, responses, handled, now):
         if rid in handled and decision.get("state") != "open":
             continue
         title = decision.get("title") or "Decision"
+        at = iso_z(parse_time(resp.get("timestamp")) or now)
         if value == "accepted":
             decision["state"] = "settled"
-            add_settled(data, title, "- Accepted.", now, rid)
+            decision["settled_at"] = at
+            add_settled(data, title, "- Accepted.", now, rid, at)
         elif value == "rejected":
             decision["state"] = "settled"
-            add_settled(data, title, "- Rejected.", now, rid)
+            decision["settled_at"] = at
+            add_settled(data, title, "- Rejected.", now, rid, at)
         elif value == "comment":
             comment = (resp.get("comment") or "").strip()
             if not comment or decision.get("state") != "open":
                 continue
             hm = format_hm(now)
             decision["state"] = "settled"
+            decision["settled_at"] = at
             decision["meta"] = f"Alternative {hm}"
             decision["text"] = _authorised_alternative_text(decision.get("text") or "", hm)
-            add_settled(data, f"{title} (alternative)", comment_detail(comment), now, rid)
+            add_settled(data, f"{title} (alternative)", comment_detail(comment), now, rid, at)
         else:
             continue
         applied.append(rid)
@@ -1135,7 +1219,8 @@ def reconcile_merges_lifecycle(data, cfg, now=None):
         else:
             detail = f"- {key} closed."
             heading = f"Closed {title}"
-        add_settled(data, heading, detail, now, f"merged:{key}")
+        at = iso_z(parse_time(pr.get("merged_at") or pr.get("closed_at")) or now)
+        add_settled(data, heading, detail, now, f"merged:{key}", at)
         for step in data.get("steps") or []:
             if isinstance(step, dict) and _step_matches_pr(step, pr):
                 step["done"] = True
@@ -1144,8 +1229,11 @@ def reconcile_merges_lifecycle(data, cfg, now=None):
                 continue
             if mentions(pr, decision.get("text"), decision.get("recommendation"), decision.get("why"), decision.get("title")):
                 decision["state"] = "settled"
-                add_settled(data, decision.get("title") or heading, detail, now, f"merged-dec:{key}")
+                decision["settled_at"] = at
+                add_settled(data, decision.get("title") or heading, detail, now, f"merged-dec:{key}", at)
     data["merges"] = merges
+    for note in prune_settled(data, closed, now):
+        print(f"reconcile_merges_lifecycle: {note}")
     print(f"reconcile_merges_lifecycle: closed={len(closed)}")
     return 0
 

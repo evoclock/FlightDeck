@@ -21,6 +21,19 @@ Keep a human's tracker current from structured evidence, not chat prose. Every r
 - Never skip the tracker settle because the human chose in chat. Never leave a Decision open on the tracker after a chat Accept already unblocked the work.
 - Never invent Settled rows by hand-editing `data.json`. The responses store plus hook 03 are the record path.
 
+## Settled hard ceiling = 1 day (hard — Julen, 26 Oct 2026)
+- Settled rows and settled Decision cards keep at most 24 hours.
+- Hooks 03 and 07 run `flightdeck.sync.prune_settled` on every publish.
+- Every new Settled row carries ISO `at` (the answer or merge time). Settled Decisions carry `settled_at`.
+- A row without `at` resolves through the closed-PR cache. A row that still has no time is dropped.
+- This stops the Settled pane from growing to thousands of rows.
+
+## Chat Accept wire (hard — Julen, 26 Oct 2026)
+Every chat Accept must reach the responses store without a bot remembering:
+1. Prefer `POST /api/chat-accept` on the Worker (Access JWT; body `{id, value?, comment?, timestamp?, ref?}`). It merges one answer into KV `FLIGHTDECK_RESPONSES` and keeps the other answers.
+2. Otherwise always run `python3 scripts/record_chat_accept.py`, then `./publish.sh`.
+- Never leave a chat Accept only in bot memory.
+
 ## Writing (hard requirement)
 All human-facing text this skill produces — tracker `streams` / `decisions` / `steps` / `settled` / `merge_note` prose, and any chat report to the human — must follow **agentic_aidr (AI;DR) simple** and **pstack `/bro`** (or pi-agentic-driver `bro-pi`):
 
