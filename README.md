@@ -22,9 +22,9 @@ python3 -m flightdeck.render examples/demo/config.json examples/demo/data.json d
 
 Do not deploy a Worker for this public demo.
 
-[![FlightDeck walkthrough — Architecture diagrams](examples/demo/assets/flightdeck-demo-readme.gif)](examples/demo/assets/flightdeck-demo.mp4)
+[![FlightDeck walkthrough: banner, cluster, activity, streams, decisions, steps, merges, and architecture](examples/demo/assets/flightdeck-demo-readme.gif)](examples/demo/assets/flightdeck-demo.mp4)
 
-Short Architecture walkthrough preview (GitHub cannot play a repo `<video>` in the README). Full click-through: [examples/demo/assets/flightdeck-demo.mp4](examples/demo/assets/flightdeck-demo.mp4). Still: [examples/demo/demo-still.png](examples/demo/demo-still.png) (one Architecture frame). To preview locally (leave the file offline; do not upload a Worker):
+Explore the full dashboard tour above, including the interactive architecture diagrams. [Watch the video](examples/demo/assets/flightdeck-demo.mp4) or [view the dashboard still](examples/demo/demo-still.png). To preview locally (leave the file offline; do not upload a Worker):
 
 ```bash
 ./publish.sh
