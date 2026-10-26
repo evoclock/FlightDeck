@@ -9,6 +9,18 @@ description: >-
 
 Keep a human's tracker current from structured evidence, not chat prose. Every run reconciles the tracker's data file against live sources. Completeness is the product: if the human has to ask whether an open PR, draft, new repo, or unblock is on the tracker, the last run failed.
 
+## Chat Accept must still be recorded (hard — Julen, 26 Oct 2026)
+- A chat Accept and a tracker Accept both count as authority. Do not wait for the second one.
+- Recording is separate. Every Accept, Reject, or alternative must still appear on the tracker, even when the human chose in chat.
+- On a chat answer that settles an open Decision (or an equivalent merge, spend, or scope OK), record it first:
+  - `python3 scripts/record_chat_accept.py --id dec-… [--value accepted|rejected|comment] [--comment '…'] [--at <ISO time of the message>] [--ref 'chat <message id>']`.
+  - It upserts one entry by id, in the tracker-tap shape, into `.cache/responses-chat.json` and `.cache/responses.json`.
+  - With `CLOUDFLARE_API_TOKEN` and the `responses` ids in sync config, it also upserts the entry into the responses KV value. Without them, the cache files are the record; publish from that checkout.
+  - The library call is `flightdeck.sync.record_chat_accept(cfg, id, value, comment, at, ref)`.
+- Then run `./publish.sh` (`--deploy` when the instance publishes live) so Decisions, Settled, and steps update.
+- Never skip the tracker settle because the human chose in chat. Never leave a Decision open on the tracker after a chat Accept already unblocked the work.
+- Never invent Settled rows by hand-editing `data.json`. The responses store plus hook 03 are the record path.
+
 ## Writing (hard requirement)
 All human-facing text this skill produces — tracker `streams` / `decisions` / `steps` / `settled` / `merge_note` prose, and any chat report to the human — must follow **agentic_aidr (AI;DR) simple** and **pstack `/bro`** (or pi-agentic-driver `bro-pi`):
 
@@ -58,7 +70,7 @@ Hooks, in order. The hook file name is what `hooks/run-pre-render.sh` runs:
 | `00-collect-activity` | `collectors/activity.py` | `activity`, `activity_weekly` | `GITHUB_TOKEN` / `GH_TOKEN` / `GITHUB_PAT`, else `gh auth token`. No owner: skip |
 | `01-refresh-pr-cache` | `scripts/refresh_pr_cache.py` | `.cache/prs.json`, `prs-closed.json`, `repos.json`, and `omb-releases.json` when `omb.repo` is set | `gh`, else a GitHub token, else unauthenticated REST for `public_repos` only. No owner: skip |
 | `02-collect-cluster` | `collectors/metrics_generic.py` or `collectors/spark.py` | `metrics` or `spark` | `FLIGHTDECK_CLUSTER=metrics` or `spark`. Unset: skip. Spark reads `FLIGHTDECK_SPARK_FILE` or `.cache/spark.json` and does not open SSH |
-| `03-reconcile-responses` | `scripts/reconcile_responses.py` | Decisions → settled, Settled entries, step ticks | KV when `CLOUDFLARE_API_TOKEN` and the responses ids in sync config are set, else `.cache/responses.json` |
+| `03-reconcile-responses` | `scripts/reconcile_responses.py` | Decisions → settled, Settled entries, step ticks | KV when `CLOUDFLARE_API_TOKEN` and the responses ids in sync config are set, else `.cache/responses.json`; plus chat answers in `.cache/responses-chat.json` (`scripts/record_chat_accept.py`) |
 | `05-reconcile-inflight` | `scripts/reconcile_inflight.py` | Merges (open PRs + synthetic rows), primary stream, new-repo Decisions, architecture stubs | `.cache/repos.json`, `.cache/prs.json` |
 | `07-reconcile-merges-lifecycle` | `scripts/reconcile_merges_lifecycle.py` | Drops open rows for merged/closed PRs, ticks steps, settles Decisions, Settled entries | `.cache/prs-closed.json` |
 | `10-reconcile-ready-decisions` | `scripts/reconcile_ready_decisions.py` | Ready-merge Decisions | merges rows in state `Ready…` whose repo is in `public_repos` |
@@ -71,7 +83,8 @@ Hooks, in order. The hook file name is what `hooks/run-pre-render.sh` runs:
 
 Cache writers the watch must run (structured JSON only):
 - `.cache/prs.json` / `.cache/prs-closed.json` / `.cache/repos.json`: hook 01 writes these when `gh` or a token can see the owner. Include `merge_state` (`mergeStateStatus`) and `checks` so "ready + green" is evidence, never a guess. Private repos need `gh` or a token. Without a token, hook 01 can only refresh `public_repos`, marks the cache incomplete, and exits 2.
-- `.cache/responses.json`: the raw KV value for the configured responses key when no `CLOUDFLARE_API_TOKEN` is set. Handled ids live in `.cache/responses-handled.json`.
+- `.cache/responses.json`: the raw KV value for the configured responses key when no `CLOUDFLARE_API_TOKEN` is set. Chat Accepts must be merged into this store (same shape as a tracker tap) before publish: run `scripts/record_chat_accept.py`, never a hand edit. Handled ids live in `.cache/responses-handled.json`.
+- `.cache/responses-chat.json`: chat answers written by `scripts/record_chat_accept.py`, one entry per Decision id. Live KV reads do not include an answer that only reached the cache, so hook 03 merges this file back in on every publish.
 - `.cache/bot-reports.json`: `[{agent, area, current, next, at}]`, fields copied from each bot's own report or pane. Missing file = other streams unchanged. Never summarise chat into it.
 - `.cache/omb-install.json`: `{app, version, checked_at}` from the machine that has the app installed. `omb.install_step_contains` in sync config names the step text to tick.
 - `.cache/omb-releases.json`: GitHub releases for `omb.repo`. A guard with `needs: "nondraft_release"` stays undone until a real non-draft release is in that file. No tick, cache, or agent can mark that step done otherwise.
@@ -87,14 +100,14 @@ The hooks above enforce these. A gap means a script or cache writer is missing; 
    - `public_repos` in sync config must list every public repo the human merges. Missing names = silent no-Decision bugs.
 6. **Your steps** list ready+green phone actions; drafts never appear there.
 7. **Priorities** blocks match each active stream's current/next from evidence; do not wipe done items.
-8. **Settled today** only from the human's tracker responses (KV, hook 03) and merged-PR evidence (hook 07), never invented.
+8. **Settled today** only from the human's recorded responses and merged-PR evidence (hook 07), never invented. Recorded responses are tracker taps (KV) and chat answers written by `scripts/record_chat_accept.py`; hook 03 applies both as first-class answers.
 9. **Architecture:** every in-flight product named on Merges gets a diagram. Set `assets_dir` in sync config (not the demo assets folder) and the hook writes a bower stub plus a rendered page, then adds `projects.tabs`. With no `assets_dir`, it records `projects.pending` and does not add a tab, because a missing diagram fails render.
 10. **Activity** refreshed every sync (Mac `gh` when box token fails).
 11. Run `reconcile_inflight.py` and `reconcile_ready_decisions.py` every publish (hooks). Discovery failure (exit 2) must not be reported as complete — refresh `.cache/repos.json` + `.cache/prs.json` from a machine where `gh` works.
 
 ## Each run
-1. Gather evidence (agents, panes, full open-PR set, full in-flight repo set, KV responses).
-2. Human responses are applied first by hook 03 (`reconcile_responses.py`) → Settled / steps done.
+1. Gather evidence (agents, panes, full open-PR set, full in-flight repo set, KV responses). Record every chat Accept, Reject, or alternative since the last run with `scripts/record_chat_accept.py`.
+2. Human responses (tracker taps and recorded chat answers) are applied first by hook 03 (`reconcile_responses.py`) → Settled / steps done.
 3. Refresh `.cache/` evidence (prs, prs-closed, repos, responses, bot-reports, omb-install); run `./publish.sh`. The hooks reconcile every pane. Never hand-edit pane prose in `data.json`.
 4. Diff; if unchanged, stop.
 5. Publish + snapshot.
@@ -104,4 +117,4 @@ The hooks above enforce these. A gap means a script or cache writer is missing; 
 - Never invent state, ready/green, or activity numbers.
 - Never wait for the human to name an obvious new repo in chat.
 - Never dump every loose repo into Streams.
-- Human only OKs via open Decisions on the tracker.
+- Put every OK ask on the tracker as an open Decision first. The human may answer on the tracker or in chat; a chat answer is recorded with `scripts/record_chat_accept.py` before publish.

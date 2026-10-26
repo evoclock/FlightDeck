@@ -667,15 +667,174 @@ def load_responses(cfg, opener):
             except TypeError:
                 ctx = opener(req)
             with ctx as resp:
-                return json.load(resp)
+                return merge_chat_responses(json.load(resp), chat_responses(cfg))
         except (urllib.error.URLError, OSError, ValueError, json.JSONDecodeError) as exc:
             if cache.is_file():
                 print("reconcile_responses: KV fetch failed; using cache", file=sys.stderr)
-                return read_json(cache)
+                return merge_chat_responses(read_json(cache), chat_responses(cfg))
+            if chat_responses(cfg):
+                print("reconcile_responses: KV fetch failed; using chat answers only", file=sys.stderr)
+                return merge_chat_responses(None, chat_responses(cfg))
             raise DiscoveryError(f"responses KV fetch failed ({type(exc).__name__}) and no cache") from exc
     if cache.is_file():
-        return read_json(cache)
-    return None
+        return merge_chat_responses(read_json(cache), chat_responses(cfg))
+    return merge_chat_responses(None, chat_responses(cfg))
+
+
+# --- chat answers ---------------------------------------------------------------
+# A chat Accept and a tracker Accept both count. Every answer must still be recorded on the
+# tracker. record_chat_accept writes the answer into the responses store in the same shape as
+# a tracker tap; hook 03 then settles the Decision. It never edits data.json.
+
+CHAT_RESPONSES = "responses-chat.json"
+CHAT_VALUES = ("accepted", "rejected", "comment")
+
+
+def chat_responses(cfg):
+    """Chat answers recorded by record_chat_accept. A KV refresh never rewrites this file."""
+    doc = read_json(cache_path(cfg, CHAT_RESPONSES), {}) or {}
+    rows = doc.get("responses") if isinstance(doc, dict) else doc
+    return [r for r in rows or [] if isinstance(r, dict) and r.get("id")]
+
+
+def merge_chat_responses(payload, chat):
+    """Responses payload plus chat answers. The same id and timestamp counts once."""
+    if not chat:
+        return payload
+    if isinstance(payload, list):
+        payload = {"responses": payload}
+    out = dict(payload or {"at": None, "responses": []})
+    rows = list(out.get("responses") or [])
+    seen = {(r.get("id"), r.get("timestamp")) for r in rows if isinstance(r, dict)}
+    for row in chat:
+        mark = (row.get("id"), row.get("timestamp"))
+        if mark not in seen:
+            rows.append(row)
+            seen.add(mark)
+    out["responses"] = rows
+    return out
+
+
+def upsert_response(doc, entry, email=""):
+    """Put entry into a responses payload. A chat entry with the same id is replaced.
+    Tracker taps for that id are kept, because they are the human's record too."""
+    if isinstance(doc, list):
+        doc = {"responses": doc}
+    out = dict(doc or {})
+    if email:
+        out.setdefault("email", email)
+    rows = [
+        r for r in out.get("responses") or []
+        if not (isinstance(r, dict) and r.get("id") == entry["id"]
+                and (r.get("channel") == "chat" or r.get("timestamp") == entry["timestamp"]))
+    ]
+    rows.append(entry)
+    out["responses"] = rows
+    out["at"] = entry["timestamp"]
+    return out
+
+
+def _kv_url(cfg):
+    block = cfg.get("responses") or {}
+    account, ns, key = block.get("account_id") or "", block.get("kv_namespace_id") or "", block.get("key") or ""
+    if not (account and ns and key):
+        return ""
+    quoted = urllib.parse.quote(key, safe="")
+    return f"https://api.cloudflare.com/client/v4/accounts/{account}/storage/kv/namespaces/{ns}/values/{quoted}"
+
+
+def _open(opener, req):
+    try:
+        return opener(req, timeout=20)
+    except TypeError:
+        return opener(req)
+
+
+def put_chat_response_kv(cfg, entry, email="", opener=None):
+    """Upsert entry into the responses KV value. Returns 'written', 'skipped', or 'failed'.
+    Skipped when CLOUDFLARE_API_TOKEN or the responses ids in sync config are missing."""
+    token = os.environ.get("CLOUDFLARE_API_TOKEN") or ""
+    url = _kv_url(cfg)
+    if not token or not url:
+        return "skipped"
+    opener = opener or urllib.request.urlopen
+    auth = {"Authorization": f"Bearer {token}", "User-Agent": UA}
+    try:
+        try:
+            with _open(opener, urllib.request.Request(url, headers=auth)) as resp:
+                live = json.load(resp)
+        except urllib.error.HTTPError as exc:
+            if exc.code != 404:
+                raise
+            live = {}
+        body = json.dumps(upsert_response(live, entry, email)).encode("utf-8")
+        req = urllib.request.Request(url, data=body, method="PUT",
+                                     headers={**auth, "Content-Type": "application/json"})
+        with _open(opener, req):
+            pass
+        return "written"
+    except (urllib.error.URLError, OSError, ValueError) as exc:  # never print the token
+        print(f"record_chat_accept: KV write failed ({type(exc).__name__}); cache only", file=sys.stderr)
+        return "failed"
+
+
+def _iso_now(now=None):
+    moment = aware(now).astimezone(datetime.timezone.utc)
+    return moment.strftime("%Y-%m-%dT%H:%M:%S.") + f"{moment.microsecond // 1000:03d}Z"
+
+
+def record_chat_accept(cfg, rid, value="accepted", comment="", at=None, ref="chat", email="",
+                       kv=True, opener=None, now=None):
+    """Record a chat answer in the responses store, then let hook 03 settle it.
+
+    Writes .cache/responses-chat.json and .cache/responses.json (same shape as a tracker tap,
+    one chat entry per id) and, when a token and responses ids are set, the KV value.
+    Never edits data.json. Callers run ./publish.sh afterwards. Returns (entry, kv_status).
+    """
+    rid = str(rid or "").strip()
+    if not rid.startswith("dec-"):
+        raise ValueError("id must be a tracker Decision id (dec-...)")
+    if value not in CHAT_VALUES:
+        raise ValueError(f"value must be one of {', '.join(CHAT_VALUES)}")
+    note = (comment or "").strip()
+    if value == "comment" and not note:
+        raise ValueError("an alternative needs a comment with the human's words")
+    timestamp = at or _iso_now(now)
+    if parse_time(timestamp) is None:
+        raise ValueError("at must be an ISO 8601 time with a zone")
+    if not email:
+        key = (cfg.get("responses") or {}).get("key") or ""
+        email = key.split("/", 1)[1] if key.startswith("responses/") else ""
+    entry = {"id": rid, "type": "decision", "value": value, "comment": note,
+             "timestamp": timestamp, "channel": "chat", "ref": ref or "chat"}
+    for name in (CHAT_RESPONSES, "responses.json"):
+        path = cache_path(cfg, name)
+        write_json(path, upsert_response(read_json(path), entry, email))
+    status = put_chat_response_kv(cfg, entry, email, opener) if kv else "skipped"
+    return entry, status
+
+
+def main_record_chat_accept(argv=None):
+    import argparse
+    parser = argparse.ArgumentParser(
+        description="Record a chat Accept, Reject, or alternative in the responses store. Then run ./publish.sh.")
+    parser.add_argument("--id", required=True, help="tracker Decision id (dec-...)")
+    parser.add_argument("--value", default="accepted", choices=CHAT_VALUES)
+    parser.add_argument("--comment", default="", help="the human's words, verbatim")
+    parser.add_argument("--at", help="when the human answered, ISO 8601 with a zone (default: now)")
+    parser.add_argument("--ref", default="chat", help="where the human answered, e.g. 'chat <message id>'")
+    parser.add_argument("--email", default="", help="default: taken from the responses key in sync config")
+    parser.add_argument("--no-kv", action="store_true", help="write the cache files only")
+    parser.add_argument("--config", help="sync config JSON (default $FLIGHTDECK_SYNC_CONFIG or config/sync.json)")
+    args = parser.parse_args(argv)
+    cfg = load_config(args.config)
+    try:
+        entry, status = record_chat_accept(cfg, args.id, args.value, args.comment, args.at, args.ref,
+                                           args.email, kv=not args.no_kv)
+    except ValueError as exc:
+        parser.error(str(exc))
+    print(json.dumps({**entry, "kv": status}))
+    return 0
 
 
 def _find_by_id(rows, rid, prefix):

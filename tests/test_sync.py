@@ -5,6 +5,7 @@ import json
 import os
 import subprocess
 import unittest
+import urllib.error
 from pathlib import Path
 from unittest import mock
 
@@ -13,6 +14,8 @@ from flightdeck.sync import (
     apply_responses,
     check_evidence,
     load_config,
+    main_record_chat_accept,
+    record_chat_accept,
     pin_ids,
     reconcile_inflight,
     reconcile_merges_lifecycle,
@@ -592,7 +595,7 @@ class PublishTests(unittest.TestCase):
             "refresh_pr_cache.py", "reconcile_responses.py", "reconcile_inflight.py",
             "reconcile_merges_lifecycle.py", "reconcile_ready_decisions.py",
             "reconcile_steps_evidence.py", "apply_bot_reports.py", "reconcile_priorities.py",
-            "pin_ids.py", "tracker_evidence.py",
+            "pin_ids.py", "tracker_evidence.py", "record_chat_accept.py",
         ):
             self.assertTrue((ROOT / "scripts" / script).is_file(), script)
         self.assertTrue((ROOT / "publish.sh").is_file())
@@ -619,6 +622,129 @@ class PublishTests(unittest.TestCase):
         for bad in ("gmail.com", "519a5896bd3a41e4b2d5696b051f147d", "flockmate", "j.a.r.gamboa"):
             self.assertNotIn(bad, low, bad)
         self.assertNotIn("neuromancer", "\n".join(code).lower())
+
+
+class FakeKV:
+    """Records KV GET and PUT calls. Starts with one tracker tap."""
+
+    def __init__(self, live=None, fail=False):
+        self.live = live if live is not None else {"at": "t", "responses": [
+            {"id": "dec-tap", "type": "decision", "value": "accepted", "comment": "", "timestamp": "2026-10-25T09:00:00Z"}]}
+        self.puts = []
+        self.fail = fail
+
+    def __call__(self, req, timeout=None):
+        if self.fail:
+            raise urllib.error.URLError("down")
+        if req.get_method() == "PUT":
+            self.puts.append(json.loads(req.data.decode()))
+            self.live = self.puts[-1]
+            return FakeResp(b"{}")
+        return FakeResp(json.dumps(self.live).encode())
+
+
+class ChatAcceptTests(unittest.TestCase):
+    """A chat Accept counts, and it must still be recorded on the tracker."""
+
+    TS = "2026-10-26T14:18:00Z"
+
+    def setUp(self):
+        import tempfile
+        self._tmp = tempfile.TemporaryDirectory()
+        self.tmp = self._tmp.name
+        self.cfg = cfg(self.tmp, responses={"account_id": "acct", "kv_namespace_id": "ns",
+                                            "key": "responses/owner@example.com"})
+
+    def tearDown(self):
+        os.environ.pop("CLOUDFLARE_API_TOKEN", None)
+        self._tmp.cleanup()
+
+    def store(self, name):
+        return json.loads((Path(self.cfg["cache_dir"]) / name).read_text())
+
+    def test_writes_tracker_tap_shape_to_both_stores(self):
+        entry, status = record_chat_accept(self.cfg, "dec-1", at=self.TS)
+        self.assertEqual(status, "skipped")
+        for name in ("responses.json", "responses-chat.json"):
+            doc = self.store(name)
+            self.assertEqual(doc["email"], "owner@example.com")
+            self.assertEqual(doc["responses"], [entry])
+        for key in ("id", "type", "value", "comment", "timestamp"):
+            self.assertIn(key, entry)
+        self.assertEqual((entry["type"], entry["value"], entry["channel"]), ("decision", "accepted", "chat"))
+
+    def test_upsert_by_id_replaces_older_chat_answer(self):
+        record_chat_accept(self.cfg, "dec-1", at=self.TS)
+        record_chat_accept(self.cfg, "dec-1", "rejected", "Not this week.", at="2026-10-26T15:00:00Z")
+        for name in ("responses.json", "responses-chat.json"):
+            rows = self.store(name)["responses"]
+            self.assertEqual([(r["value"], r["comment"]) for r in rows], [("rejected", "Not this week.")])
+
+    def test_chat_accept_settles_open_decision_on_publish(self):
+        data = {"decisions": [{"id": "dec-1", "state": "open", "title": "Adopt?", "text": "- Yes"}], "settled": []}
+        record_chat_accept(self.cfg, "dec-1", at=self.TS)
+        with mock.patch("sys.stderr", io.StringIO()):
+            self.assertEqual(reconcile_responses(data, self.cfg, now=NOW), 0)
+        self.assertEqual(data["decisions"][0]["state"], "settled")
+        self.assertEqual(data["settled"][0]["detail"], "- Accepted.")
+
+    def test_chat_reject_settles_as_rejected(self):
+        data = {"decisions": [{"id": "dec-1", "state": "open", "title": "Adopt?", "text": "- Yes"}], "settled": []}
+        record_chat_accept(self.cfg, "dec-1", "rejected", at=self.TS)
+        with mock.patch("sys.stderr", io.StringIO()):
+            reconcile_responses(data, self.cfg, now=NOW)
+        self.assertEqual(data["settled"][0]["detail"], "- Rejected.")
+
+    def test_live_kv_without_the_chat_answer_still_settles(self):
+        """Gap: hook 03 read live KV only, so an answer written to the cache alone was dropped."""
+        record_chat_accept(self.cfg, "dec-1", at=self.TS, kv=False)
+        os.environ["CLOUDFLARE_API_TOKEN"] = "dummy"
+        data = {"decisions": [{"id": "dec-1", "state": "open", "title": "Adopt?", "text": "- Yes"}], "settled": []}
+        with mock.patch("sys.stderr", io.StringIO()):
+            self.assertEqual(reconcile_responses(data, self.cfg, opener=FakeKV(), now=NOW), 0)
+        self.assertEqual(data["decisions"][0]["state"], "settled")
+
+    def test_kv_write_upserts_and_keeps_tracker_taps(self):
+        os.environ["CLOUDFLARE_API_TOKEN"] = "dummy"
+        kv = FakeKV()
+        _, status = record_chat_accept(self.cfg, "dec-1", at=self.TS, opener=kv)
+        _, again = record_chat_accept(self.cfg, "dec-1", at="2026-10-26T15:00:00Z", opener=kv)
+        self.assertEqual((status, again), ("written", "written"))
+        ids = [r["id"] for r in kv.live["responses"]]
+        self.assertEqual(sorted(ids), ["dec-1", "dec-tap"])
+
+    def test_kv_failure_keeps_the_cache_record(self):
+        os.environ["CLOUDFLARE_API_TOKEN"] = "dummy"
+        with mock.patch("sys.stderr", io.StringIO()):
+            _, status = record_chat_accept(self.cfg, "dec-1", at=self.TS, opener=FakeKV(fail=True))
+        self.assertEqual(status, "failed")
+        self.assertEqual(len(self.store("responses-chat.json")["responses"]), 1)
+
+    def test_never_touches_data_json(self):
+        path = Path(self.tmp) / "data.json"
+        path.write_text('{"decisions": []}\n')
+        os.environ["FLIGHTDECK_DATA"] = str(path)
+        try:
+            before = path.read_bytes()
+            record_chat_accept(self.cfg, "dec-1", at=self.TS)
+            self.assertEqual(path.read_bytes(), before)
+        finally:
+            os.environ.pop("FLIGHTDECK_DATA", None)
+
+    def test_cli_rejects_bad_input(self):
+        os.environ["FLIGHTDECK_CACHE"] = self.cfg["cache_dir"]
+        for argv in ([], ["--id", "dec-1", "--value", "maybe"], ["--id", "nope"],
+                     ["--id", "dec-1", "--value", "comment"], ["--id", "dec-1", "--at", "soon"]):
+            with mock.patch("sys.stderr", io.StringIO()), self.assertRaises(SystemExit) as cm:
+                main_record_chat_accept(argv)
+            self.assertNotEqual(cm.exception.code, 0, argv)
+
+    def test_cli_records_and_prints_entry(self):
+        os.environ["FLIGHTDECK_CACHE"] = self.cfg["cache_dir"]
+        with mock.patch("sys.stdout", io.StringIO()) as out:
+            self.assertEqual(main_record_chat_accept(["--id", "dec-9", "--at", self.TS, "--no-kv"]), 0)
+        self.assertEqual(json.loads(out.getvalue())["id"], "dec-9")
+        self.assertEqual(self.store("responses.json")["responses"][0]["id"], "dec-9")
 
 
 if __name__ == "__main__":
