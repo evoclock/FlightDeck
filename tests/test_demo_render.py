@@ -1,4 +1,5 @@
 """The shipped examples/demo renders offline as a static illustration of public evoclock repos."""
+import datetime
 import json
 import re
 import tempfile
@@ -38,8 +39,12 @@ class DemoRenderTests(unittest.TestCase):
         self.assertIn('5 bots · 2 need you', self.doc)
         self.assertIn('3 open · 1 settled', self.doc)
         self.assertIn('4 PRs · 0 ready', self.doc)
-        self.assertIn('Example week', self.doc)
-        self.assertIn('data-window="week">18<', self.doc)
+        self.assertIn('>This week<', self.doc)
+        self.assertNotIn('Example week', self.doc)
+        self.assertIn('data-window="1h">14<', self.doc)
+        self.assertIn('data-window="week">286<', self.doc)
+        self.assertIn('data-window="week">104<', self.doc)
+        self.assertIn('data-window="week">93<', self.doc)
         self.assertIn('https://github.com/evoclock/pi-bowerbird/pull/2', self.doc)
         self.assertIn('https://github.com/evoclock/OpenMausBot/pull/48', self.doc)
         self.assertIn('Static illustration of public evoclock repos', self.doc)
@@ -56,8 +61,13 @@ class DemoRenderTests(unittest.TestCase):
         for bad in FORBIDDEN + ('flockmate.dev', 'api.github.com'):
             self.assertNotIn(bad, raw, bad)
         data = json.loads((DEMO / 'data.json').read_text())
-        self.assertTrue(data['activity_weekly']['sample'])
-        self.assertEqual(data['activity_weekly']['commits'], 18)
+        self.assertFalse(data['activity_weekly'].get('sample'))
+        self.assertEqual(data['activity']['commits'], 14)
+        self.assertEqual(data['activity']['prs_opened'], 8)
+        self.assertEqual(data['activity']['prs_merged'], 8)
+        self.assertEqual(data['activity_weekly']['commits'], 286)
+        self.assertEqual(data['activity_weekly']['prs_opened'], 104)
+        self.assertEqual(data['activity_weekly']['prs_merged'], 93)
         self.assertNotIn('evoclock/demeter', raw)
 
     def test_offline_assets_embedded(self):
@@ -79,7 +89,11 @@ class DemoRenderTests(unittest.TestCase):
         self.assertEqual(data['title'], 'FlightDeck')
         self.assertTrue(data['spark']['sample'])
         self.assertEqual([n['name'] for n in data['spark']['nodes']], ['demo-a', 'demo-b'])
-        self.assertGreaterEqual(len(data['spark']['history']), 12)
+        hist = data['spark']['history']
+        self.assertEqual(len(hist), 5)
+        times = [datetime.datetime.fromisoformat(h['at']) for h in hist]
+        self.assertEqual([(b - a).total_seconds() for a, b in zip(times, times[1:])], [15 * 60] * 4)
+        self.assertRegex(self.doc, r'data-node="demo-a"[^>]* d="M[^"]* L')
         self.assertNotIn('metrics', data)
         self.assertIn('demo cluster', self.doc)
         self.assertIn('2 online', self.doc)
@@ -94,7 +108,7 @@ class DemoRenderTests(unittest.TestCase):
     def test_walkthrough_video_is_the_attached_file(self):
         video = DEMO / 'assets' / 'flightdeck-demo.mp4'
         self.assertTrue(video.is_file())
-        self.assertEqual(video.stat().st_size, 2477775)
+        self.assertEqual(video.stat().st_size, 2359829)
         self.assertIn(b'ftyp', video.read_bytes()[:32])
         self.assertFalse((DEMO / 'assets' / 'flock-tracker-demo.mp4').exists())
         demo_doc = (DEMO / 'README.md').read_text()

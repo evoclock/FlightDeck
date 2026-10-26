@@ -10,7 +10,7 @@ import json
 from flightdeck.common import e
 
 STALE_MIN = 10
-TREND_MIN, TREND_GAP_MIN = 60, 12          # a gap longer than two 5-min runs breaks the line
+TREND_MIN, TREND_GAP_MIN = 60, 16          # a gap longer than one 15-min sample breaks the line
 # Calm colour per node; never rust/peach/clay (orange/red reads as redlining). Dash is a second cue.
 TREND_COLORS = ["teal", "mustard", "mauve", "slate", "olive", "forest"]
 TREND_DASH = ["", "7 4", "2 3", "10 3 2 3"]

@@ -67,7 +67,7 @@ Copy `config.example.json` to `config.json`. Every slot is required. An unknown 
 
 The demo sets `cluster` to `cluster.gpu` and `architecture` to `empty`. `config.example.json` sets `cluster` to `metrics.generic` for a machine without GPU readings. Use `architecture.diagrams` when you have diagrams. `empty` leaves a slot out.
 
-Weekly activity in the demo sets `activity_weekly.sample` so the example counts stay on the page after Friday 17:00. A live collector does not set `sample`. A weekly block from an earlier week, without `sample`, shows zeros and Collecting.
+The demo weekly block is the current week, so the column reads This week. A weekly block from an earlier week, without `sample`, shows zeros and Collecting. `activity_weekly.sample` keeps stored counts after Friday 17:00 and labels that column Example. A live collector does not set `sample`.
 
 Refresh `data.json` before rendering again:
 

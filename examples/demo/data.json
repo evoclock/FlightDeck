@@ -284,91 +284,35 @@
       {
         "at": "2026-10-25T15:20:00+00:00",
         "gpu": {
-          "demo-a": 55,
-          "demo-b": 56
-        }
-      },
-      {
-        "at": "2026-10-25T15:25:00+00:00",
-        "gpu": {
-          "demo-a": 64,
-          "demo-b": 53
-        }
-      },
-      {
-        "at": "2026-10-25T15:30:00+00:00",
-        "gpu": {
-          "demo-a": 71,
-          "demo-b": 46
+          "demo-a": 82,
+          "demo-b": 45
         }
       },
       {
         "at": "2026-10-25T15:35:00+00:00",
         "gpu": {
-          "demo-a": 73,
-          "demo-b": 38
-        }
-      },
-      {
-        "at": "2026-10-25T15:40:00+00:00",
-        "gpu": {
-          "demo-a": 70,
-          "demo-b": 31
-        }
-      },
-      {
-        "at": "2026-10-25T15:45:00+00:00",
-        "gpu": {
-          "demo-a": 64,
-          "demo-b": 28
+          "demo-a": 80,
+          "demo-b": 47
         }
       },
       {
         "at": "2026-10-25T15:50:00+00:00",
         "gpu": {
-          "demo-a": 55,
-          "demo-b": 31
-        }
-      },
-      {
-        "at": "2026-10-25T15:55:00+00:00",
-        "gpu": {
-          "demo-a": 46,
-          "demo-b": 37
-        }
-      },
-      {
-        "at": "2026-10-25T16:00:00+00:00",
-        "gpu": {
-          "demo-a": 39,
-          "demo-b": 46
+          "demo-a": 76,
+          "demo-b": 51
         }
       },
       {
         "at": "2026-10-25T16:05:00+00:00",
         "gpu": {
-          "demo-a": 37,
-          "demo-b": 53
-        }
-      },
-      {
-        "at": "2026-10-25T16:10:00+00:00",
-        "gpu": {
-          "demo-a": 40,
-          "demo-b": 56
-        }
-      },
-      {
-        "at": "2026-10-25T16:15:00+00:00",
-        "gpu": {
-          "demo-a": 46,
-          "demo-b": 54
+          "demo-a": 58,
+          "demo-b": 44
         }
       },
       {
         "at": "2026-10-25T16:20:00+00:00",
         "gpu": {
-          "demo-a": 56,
+          "demo-a": 64,
           "demo-b": 47
         }
       }
@@ -376,21 +320,19 @@
   },
   "activity": {
     "window": "1h",
-    "commits": 3,
-    "prs_opened": 1,
-    "prs_merged": 1,
-    "at": "2026-10-25T11:40:00+00:00",
-    "note": "Example counts for this illustration. Not a live GitHub total.",
-    "sample": true
+    "commits": 14,
+    "prs_opened": 8,
+    "prs_merged": 8,
+    "at": "2026-10-25T23:40:00+00:00",
+    "note": "Public evoclock repos. Not a live GitHub total."
   },
   "activity_weekly": {
     "window": "week",
     "since": "2026-10-23T17:00:00+01:00",
-    "commits": 18,
-    "prs_opened": 4,
-    "prs_merged": 3,
-    "at": "2026-10-25T11:40:00+00:00",
-    "note": "Example counts for this illustration. Not a live GitHub total.",
-    "sample": true
+    "commits": 286,
+    "prs_opened": 104,
+    "prs_merged": 93,
+    "at": "2026-10-25T23:40:00+00:00",
+    "note": "Public evoclock repos. Not a live GitHub total."
   }
 }
