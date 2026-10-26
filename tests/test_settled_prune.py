@@ -102,6 +102,25 @@ class HooksPrune(unittest.TestCase):
             reconcile_merges_lifecycle(data, self.cfg, now=NOW)
         self.assertEqual([r["src_id"] for r in data["settled"]], ["merged:acme/app#8"])
 
+    def test_merge_settled_card_is_dated_and_kept_for_its_day(self):
+        """A card settled by a merge keeps settled_at, so the same-run prune does not drop it."""
+        (self.cache / "prs-closed.json").write_text(json.dumps({"prs": [
+            {"number": 21, "title": "Keep Settled", "repo": "acme/app", "merged": True,
+             "merged_at": "2026-10-26T22:50:00Z", "url": "https://github.com/acme/app/pull/21"}]}))
+        card = {"id": "dec-ready", "state": "open", "title": "Merge ready PRs",
+                "text": "- [acme/app #21](https://github.com/acme/app/pull/21)", "opened_at": "2026-10-20T10:00:00Z"}
+        data = {"merges": [], "steps": [], "settled": [], "decisions": [card]}
+        with mock.patch("sys.stderr", io.StringIO()), mock.patch("sys.stdout", io.StringIO()):
+            reconcile_merges_lifecycle(data, self.cfg, now=NOW)
+        self.assertEqual([(x["id"], x["state"], x["settled_at"]) for x in data["decisions"]],
+                         [("dec-ready", "settled", "2026-10-26T22:50:00.000Z")])
+        self.assertIn("merged-dec:acme/app#21", [r["src_id"] for r in data["settled"]])
+        later = NOW + datetime.timedelta(hours=23)
+        self.assertEqual(prune_settled(data, None, later), [])
+        self.assertEqual(len(data["decisions"]), 1)
+        prune_settled(data, None, NOW + datetime.timedelta(hours=25))
+        self.assertEqual(data["decisions"], [])
+
 
 if __name__ == "__main__":
     unittest.main()
