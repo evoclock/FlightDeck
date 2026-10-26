@@ -1,6 +1,6 @@
 # FlightDeck
 
-Static illustration of public evoclock repos. The page title is FlightDeck. The banner is the ADHD Neuromancer artwork. Counts in `data.json` are examples. The cluster slot is the GPU card, with demo nodes `demo-a` and `demo-b` held at 95–100% GPU. The architecture slot is `architecture.diagrams`, with pi-bowerbird diagrams of three public repos (FlightDeck, OpenMausBot, pi-bowerbird) under `assets/architecture/`.
+Static illustration of public evoclock repos. The page title is FlightDeck. The banner is the ADHD Neuromancer artwork. Counts in `data.json` are examples. The cluster slot is the GPU card, with demo nodes `demo-a` and `demo-b` held at 95–100% GPU. The architecture slot is `architecture.diagrams`, with pi-bowerbird diagrams of three public repos (FlightDeck, OpenMausBot, pi-bowerbird) and a Demeter stub drawn only from the public fieldnotes, under `assets/architecture/`.
 
 - Walkthrough: [assets/flightdeck-demo.mp4](assets/flightdeck-demo.mp4)
 - Still: [demo-still.png](demo-still.png)

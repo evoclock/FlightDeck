@@ -26,6 +26,13 @@
         "flat": [],
         "iso": []
       }
+    },
+    "demeter.bower.json": {
+      "sha256": "81aa487229dfae8576990961cd875b632fea2955956c6d02072f23e9f96fea80",
+      "warnings": {
+        "flat": [],
+        "iso": []
+      }
     }
   }
 }

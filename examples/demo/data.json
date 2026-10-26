@@ -350,6 +350,10 @@
       {
         "id": "bowerbird",
         "diagram": "architecture/pi-bowerbird.bower.json"
+      },
+      {
+        "id": "demeter",
+        "diagram": "architecture/demeter.bower.json"
       }
     ]
   }
