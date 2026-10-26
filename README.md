@@ -2,13 +2,13 @@
 
 FlightDeck is a static dashboard for agent work. Ten slots stay in a fixed layout. `config.json` chooses which widget fills each slot. Collectors write `data.json`. One render command writes a single HTML file.
 
-Python 3.11 or newer is enough. The renderer and collectors use the standard library only. Clone this repo and run the commands from the root.
+The renderer and collectors use the standard library only. Clone this repo and run the commands from the root.
 
 ## Render the demo
 
-The public demo is a static illustration of publicly released evoclock work. The page title is FlightDeck. Streams are FlightDeck, OpenMausBot, pi-agentic-driver, pi-bowerbird, and Demeter. Pull requests and notes link to public GitHub pages. Activity counts and the cluster chart are examples stored in `examples/demo/data.json`. That file is static. Rendering it does not collect from GitHub. The architecture slot is `architecture.diagrams`, with public FlightDeck, OpenMausBot, pi-bowerbird, and Demeter fieldnotes stubs.
+The public demo is a static illustration of publicly released from my repos. The page title is FlightDeck. Streams are FlightDeck, OpenMausBot, pi-agentic-driver, pi-bowerbird, and Demeter. Pull requests and notes link to public GitHub pages. Activity counts and the cluster chart are examples stored in `examples/demo/data.json`. That file is static. Rendering it does not collect from GitHub. The architecture slot is `architecture.diagrams`, with public FlightDeck, OpenMausBot, pi-bowerbird, and Demeter fieldnotes stubs.
 
-The banner is `examples/demo/assets/banner.webp`, the ADHD Neuromancer artwork. Keep that file for the public demo. Swap in your own `banner.webp` beside your config when you leave the demo. The banner keeps its natural aspect.
+The banner is `examples/demo/assets/banner.webp`. Swap in your own `banner.webp` beside your config if you wish to bring your own. The banner keeps its natural aspect.
 
 ```bash
 ./publish.sh
@@ -20,7 +20,7 @@ That runs the pre-render hooks, then writes `dist/local/index.html` and copies t
 python3 -m flightdeck.render examples/demo/config.json examples/demo/data.json dist/local/index.html
 ```
 
-Do not deploy a Worker for this public demo.
+Make sure to avoid deploying a Worker for this public demo, it simply won't do much for you.
 
 [![FlightDeck walkthrough: banner, cluster, activity, streams, decisions, steps, merges, and architecture](examples/demo/assets/flightdeck-demo-readme.gif)](examples/demo/assets/flightdeck-demo.mp4)
 
@@ -96,10 +96,5 @@ Local folder: [docs/deploy-local.md](docs/deploy-local.md). `scripts/publish_loc
 
 Cloudflare Workers: [docs/deploy-cloudflare.md](docs/deploy-cloudflare.md). `scripts/publish_cloudflare.sh` is a dry-run that embeds that HTML into a `flightdeck-demo` Worker. Real account ids, zone ids, Access emails, and KV ids stay in `site/site.json` on your machine. The repo only has placeholders in `site/site.example.json`.
 
-## CI
-
-Product CI is Buildkite on the `mac-mini` queue. The org pipeline uploads `.buildkite/pipeline.yml`. This repo does not use a GitHub Actions workflow. The pipeline checks Python 3.11 or newer, runs the unit tests, and renders the demo.
-
-## Design
-
-The layout rules, slot list, and what is in and out of v1 are in [docs/superpowers/specs/2026-10-25-flightdeck-design.md](docs/superpowers/specs/2026-10-25-flightdeck-design.md).
+## License
+MIT
