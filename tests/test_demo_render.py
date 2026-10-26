@@ -56,6 +56,13 @@ class DemoRenderTests(unittest.TestCase):
         self.assertEqual(data['activity_weekly']['commits'], 18)
         self.assertNotIn('evoclock/demeter', raw)
 
+    def test_every_outside_link_opens_in_a_new_tab(self):
+        links = re.findall(r'<a [^>]*href="https?://[^>]*>', self.doc)
+        self.assertTrue(links)
+        for a in links:
+            self.assertIn('target="_blank" rel="noopener noreferrer"', a)
+        self.assertIn("a.target='_blank'", self.doc)
+
     def test_offline_assets_embedded(self):
         self.assertIn('data:image/webp;base64,UklG', self.doc)
         self.assertIn("font-family:'Geist Sans'", self.doc)
