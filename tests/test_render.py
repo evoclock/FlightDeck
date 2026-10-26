@@ -155,6 +155,16 @@ class RenderTests(Base):
 
 
 class WidgetPortTests(Base):
+    def test_step_links_render_and_open_in_a_new_tab(self):
+        ctx = self.ctx()
+        ctx.data['steps'] = [{'id': 'step-x', 'text': 'Merge [app #2](https://github.com/example/app/pull/2) now',
+                              'url': 'https://example.com/run/9'}]
+        st = render_slot('steps.checklist', ctx)
+        self.assertIn('<a href="https://github.com/example/app/pull/2" target="_blank" rel="noopener noreferrer">app #2</a>', st)
+        self.assertIn('<a href="https://example.com/run/9" target="_blank" rel="noopener noreferrer">example.com/run/9</a>', st)
+        self.assertIn('aria-label="Mark done: Merge app #2 now"', st)
+        self.assertNotIn('[app #2]', st)
+
     def test_streams_badge_counts_who_needs_you(self):
         out = render_slot('streams.table', self.ctx())
         self.assertIn('2 bots · 1 need you', out)
@@ -165,7 +175,7 @@ class WidgetPortTests(Base):
         self.assertLess(out.index('data-id="dec-1"'), out.index('Settled'))
         self.assertIn('1 open · 1 settled', out)
         self.assertIn('<ul class="prose-list"><li>one</li><li>two</li></ul>', out)
-        self.assertIn('<a href="https://github.com/example/app/pull/1" target="_blank" rel="noopener">PR</a>', out)
+        self.assertIn('<a href="https://github.com/example/app/pull/1" target="_blank" rel="noopener noreferrer">PR</a>', out)
         self.assertEqual(out.count('data-act="accepted"'), 2)
 
     def test_steps_and_merges_have_tick_boxes(self):

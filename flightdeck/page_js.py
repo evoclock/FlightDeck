@@ -1,7 +1,9 @@
 """Page script ported from crew-tracker: collapsible panes, architecture tabs/views, decision and step responses,
-cluster staleness + trends redraw. localStorage keys live under `flightdeck.*`. __STALE_MIN__ is filled by render."""
+cluster staleness + trends redraw. Every outside link opens in a new tab. localStorage keys live under `flightdeck.*`. __STALE_MIN__ is filled by render."""
 
 JS = """
+(function(){function ext(a){if(a.protocol.indexOf('http')!==0||a.origin===location.origin)return;a.target='_blank';a.rel='noopener noreferrer'}
+[].forEach.call(document.querySelectorAll('a[href]'),ext);document.addEventListener('click',function(ev){var a=ev.target.closest&&ev.target.closest('a[href]');if(a)ext(a)},true);})();
 (function(){var K='flightdeck.collapsed.v1',s={};try{s=JSON.parse(localStorage.getItem(K)||'{}')}catch(_){}
 var ps=[].slice.call(document.querySelectorAll('.pane'));
 function set(p,c){p.classList.toggle('closed',c);p.querySelector('.ph').setAttribute('aria-expanded',String(!c));}

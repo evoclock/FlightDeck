@@ -18,6 +18,17 @@ def e(s):
 
 _MD_LINK = re.compile(r"\[([^\]]+)\]\((https?://[^)\s]+)\)")
 _BARE_GH = re.compile(r"https://github\.com/[\w.+/~-]+")
+NEW_TAB = 'target="_blank" rel="noopener noreferrer"'
+
+
+def ext_link(url, label=None):
+    """An outside link. It opens in a new tab so the tracker stays open."""
+    return f'<a href="{e(url)}" {NEW_TAB}>{e(url if label is None else label)}</a>'
+
+
+def plain_text(s):
+    """Prose with [label](url) reduced to its label, for attributes such as aria-label."""
+    return _MD_LINK.sub(lambda m: m.group(1), s or "")
 
 
 def rich_text(s):
@@ -37,11 +48,11 @@ def rich_text(s):
         out.append(e(s[i:m.start()]))
         if kind == "md":
             label, url = m.group(1), m.group(2)
-            out.append(f'<a href="{e(url)}" target="_blank" rel="noopener">{e(label)}</a>')
+            out.append(ext_link(url, label))
             i = m.end()
         else:
             url = m.group(0).rstrip(".,);]")
-            out.append(f'<a href="{e(url)}" target="_blank" rel="noopener">{e(url)}</a>')
+            out.append(ext_link(url))
             i = m.start() + len(url)
     return "".join(out)
 
@@ -94,9 +105,10 @@ def wait_cls(s):
 
 
 def linkify(t, url=None):
-    t = e(t)
+    """Prose with its links, then `url` as a trailing link. Every link opens in a new tab."""
+    t = rich_text(t)
     if url:
-        t += f' <a href="{e(url)}">{e(re.sub(r"^https?://", "", url))}</a>'
+        t += " " + ext_link(url, re.sub(r"^https?://", "", url))
     return t
 
 
@@ -123,7 +135,7 @@ def respond(i):
 
 def tick(i, label, done=False):
     return (f'<label class="hit" for="{i}-t"><input type="checkbox" class="tick" id="{i}-t" '
-            f'aria-label="Mark done: {e(label)}"{" checked disabled" if done else ""}></label>')
+            f'aria-label="Mark done: {e(plain_text(label))}"{" checked disabled" if done else ""}></label>')
 
 
 def pane(pid, title, badge, body, hot=False, open_=True):
