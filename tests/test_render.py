@@ -223,6 +223,10 @@ class WidgetPortTests(Base):
         self.assertIn('"sample": true', out)
         self.assertIn('data-node="demo-a"', out)
 
+    def test_sample_spark_page_never_polls_live_readings(self):
+        from flightdeck.page_js import JS
+        self.assertIn("&&!(TR&&TR.sample)){var poll=", JS)
+
     def test_activity_counts_and_weekly_staleness(self):
         d = fake_data()
         start = week_start(NOW, LONDON)
