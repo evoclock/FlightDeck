@@ -1282,10 +1282,35 @@ def _auto_tab(tab):
     return bool(tab.get("auto")) or str(tab.get("diagram") or "").startswith(STUB_DIR)
 
 
-def _upsert_architecture(data, cfg, merges, repos=()):
-    """Every in-flight product keeps a tab. Reuse a tab or rich diagram that draws the repo, else stub.
 
-    Tabs this sync adds carry auto: true; they drop once their repo leaves flight. No permanent curated keep-set.
+def _demote_thin_architecture(assets):
+    """Move thin diagrams from architecture/ into architecture/stubs/ so they cannot look rich."""
+    if assets is None:
+        return 0
+    arch = assets / "architecture"
+    stubs = arch / "stubs"
+    if not arch.is_dir():
+        return 0
+    stubs.mkdir(parents=True, exist_ok=True)
+    moved = 0
+    for file in sorted(arch.glob("*.bower.json")):
+        try:
+            doc = json.loads(file.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            continue
+        if not _is_thin_stub(doc):
+            continue
+        dest = stubs / file.name
+        file.replace(dest)
+        moved += 1
+    return moved
+
+
+def _upsert_architecture(data, cfg, merges, repos=()):
+    """In-flight products keep a tab only when a rich authored diagram draws the repo.
+
+    Thin Auto stubs and 1-node placeholders under architecture/ are demoted to
+    architecture/stubs/ and never shown as Architecture tabs. No permanent curated keep-set.
     """
     projects = data.get("projects") if isinstance(data.get("projects"), dict) else {}
     tabs = [t for t in projects.get("tabs") or [] if isinstance(t, dict)]
@@ -1293,42 +1318,58 @@ def _upsert_architecture(data, cfg, merges, repos=()):
     pending = []
     want = set()
     assets = _safe_assets(cfg)
+    if assets is not None:
+        _demote_thin_architecture(assets)
     index = _diagram_index(assets) if assets is not None else {}
+
+    def _rich_hits(hits):
+        out = []
+        for nodes, rel in hits:
+            if rel.startswith(STUB_DIR):
+                continue
+            if assets is None:
+                out.append((nodes, rel))
+                continue
+            try:
+                doc = json.loads((assets / rel).read_text(encoding="utf-8"))
+            except (OSError, ValueError):
+                continue
+            if _is_thin_stub(doc):
+                continue
+            out.append((nodes, rel))
+        return out
+
     for full in _architecture_repos(data, cfg, merges, repos):
         ident = _slug(full)
         hits = index.get(full.lower()) or index.get(full.split("/")[-1].lower()) or []
-        rich = [hit for hit in hits if not hit[1].startswith(STUB_DIR)]
-        drawn = {path for _, path in (rich or hits)}
+        rich = _rich_hits(hits)
+        if not rich:
+            if assets is None and ident not in by_id:
+                pending.append({"id": ident, "repo": full})
+            continue
+        path = max(rich)[1]
+        drawn = {p for _, p in rich}
         reuse = next((t for t in tabs if t.get("diagram") in drawn), None)
         if reuse is not None:
+            if reuse.get("diagram") != path:
+                reuse["diagram"] = path
             want.add(reuse.get("id"))
             continue
-        if rich:
-            path = max(rich)[1]
-            tid = _slug(Path(path).name.removesuffix(".bower.json"))
-            tab = by_id.get(tid)
-            if tab is None:
-                tab = {"id": tid, "diagram": path, "auto": True}
-                tabs.append(tab)
-                by_id[tid] = tab
-            elif _auto_tab(tab):
-                tab["diagram"] = path
-            want.add(tid)
-            continue
-        want.add(ident)
-        if ident in by_id:
-            continue
-        if assets is None:
-            pending.append({"id": ident, "repo": full})
-            continue
-        tab = {"id": ident, "diagram": _write_stub(assets, ident, full), "auto": True}
-        tabs.append(tab)
-        by_id[ident] = tab
-    # Tabs only for in-flight products; no permanent curated keep-set (Julen t1669–t1671).
+        tid = _slug(Path(path).name.removesuffix(".bower.json"))
+        tab = by_id.get(tid)
+        if tab is None:
+            tab = {"id": tid, "diagram": path, "auto": True}
+            tabs.append(tab)
+            by_id[tid] = tab
+        elif _auto_tab(tab):
+            tab["diagram"] = path
+        want.add(tid)
     projects["tabs"] = [t for t in tabs if t.get("id") in want]
     projects["pending"] = pending
-    if not projects.get("rule"):
-        projects["rule"] = "Every in-flight product keeps a diagram. A stub stands in until a real one is rendered."
+    projects["rule"] = (
+        "Architecture tabs come from rich authored diagrams only. "
+        "Products without a real shape have no tab until one is authored."
+    )
     data["projects"] = projects
 
 
@@ -1339,13 +1380,57 @@ def _slug(full):
     return slug
 
 
+def _is_thin_stub(doc):
+    """True when a diagram is a sync placeholder, not authored architecture.
+
+    Any Auto stub (including a 3-node usable layout) and legacy single-blob files
+    are thin. Thin files must never win a product Architecture tab.
+    """
+    if not isinstance(doc, dict):
+        return False
+    sub = ((doc.get("meta") or {}).get("subtitle") or "")
+    meta = doc.get("meta") or {}
+    if "Stub until" in sub or sub.startswith("Auto stub for ") or meta.get("auto") is True:
+        return True
+    nodes = doc.get("nodes") or []
+    return len(nodes) <= 1 and not (doc.get("edges") or [])
+
+
 def _write_stub(assets, ident, full):
+    """Write a small usable layout stub (repo + evidence + tracker), not a single blob node."""
+    name = full.split("/")[-1]
     diagram = Path("architecture") / "stubs" / f"{ident}.bower.json"
     doc = {
         "schema": "bowerbird/v1",
-        "meta": {"title": full.split("/")[-1], "subtitle": "Stub until a real diagram is rendered.", "repos": [full]},
-        "nodes": [{"id": ident, "name": full.split("/")[-1], "status": "planned", "unverified": True}],
-        "edges": [],
+        "meta": {
+            "title": name,
+            "kicker": "FlightDeck · architecture",
+            "subtitle": f"Auto stub for {name}. Replace when the shape is known.",
+            "statusTracking": True,
+            "grid": {"col": 360, "row": 180, "gap": 44},
+            "repository": {"url": f"https://github.com/{full}", "ref": "main"},
+            "repos": [full],
+        },
+        "categories": {
+            "teal": {"label": "Docs / contracts"},
+            "mustard": {"label": "CI / release"},
+            "peach": {"label": "Orchestration / agents"},
+        },
+        "nodes": [
+            {"id": "repo", "at": [0, 0], "type": "main", "title": name,
+             "hint": "GitHub repo", "category": "teal", "status": "partial",
+             "details": f"Repository stub.\n\n#### Where\n- [https://github.com/{full}](https://github.com/{full})"},
+            {"id": "evidence", "at": [1, 0], "type": "service", "title": "Git evidence",
+             "hint": "Open PRs / recent pushes", "category": "mustard", "status": "partial",
+             "details": "Filled by sync from the PR and repos caches."},
+            {"id": "tracker", "at": [0, 1], "type": "service", "title": "Crew tracker",
+             "hint": "Merges + Architecture tab", "category": "peach", "status": "partial",
+             "details": "Auto-created for an in-flight product. Replace when the real shape is known."},
+        ],
+        "edges": [
+            {"from": "repo", "to": "evidence", "label": "sync"},
+            {"from": "evidence", "to": "tracker", "label": "pane"},
+        ],
     }
     target = assets / diagram
     target.parent.mkdir(parents=True, exist_ok=True)
@@ -1353,7 +1438,19 @@ def _write_stub(assets, ident, full):
     target.write_bytes(raw)
     digest = hashlib.sha256(raw).hexdigest()
     rendered = assets / "architecture" / "rendered"
-    html = "<!doctype html><html><head><meta charset=\"utf-8\"><title>stub</title></head><body><p>Stub diagram.</p></body></html>\n"
+    html = (
+        "<!doctype html><html><head><meta charset=\"utf-8\"><title>"
+        + name
+        + " stub</title></head><body>"
+        + "<h1>" + name + " (auto stub)</h1>"
+        + "<ul>"
+        + "<li>Repo - GitHub</li>"
+        + "<li>Git evidence - PRs / pushes</li>"
+        + "<li>Crew tracker - Architecture tab</li>"
+        + "</ul>"
+        + "<p>Replace this stub when the real architecture shape is known.</p>"
+        + "</body></html>\n"
+    )
     for view in ("flat", "iso"):
         page = rendered / view / f"{ident}.html"
         page.parent.mkdir(parents=True, exist_ok=True)
@@ -1364,6 +1461,7 @@ def _write_stub(assets, ident, full):
     diagrams[f"{ident}.bower.json"] = {"sha256": digest}
     manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
     return diagram.as_posix()
+
 
 
 def reconcile_merges_lifecycle(data, cfg, now=None):
@@ -1427,6 +1525,14 @@ def public_repo_names(cfg):
     return names
 
 
+def _green_draft_pr(pr):
+    """Draft PR with green checks (Accept = undraft / merge path)."""
+    if not pr.get("draft"):
+        return False
+    checks = (pr.get("checks") or "").lower()
+    return checks in {"success", "passing", "green"}
+
+
 def reconcile_ready_decisions(data, cfg, now=None):
     del now
     names = public_repo_names(cfg)
@@ -1437,28 +1543,54 @@ def reconcile_ready_decisions(data, cfg, now=None):
     added = 0
     for row in data.get("merges") or []:
         info = as_merge(row)
-        if not str(info.get("state") or "").lower().startswith("ready"):
+        state = str(info.get("state") or "").lower()
+        ready = state.startswith("ready")
+        draft = state.startswith("draft")
+        if not ready and not draft:
             continue
         if not repo_listed(info.get("repo"), names):
             continue
         pr = {"repo": info.get("repo"), "number": info.get("number"), "url": info.get("url"), "title": info.get("title")}
         if info.get("number") is None:
             pr["number"] = ""
+        if draft:
+            short = (info.get("repo") or "").split("/")[-1]
+            live = None
+            for cand in read_cache_rows(cfg, "prs.json", "prs") or []:
+                if str(cand.get("number")) != str(info.get("number")):
+                    continue
+                if (cand.get("repo") or "").split("/")[-1] != short:
+                    continue
+                live = cand
+                break
+            if live is None or not _green_draft_pr(live):
+                continue
         if _open_mentions(decisions, pr):
             continue
         number = info.get("number")
         label = f"{info.get('repo')}#{number}" if number not in (None, "") else info.get("repo")
         url = info.get("url") or ""
         link = f"[{info.get('title') or label}]({url})" if url else (info.get("title") or label)
-        decisions.append({
-            "state": "open",
-            "title": f"Merge {label}?",
-            "meta": "ready to merge",
-            "src": "ready",
-            "text": bullets(f"{label} is ready to merge.", link),
-            "recommendation": "Yes.",
-            "why": bullets("The merge state is clean.", "Checks are green."),
-        })
+        if draft:
+            decisions.append({
+                "state": "open",
+                "title": f"Accept draft {label}?",
+                "meta": "green draft",
+                "src": "ready-draft",
+                "text": bullets(f"{label} is a green draft waiting for Accept.", link),
+                "recommendation": "Accept - undraft then merge.",
+                "why": bullets("The PR is still draft.", "Required checks are green."),
+            })
+        else:
+            decisions.append({
+                "state": "open",
+                "title": f"Merge {label}?",
+                "meta": "ready to merge",
+                "src": "ready",
+                "text": bullets(f"{label} is ready to merge.", link),
+                "recommendation": "Yes.",
+                "why": bullets("The merge state is clean.", "Checks are green."),
+            })
         added += 1
     print(f"reconcile_ready_decisions: added={added}")
     return 0

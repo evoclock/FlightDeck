@@ -220,9 +220,8 @@ class InflightTests(unittest.TestCase):
         again = json.loads(json.dumps(data))
         reconcile_inflight(again, self.loaded, now=NOW)
         self.assertEqual(len([d for d in again["decisions"] if "acme/new" in d["text"]]), 1)
-        tab = next(t for t in data["projects"]["tabs"] if t["id"] == "new")
-        diagram, _pages = load_diagram(Path(self.loaded["assets_dir"]), tab["diagram"])[0:2]
-        self.assertEqual(diagram["schema"], "bowerbird/v1")
+        # No rich authored diagram for acme/new → no Architecture stub tab.
+        self.assertFalse(any(t.get("id") == "new" for t in data.get("projects", {}).get("tabs") or []))
         self.assertEqual(data["projects"]["pending"], [])
 
     def test_missing_cache_does_not_wipe(self):
@@ -284,6 +283,30 @@ class PaneTests(unittest.TestCase):
         self.assertIn("acme/app#7", data["decisions"][0]["text"])
         self.assertNotIn("acme/lib", data["decisions"][0]["text"])
         self.assertTrue(data["decisions"][0]["text"].startswith("- "))
+
+    def test_ready_decisions_open_accept_for_green_drafts(self):
+        loaded = cfg(self.tmp, public_repos=[])
+        write(Path(loaded["cache_dir"]) / "repos.json", {"complete": True, "repos": [
+            {"name": "app", "full_name": "acme/app", "private": False, "pushed_at": "2026-10-25T10:00:00Z",
+             "created_at": "2020-01-01T00:00:00Z", "url": "https://github.com/acme/app"},
+        ]})
+        write(Path(loaded["cache_dir"]) / "prs.json", {"complete": True, "prs": [
+            {"number": 26, "title": "Sync", "repo": "acme/app", "url": "https://github.com/acme/app/pull/26",
+             "draft": True, "state": "open", "merge_state": "BLOCKED", "checks": "success"},
+            {"number": 27, "title": "WIP", "repo": "acme/app", "url": "https://github.com/acme/app/pull/27",
+             "draft": True, "state": "open", "merge_state": "BLOCKED", "checks": "pending"},
+        ]})
+        data = {"merges": [
+            {"title": "Sync", "repo": "acme/app", "state": "Draft, checks green", "number": 26,
+             "url": "https://github.com/acme/app/pull/26"},
+            {"title": "WIP", "repo": "acme/app", "state": "Draft", "number": 27,
+             "url": "https://github.com/acme/app/pull/27"},
+        ], "decisions": []}
+        self.assertEqual(reconcile_ready_decisions(data, loaded), 0)
+        self.assertEqual(len(data["decisions"]), 1)
+        self.assertIn("Accept draft", data["decisions"][0]["title"])
+        self.assertIn("acme/app#26", data["decisions"][0]["text"])
+        self.assertNotIn("acme/app#27", data["decisions"][0]["text"])
 
     def test_steps_skip_drafts_and_guard_the_release(self):
         loaded = cfg(self.tmp, guards=[{"step_contains": "first release", "needs": "nondraft_release"}],
