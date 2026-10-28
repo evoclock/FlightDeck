@@ -127,5 +127,47 @@ class ArchitectureTabs(unittest.TestCase):
         self.assertEqual(len(ids), len(set(ids)))
 
 
+    def test_new_stub_has_usable_layout(self):
+        repos = [repo("brand-new-lane", created="2026-10-24T12:00:00Z")]
+        data = {"merges": [], "streams": [], "decisions": [], "projects": {"tabs": []}}
+        tabs = self.tabs(self.run_inflight(data, repos, []))
+        path = tabs["brand-new-lane"]
+        self.assertTrue(path.startswith("architecture/stubs/"))
+        diagram = load_diagram(self.assets, path)[0]
+        self.assertGreaterEqual(len(diagram.get("nodes") or []), 3)
+        self.assertGreaterEqual(len(diagram.get("edges") or []), 2)
+
+    def test_legacy_single_blob_stub_refreshes(self):
+        repos = [repo("frontend-work", created="2026-10-24T12:00:00Z")]
+        # Pre-plant the old 1-node stub + rendered digest so it is indexed.
+        ident = "frontend-work"
+        blob = {
+            "schema": "bowerbird/v1",
+            "meta": {"title": ident, "subtitle": "Stub until a real diagram is rendered.",
+                     "repos": ["acme/frontend-work"]},
+            "nodes": [{"id": ident, "name": ident, "status": "planned", "unverified": True}],
+            "edges": [],
+        }
+        raw = json.dumps(blob).encode()
+        stub_dir = self.assets / "architecture" / "stubs"
+        stub_dir.mkdir(parents=True, exist_ok=True)
+        (stub_dir / f"{ident}.bower.json").write_bytes(raw)
+        rendered = self.assets / "architecture" / "rendered"
+        for view in ("flat", "iso"):
+            (rendered / view).mkdir(parents=True, exist_ok=True)
+            (rendered / view / f"{ident}.html").write_text("<p>Stub diagram.</p>", encoding="utf-8")
+        manifest_path = rendered / "manifest.json"
+        manifest = json.loads(manifest_path.read_text()) if manifest_path.exists() else {"diagrams": {}}
+        manifest.setdefault("diagrams", {})[f"{ident}.bower.json"] = {"sha256": hashlib.sha256(raw).hexdigest()}
+        manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+        data = {"merges": [], "streams": [], "decisions": [],
+                "projects": {"tabs": [{"id": ident, "diagram": f"architecture/stubs/{ident}.bower.json", "auto": True}]}}
+        self.run_inflight(data, repos, [])
+        diagram = load_diagram(self.assets, f"architecture/stubs/{ident}.bower.json")[0]
+        self.assertGreaterEqual(len(diagram.get("nodes") or []), 3)
+        self.assertGreaterEqual(len(diagram.get("edges") or []), 2)
+
+
+
 if __name__ == "__main__":
     unittest.main()
