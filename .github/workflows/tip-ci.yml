@@ -1,0 +1,25 @@
+# Tip CI formerly on Buildkite flightdeck-ci (mac-mini). Same gates on GitHub Actions.
+name: Tip CI
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+env:
+  PYTHONDONTWRITEBYTECODE: "1"
+
+jobs:
+  tip:
+    name: tests / demo render
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Unit tests
+        run: python3 -m unittest discover -s tests -v
+      - name: Demo render
+        run: python3 -m flightdeck.render examples/demo/config.json examples/demo/data.json dist/local/index.html

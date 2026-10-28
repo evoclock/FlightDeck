@@ -1,15 +1,11 @@
-# Product CI for the public FlightDeck template.
-# The Buildkite org pipeline uploads this file on queue mac-mini:
-#   buildkite-agent pipeline upload .buildkite/pipeline.yml
-# Python 3.11+ standard library. No secrets. GitHub Actions runs the pull request wording check only.
+# DEPRECATED: tip CI moved to GitHub Actions (.github/workflows/tip-ci.yml).
+# Keep this file so an accidental Buildkite upload does not queue mac-mini.
 env:
   PYTHONDONTWRITEBYTECODE: "1"
 
 steps:
-  - label: "Tests and demo render"
-    agents: { queue: mac-mini }
-    timeout_in_minutes: 10
+  - label: "deprecated - tip CI is on GitHub Actions"
     command:
-      - ".buildkite/host.sh"
-      - "python3 -m unittest discover -s tests -v"
-      - "python3 -m flightdeck.render examples/demo/config.json examples/demo/data.json dist/local/index.html"
+      - "echo 'flightdeck-ci tip steps moved to GitHub Actions Tip CI / tests / demo render'"
+      - "echo 'See .github/workflows/tip-ci.yml'"
+      - "exit 0"
