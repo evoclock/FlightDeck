@@ -1509,9 +1509,7 @@ def _green_draft_pr(pr):
     if not pr.get("draft"):
         return False
     checks = (pr.get("checks") or "").lower()
-    if checks in {"success", "passing", "green"}:
-        return True
-    return (pr.get("merge_state") or "").upper() == "CLEAN"
+    return checks in {"success", "passing", "green"}
 
 
 def reconcile_ready_decisions(data, cfg, now=None):
