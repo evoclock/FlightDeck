@@ -1282,10 +1282,35 @@ def _auto_tab(tab):
     return bool(tab.get("auto")) or str(tab.get("diagram") or "").startswith(STUB_DIR)
 
 
-def _upsert_architecture(data, cfg, merges, repos=()):
-    """Every in-flight product keeps a tab. Reuse a tab or rich diagram that draws the repo, else stub.
 
-    Tabs this sync adds carry auto: true; they drop once their repo leaves flight. No permanent curated keep-set.
+def _demote_thin_architecture(assets):
+    """Move thin diagrams from architecture/ into architecture/stubs/ so they cannot look rich."""
+    if assets is None:
+        return 0
+    arch = assets / "architecture"
+    stubs = arch / "stubs"
+    if not arch.is_dir():
+        return 0
+    stubs.mkdir(parents=True, exist_ok=True)
+    moved = 0
+    for file in sorted(arch.glob("*.bower.json")):
+        try:
+            doc = json.loads(file.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            continue
+        if not _is_thin_stub(doc):
+            continue
+        dest = stubs / file.name
+        file.replace(dest)
+        moved += 1
+    return moved
+
+
+def _upsert_architecture(data, cfg, merges, repos=()):
+    """In-flight products keep a tab only when a rich authored diagram draws the repo.
+
+    Thin Auto stubs and 1-node placeholders under architecture/ are demoted to
+    architecture/stubs/ and never shown as Architecture tabs. No permanent curated keep-set.
     """
     projects = data.get("projects") if isinstance(data.get("projects"), dict) else {}
     tabs = [t for t in projects.get("tabs") or [] if isinstance(t, dict)]
@@ -1293,65 +1318,58 @@ def _upsert_architecture(data, cfg, merges, repos=()):
     pending = []
     want = set()
     assets = _safe_assets(cfg)
+    if assets is not None:
+        _demote_thin_architecture(assets)
     index = _diagram_index(assets) if assets is not None else {}
+
+    def _rich_hits(hits):
+        out = []
+        for nodes, rel in hits:
+            if rel.startswith(STUB_DIR):
+                continue
+            if assets is None:
+                out.append((nodes, rel))
+                continue
+            try:
+                doc = json.loads((assets / rel).read_text(encoding="utf-8"))
+            except (OSError, ValueError):
+                continue
+            if _is_thin_stub(doc):
+                continue
+            out.append((nodes, rel))
+        return out
+
     for full in _architecture_repos(data, cfg, merges, repos):
         ident = _slug(full)
         hits = index.get(full.lower()) or index.get(full.split("/")[-1].lower()) or []
-        rich = [hit for hit in hits if not hit[1].startswith(STUB_DIR)]
-        drawn = {path for _, path in (rich or hits)}
-        reuse = next((t for t in tabs if t.get("diagram") in drawn), None)
-        if reuse is not None:
-            want.add(reuse.get("id"))
-            # Refresh a reused thin stub so Architecture is not a single blob.
-            if assets is not None and not rich:
-                rel = reuse.get("diagram") or ""
-                if rel.startswith(STUB_DIR):
-                    try:
-                        thin = _is_thin_stub(json.loads((assets / rel).read_text(encoding="utf-8")))
-                    except (OSError, ValueError):
-                        thin = True
-                    if thin:
-                        reuse["diagram"] = _write_stub(assets, _slug(full), full)
-                        reuse["auto"] = True
-            continue
-        if rich:
-            path = max(rich)[1]
-            tid = _slug(Path(path).name.removesuffix(".bower.json"))
-            tab = by_id.get(tid)
-            if tab is None:
-                tab = {"id": tid, "diagram": path, "auto": True}
-                tabs.append(tab)
-                by_id[tid] = tab
-            elif _auto_tab(tab):
-                tab["diagram"] = path
-            want.add(tid)
-            continue
-        want.add(ident)
-        if assets is None:
-            if ident not in by_id:
+        rich = _rich_hits(hits)
+        if not rich:
+            if assets is None and ident not in by_id:
                 pending.append({"id": ident, "repo": full})
             continue
-        existing = by_id.get(ident)
-        if existing is not None:
-            rel = existing.get("diagram") or ""
-            thin = False
-            if rel.startswith(STUB_DIR):
-                try:
-                    thin = _is_thin_stub(json.loads((assets / rel).read_text(encoding="utf-8")))
-                except (OSError, ValueError):
-                    thin = True
-            if thin or not rel:
-                existing["diagram"] = _write_stub(assets, ident, full)
-                existing["auto"] = True
+        path = max(rich)[1]
+        drawn = {p for _, p in rich}
+        reuse = next((t for t in tabs if t.get("diagram") in drawn), None)
+        if reuse is not None:
+            if reuse.get("diagram") != path:
+                reuse["diagram"] = path
+            want.add(reuse.get("id"))
             continue
-        tab = {"id": ident, "diagram": _write_stub(assets, ident, full), "auto": True}
-        tabs.append(tab)
-        by_id[ident] = tab
-    # Tabs only for in-flight products; no permanent curated keep-set (Julen t1669–t1671).
+        tid = _slug(Path(path).name.removesuffix(".bower.json"))
+        tab = by_id.get(tid)
+        if tab is None:
+            tab = {"id": tid, "diagram": path, "auto": True}
+            tabs.append(tab)
+            by_id[tid] = tab
+        elif _auto_tab(tab):
+            tab["diagram"] = path
+        want.add(tid)
     projects["tabs"] = [t for t in tabs if t.get("id") in want]
     projects["pending"] = pending
-    if not projects.get("rule"):
-        projects["rule"] = "Every in-flight product keeps a diagram. A stub stands in until a real one is rendered."
+    projects["rule"] = (
+        "Architecture tabs come from rich authored diagrams only. "
+        "Products without a real shape have no tab until one is authored."
+    )
     data["projects"] = projects
 
 
@@ -1363,15 +1381,18 @@ def _slug(full):
 
 
 def _is_thin_stub(doc):
-    """True when a sync stub is still a single-blob layout (safe to refresh in place)."""
+    """True when a diagram is a sync placeholder, not authored architecture.
+
+    Any Auto stub (including a 3-node usable layout) and legacy single-blob files
+    are thin. Thin files must never win a product Architecture tab.
+    """
     if not isinstance(doc, dict):
         return False
-    nodes = doc.get("nodes") or []
-    if len(nodes) >= 3:
-        return False
     sub = ((doc.get("meta") or {}).get("subtitle") or "")
-    if "Stub until" in sub or sub.startswith("Auto stub for "):
+    meta = doc.get("meta") or {}
+    if "Stub until" in sub or sub.startswith("Auto stub for ") or meta.get("auto") is True:
         return True
+    nodes = doc.get("nodes") or []
     return len(nodes) <= 1 and not (doc.get("edges") or [])
 
 

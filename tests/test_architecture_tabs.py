@@ -1,4 +1,4 @@
-"""Every in-flight product on Merges, Streams, or a New repo Decision gets an Architecture tab."""
+"""In-flight products get Architecture tabs only from rich authored diagrams."""
 import datetime
 import hashlib
 import json
@@ -7,7 +7,6 @@ import unittest
 from pathlib import Path
 
 from flightdeck.sync import reconcile_inflight
-from flightdeck.widgets.architecture import load_diagram
 from tests.test_sync import cfg, write
 
 UTC = datetime.timezone.utc
@@ -36,8 +35,11 @@ class ArchitectureTabs(unittest.TestCase):
     def tearDown(self):
         self.dir.cleanup()
 
-    def render(self, stem, repos, nodes):
-        doc = {"schema": "bowerbird/v1", "meta": {"title": stem, "repos": repos},
+    def render(self, stem, repos, nodes, auto_stub=False):
+        meta = {"title": stem, "repos": repos}
+        if auto_stub:
+            meta["subtitle"] = f"Auto stub for {stem}. Replace when the shape is known."
+        doc = {"schema": "bowerbird/v1", "meta": meta,
                "nodes": [{"id": f"n{i}"} for i in range(nodes)], "edges": []}
         raw = json.dumps(doc).encode()
         arch = self.assets / "architecture"
@@ -79,94 +81,63 @@ class ArchitectureTabs(unittest.TestCase):
             ]},
         }
         tabs = self.tabs(self.run_inflight(data, repos, prs))
-        # Existing tabs that already draw the repo are reused, not duplicated.
         self.assertEqual(tabs["omb"], "architecture/openmausbot.bower.json")
         self.assertEqual(tabs["aim2"], "architecture/aim-2.bower.json")
         self.assertNotIn("openmausbot", tabs)
         self.assertNotIn("mus-clockeome-aim-2", tabs)
-        # A rich diagram with no tab gets one.
         self.assertEqual(tabs["pi-bowerbird"], "architecture/pi-bowerbird.bower.json")
-        # A repo no diagram draws gets a stub tab and a loadable stub file.
-        self.assertEqual(tabs["electric-twin-ces"], "architecture/stubs/electric-twin-ces.bower.json")
-        diagram = load_diagram(self.assets, tabs["electric-twin-ces"])[0]
-        self.assertEqual(diagram["meta"]["repos"], ["acme/electric-twin-ces"])
-        # Repos named only in Streams or an open New repo Decision get tabs too.
-        self.assertIn("streamed", tabs)
-        self.assertIn("decided", tabs)
-        # Tabs whose repos left the in-flight window drop (auto or curated keep-set gone).
+        # No rich authored diagram → no Architecture tab.
+        self.assertNotIn("electric-twin-ces", tabs)
+        self.assertFalse((self.assets / "architecture" / "electric-twin-ces.bower.json").exists())
+        self.assertNotIn("streamed", tabs)
+        self.assertNotIn("decided", tabs)
         self.assertNotIn("old-thing", tabs)
         self.assertNotIn("curated", tabs)
-        self.assertEqual(data["projects"]["pending"], [])
+        # 1-node old-thing demoted
+        self.assertTrue((self.assets / "architecture" / "stubs" / "old-thing.bower.json").exists()
+                        or not (self.assets / "architecture" / "old-thing.bower.json").exists())
 
-    def test_new_repo_title_without_colon(self):
+    def test_new_repo_title_without_colon_omits_without_rich(self):
         data = {"merges": [], "streams": [], "decisions": [{"state": "open", "title": "New repo quiet"}]}
         tabs = self.tabs(self.run_inflight(data, [repo("quiet", pushed=OLD)], []))
-        self.assertEqual(tabs["quiet"], "architecture/stubs/quiet.bower.json")
+        self.assertNotIn("quiet", tabs)
 
     def test_stub_tab_upgrades_when_a_rich_diagram_lands(self):
         repos = [repo("fresh")]
         data = self.run_inflight({"merges": [], "streams": [], "decisions": []}, repos, [])
-        self.assertEqual(self.tabs(data)["fresh"], "architecture/stubs/fresh.bower.json")
+        self.assertNotIn("fresh", self.tabs(data))
         self.render("fresh", ["acme/fresh"], 6)
         tabs = self.tabs(self.run_inflight(data, repos, []))
         self.assertEqual(tabs, {"fresh": "architecture/fresh.bower.json"})
 
-    def test_unrendered_diagram_is_not_used(self):
+    def test_unrendered_or_thin_diagram_is_not_used(self):
         (self.assets / "architecture" / "raw.bower.json").write_text(json.dumps(
-            {"schema": "bowerbird/v1", "meta": {"repos": ["acme/raw"]}, "nodes": [{"id": "a"}], "edges": []}))
+            {"schema": "bowerbird/v1", "meta": {"repos": ["acme/raw"], "subtitle": "Auto stub for raw."},
+             "nodes": [{"id": "a"}], "edges": []}))
         tabs = self.tabs(self.run_inflight({"merges": [], "streams": [], "decisions": []}, [repo("raw")], []))
-        self.assertEqual(tabs["raw"], "architecture/stubs/raw.bower.json")
+        self.assertNotIn("raw", tabs)
+        self.assertTrue((self.assets / "architecture" / "stubs" / "raw.bower.json").exists())
+
+    def test_three_node_auto_stub_demoted(self):
+        self.render("frontend-work", ["acme/frontend-work"], 3, auto_stub=True)
+        repos = [repo("frontend-work", created="2026-10-24T12:00:00Z")]
+        data = {"merges": [], "streams": [], "decisions": [],
+                "projects": {"tabs": [{"id": "frontend-work",
+                                       "diagram": "architecture/frontend-work.bower.json", "auto": True}]}}
+        tabs = self.tabs(self.run_inflight(data, repos, []))
+        self.assertNotIn("frontend-work", tabs)
+        self.assertFalse((self.assets / "architecture" / "frontend-work.bower.json").exists())
+        self.assertTrue((self.assets / "architecture" / "stubs" / "frontend-work.bower.json").exists())
 
     def test_rerun_is_idempotent(self):
-        repos = [repo("electric-twin-ces", created="2026-10-24T12:00:00Z"), repo("pi-bowerbird")]
+        repos = [repo("pi-bowerbird")]
         first = self.run_inflight({"merges": [], "streams": [], "decisions": [], "projects": {"tabs": []}}, repos, [])
         snapshot = json.loads(json.dumps(first["projects"]["tabs"]))
         second = self.run_inflight(json.loads(json.dumps(first)), repos, [])
         self.assertEqual(snapshot, second["projects"]["tabs"])
         ids = [t["id"] for t in second["projects"]["tabs"]]
         self.assertEqual(len(ids), len(set(ids)))
-
-
-    def test_new_stub_has_usable_layout(self):
-        repos = [repo("brand-new-lane", created="2026-10-24T12:00:00Z")]
-        data = {"merges": [], "streams": [], "decisions": [], "projects": {"tabs": []}}
-        tabs = self.tabs(self.run_inflight(data, repos, []))
-        path = tabs["brand-new-lane"]
-        self.assertTrue(path.startswith("architecture/stubs/"))
-        diagram = load_diagram(self.assets, path)[0]
-        self.assertGreaterEqual(len(diagram.get("nodes") or []), 3)
-        self.assertGreaterEqual(len(diagram.get("edges") or []), 2)
-
-    def test_legacy_single_blob_stub_refreshes(self):
-        repos = [repo("frontend-work", created="2026-10-24T12:00:00Z")]
-        # Pre-plant the old 1-node stub + rendered digest so it is indexed.
-        ident = "frontend-work"
-        blob = {
-            "schema": "bowerbird/v1",
-            "meta": {"title": ident, "subtitle": "Stub until a real diagram is rendered.",
-                     "repos": ["acme/frontend-work"]},
-            "nodes": [{"id": ident, "name": ident, "status": "planned", "unverified": True}],
-            "edges": [],
-        }
-        raw = json.dumps(blob).encode()
-        stub_dir = self.assets / "architecture" / "stubs"
-        stub_dir.mkdir(parents=True, exist_ok=True)
-        (stub_dir / f"{ident}.bower.json").write_bytes(raw)
-        rendered = self.assets / "architecture" / "rendered"
-        for view in ("flat", "iso"):
-            (rendered / view).mkdir(parents=True, exist_ok=True)
-            (rendered / view / f"{ident}.html").write_text("<p>Stub diagram.</p>", encoding="utf-8")
-        manifest_path = rendered / "manifest.json"
-        manifest = json.loads(manifest_path.read_text()) if manifest_path.exists() else {"diagrams": {}}
-        manifest.setdefault("diagrams", {})[f"{ident}.bower.json"] = {"sha256": hashlib.sha256(raw).hexdigest()}
-        manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
-        data = {"merges": [], "streams": [], "decisions": [],
-                "projects": {"tabs": [{"id": ident, "diagram": f"architecture/stubs/{ident}.bower.json", "auto": True}]}}
-        self.run_inflight(data, repos, [])
-        diagram = load_diagram(self.assets, f"architecture/stubs/{ident}.bower.json")[0]
-        self.assertGreaterEqual(len(diagram.get("nodes") or []), 3)
-        self.assertGreaterEqual(len(diagram.get("edges") or []), 2)
-
+        self.assertEqual(ids, ["pi-bowerbird"])
 
 
 if __name__ == "__main__":

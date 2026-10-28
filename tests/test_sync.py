@@ -220,9 +220,8 @@ class InflightTests(unittest.TestCase):
         again = json.loads(json.dumps(data))
         reconcile_inflight(again, self.loaded, now=NOW)
         self.assertEqual(len([d for d in again["decisions"] if "acme/new" in d["text"]]), 1)
-        tab = next(t for t in data["projects"]["tabs"] if t["id"] == "new")
-        diagram, _pages = load_diagram(Path(self.loaded["assets_dir"]), tab["diagram"])[0:2]
-        self.assertEqual(diagram["schema"], "bowerbird/v1")
+        # No rich authored diagram for acme/new → no Architecture stub tab.
+        self.assertFalse(any(t.get("id") == "new" for t in data.get("projects", {}).get("tabs") or []))
         self.assertEqual(data["projects"]["pending"], [])
 
     def test_missing_cache_does_not_wipe(self):
