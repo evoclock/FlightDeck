@@ -11,6 +11,7 @@ import datetime
 import hashlib
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -1076,7 +1077,7 @@ def reconcile_inflight(data, cfg, now=None):
     data["merges"] = merges
     _upsert_primary_stream(data, cfg, len(open_prs), synthetic, ready)
     _upsert_new_repo_decisions(data, new_repos)
-    _upsert_architecture(data, cfg, merges)
+    _upsert_architecture(data, cfg, merges, repos or [])
     print(f"reconcile_inflight: prs={len(open_prs)} active={synthetic}")
     return 0
 
@@ -1140,28 +1141,129 @@ def _safe_assets(cfg):
     return None
 
 
-def _upsert_architecture(data, cfg, merges):
-    projects = data.get("projects") if isinstance(data.get("projects"), dict) else {}
-    tabs = list(projects.get("tabs") or [])
-    known = {t.get("id") for t in tabs if isinstance(t, dict)}
-    pending = []
-    assets = _safe_assets(cfg)
-    seen_repos = []
+STUB_DIR = "architecture/stubs/"
+NEW_REPO_TITLE = re.compile(r"^New repo:?\s+(\S.*)$")
+
+
+def _architecture_repos(data, cfg, merges, repos):
+    """Full names of every in-flight product: Merges rows, repos named in Streams, open New repo Decisions."""
+    by_name = {}
+    for repo in repos:
+        full = repo.get("full_name") or ""
+        if full:
+            by_name.setdefault(full.split("/")[-1].lower(), full)
+    names = []
+
+    def add(full):
+        if full and full not in names:
+            names.append(full)
+
     for row in merges:
         full = row.get("repo") or ""
-        if not full or full in seen_repos:
+        add(full)
+        if full:
+            by_name.setdefault(full.split("/")[-1].lower(), full)
+    text = " ".join(
+        " ".join((as_stream(row)["project"], as_stream(row)["now"]))
+        for row in data.get("streams") or [] if isinstance(row, (dict, list, tuple))
+    )
+    for short, full in sorted(by_name.items()):
+        for word in (full, short):
+            if re.search(rf"(?<![\w-]){re.escape(word)}(?![\w-])", text, re.I):
+                add(full)
+                break
+    owner = (cfg.get("owner") or "").strip()
+    for decision in data.get("decisions") or []:
+        if not isinstance(decision, dict) or decision.get("state") != "open":
             continue
-        seen_repos.append(full)
+        match = NEW_REPO_TITLE.match((decision.get("title") or "").strip())
+        if not match:
+            continue
+        name = match.group(1).strip()
+        if "/" not in name:
+            name = by_name.get(name.lower()) or (f"{owner}/{name}" if owner else name)
+        add(name)
+    return names
+
+
+def _rendered(assets, rel):
+    manifest = read_json(assets / "architecture" / "rendered" / "manifest.json", {}) or {}
+    entry = (manifest.get("diagrams") or {}).get(Path(rel).name) or {}
+    try:
+        src = (assets / rel).read_bytes()
+    except OSError:
+        return False
+    return entry.get("sha256") == hashlib.sha256(src).hexdigest()
+
+
+def _diagram_index(assets):
+    """{repo key: [(node count, diagram path)]} from each rendered diagram's meta.repos."""
+    index = {}
+    for folder in (assets / "architecture", assets / STUB_DIR.rstrip("/")):
+        if not folder.is_dir():
+            continue
+        for file in sorted(folder.glob("*.bower.json")):
+            rel = file.relative_to(assets).as_posix()
+            try:
+                doc = json.loads(file.read_text(encoding="utf-8"))
+            except (OSError, ValueError):
+                continue
+            if doc.get("schema") != "bowerbird/v1" or not _rendered(assets, rel):
+                continue
+            for repo in (doc.get("meta") or {}).get("repos") or []:
+                hit = (len(doc.get("nodes") or []), rel)
+                for key in {str(repo).lower(), str(repo).split("/")[-1].lower()}:
+                    index.setdefault(key, []).append(hit)
+    return index
+
+
+def _auto_tab(tab):
+    return bool(tab.get("auto")) or str(tab.get("diagram") or "").startswith(STUB_DIR)
+
+
+def _upsert_architecture(data, cfg, merges, repos=()):
+    """Every in-flight product keeps a tab. Reuse a tab or rich diagram that draws the repo, else stub.
+
+    Tabs this sync adds carry auto: true; they drop once their repo leaves flight. Curated tabs never drop.
+    """
+    projects = data.get("projects") if isinstance(data.get("projects"), dict) else {}
+    tabs = [t for t in projects.get("tabs") or [] if isinstance(t, dict)]
+    by_id = {t.get("id"): t for t in tabs}
+    pending = []
+    want = set()
+    assets = _safe_assets(cfg)
+    index = _diagram_index(assets) if assets is not None else {}
+    for full in _architecture_repos(data, cfg, merges, repos):
         ident = _slug(full)
-        if ident in known:
+        hits = index.get(full.lower()) or index.get(full.split("/")[-1].lower()) or []
+        rich = [hit for hit in hits if not hit[1].startswith(STUB_DIR)]
+        drawn = {path for _, path in (rich or hits)}
+        reuse = next((t for t in tabs if t.get("diagram") in drawn), None)
+        if reuse is not None:
+            want.add(reuse.get("id"))
+            continue
+        if rich:
+            path = max(rich)[1]
+            tid = _slug(Path(path).name.removesuffix(".bower.json"))
+            tab = by_id.get(tid)
+            if tab is None:
+                tab = {"id": tid, "diagram": path, "auto": True}
+                tabs.append(tab)
+                by_id[tid] = tab
+            elif _auto_tab(tab):
+                tab["diagram"] = path
+            want.add(tid)
+            continue
+        want.add(ident)
+        if ident in by_id:
             continue
         if assets is None:
             pending.append({"id": ident, "repo": full})
             continue
-        diagram = _write_stub(assets, ident, full)
-        tabs.append({"id": ident, "diagram": diagram})
-        known.add(ident)
-    projects["tabs"] = tabs
+        tab = {"id": ident, "diagram": _write_stub(assets, ident, full), "auto": True}
+        tabs.append(tab)
+        by_id[ident] = tab
+    projects["tabs"] = [t for t in tabs if t.get("id") in want or not _auto_tab(t)]
     projects["pending"] = pending
     if not projects.get("rule"):
         projects["rule"] = "Every in-flight product keeps a diagram. A stub stands in until a real one is rendered."
