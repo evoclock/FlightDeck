@@ -1306,6 +1306,111 @@ def _demote_thin_architecture(assets):
     return moved
 
 
+
+PRODUCT_BOWER_GLOBS = (
+    "docs/diagrams/*.bower.json",
+    "docs/architecture/*.bower.json",
+    "architecture/*.bower.json",
+)
+
+
+def product_checkout_roots(name):
+    """Local checkouts for existing *.bower.json. CREW_PRODUCT_ROOTS or ~/NAME."""
+    roots = []
+    seen = set()
+    explicit = "CREW_PRODUCT_ROOTS" in os.environ
+    for raw in (os.environ.get("CREW_PRODUCT_ROOTS") or "").split(":"):
+        raw = raw.strip()
+        if not raw:
+            continue
+        path = Path(raw).expanduser().resolve()
+        candidates = []
+        if path.name == name:
+            candidates.append(path)
+        child = path / name
+        if child.is_dir():
+            candidates.append(child)
+        for c in candidates:
+            if c.is_dir() and str(c) not in seen:
+                seen.add(str(c))
+                roots.append(c)
+    if not explicit:
+        home = Path.home() / name
+        if home.is_dir() and str(home) not in seen:
+            roots.append(home)
+    return roots
+
+
+def _product_bower_candidates(checkout):
+    out = []
+    for pattern in PRODUCT_BOWER_GLOBS:
+        directory, _, _glob = pattern.rpartition("/")
+        d = checkout / directory if directory else checkout
+        if not d.is_dir():
+            continue
+        if "stubs" in d.parts:
+            continue
+        for file in sorted(d.glob("*.bower.json")):
+            out.append(file)
+    return out
+
+
+def import_product_bowers(names, assets, org="evoclock"):
+    """Copy richest non-thin product-side bowers into assets/architecture/."""
+    if assets is None:
+        return 0
+    arch = assets / "architecture"
+    arch.mkdir(parents=True, exist_ok=True)
+    written = 0
+    for name in names:
+        full = name if "/" in str(name) else f"{org}/{name}"
+        short = full.split("/", 1)[-1]
+        best = None
+        for checkout in product_checkout_roots(short):
+            for src in _product_bower_candidates(checkout):
+                try:
+                    doc = json.loads(src.read_text(encoding="utf-8"))
+                except (OSError, ValueError):
+                    continue
+                if _is_thin_stub(doc):
+                    continue
+                n = len(doc.get("nodes") or [])
+                if best is None or n > best[0]:
+                    best = (n, src, doc)
+        if best is None:
+            continue
+        nodes, src, doc = best
+        doc = json.loads(json.dumps(doc))
+        meta = doc.setdefault("meta", {})
+        repos = list(meta.get("repos") or [])
+        shorts = {r.split("/", 1)[-1] for r in repos}
+        if full not in repos and short not in shorts:
+            repos.append(full)
+            meta["repos"] = repos
+        dest = arch / f"{short}.bower.json"
+        if dest.is_file():
+            try:
+                cur = json.loads(dest.read_text(encoding="utf-8"))
+            except (OSError, ValueError):
+                cur = None
+            if cur is not None and not _is_thin_stub(cur) and len(cur.get("nodes") or []) >= nodes:
+                before = json.dumps((cur.get("meta") or {}), sort_keys=True)
+                cmeta = cur.setdefault("meta", {})
+                crepos = list(cmeta.get("repos") or [])
+                cshorts = {r.split("/", 1)[-1] for r in crepos}
+                if full not in crepos and short not in cshorts:
+                    crepos.append(full)
+                    cmeta["repos"] = crepos
+                after = json.dumps((cur.get("meta") or {}), sort_keys=True)
+                if after != before:
+                    dest.write_text(json.dumps(cur, indent=2) + "\n", encoding="utf-8")
+                    written += 1
+                continue
+        dest.write_text(json.dumps(doc, indent=2) + "\n", encoding="utf-8")
+        written += 1
+    return written
+
+
 def _upsert_architecture(data, cfg, merges, repos=()):
     """In-flight products keep a tab only when a rich authored diagram draws the repo.
 
@@ -1319,6 +1424,8 @@ def _upsert_architecture(data, cfg, merges, repos=()):
     want = set()
     assets = _safe_assets(cfg)
     if assets is not None:
+        full_names = list(_architecture_repos(data, cfg, merges, repos))
+        import_product_bowers(full_names, assets)
         _demote_thin_architecture(assets)
     index = _diagram_index(assets) if assets is not None else {}
 
