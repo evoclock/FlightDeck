@@ -267,7 +267,13 @@ class PaneTests(unittest.TestCase):
         self.assertIn("acme/app#7 merged.", data["settled"][0]["detail"])
 
     def test_ready_decision_respects_public_repos(self):
-        loaded = cfg(self.tmp, public_repos=["app"])
+        loaded = cfg(self.tmp, public_repos=[])  # evidence from repos.json, not config list
+        write(Path(loaded["cache_dir"]) / "repos.json", {"complete": True, "repos": [
+            {"name": "app", "full_name": "acme/app", "private": False, "pushed_at": "2026-10-25T10:00:00Z",
+             "created_at": "2020-01-01T00:00:00Z", "url": "https://github.com/acme/app"},
+            {"name": "lib", "full_name": "acme/lib", "private": True, "pushed_at": "2026-10-25T10:00:00Z",
+             "created_at": "2020-01-01T00:00:00Z", "url": "https://github.com/acme/lib"},
+        ]})
         data = {"merges": [
             {"title": "Add", "repo": "acme/app", "state": "Ready to merge", "number": 7, "url": "https://github.com/acme/app/pull/7"},
             {"title": "Other", "repo": "acme/lib", "state": "Ready to merge", "number": 3, "url": "https://github.com/acme/lib/pull/3"},
@@ -491,7 +497,11 @@ class PaneTests(unittest.TestCase):
         )
 
     def test_comment_does_not_act_as_ready_merge_accept(self):
-        loaded = cfg(self.tmp, public_repos=["app"])
+        loaded = cfg(self.tmp, public_repos=[])
+        write(Path(loaded["cache_dir"]) / "repos.json", {"complete": True, "repos": [
+            {"name": "app", "full_name": "acme/app", "private": False, "pushed_at": "2026-10-25T10:00:00Z",
+             "created_at": "2020-01-01T00:00:00Z", "url": "https://github.com/acme/app"},
+        ]})
         decision = {
             "id": "dec-1",
             "state": "open",

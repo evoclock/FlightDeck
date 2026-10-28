@@ -9,6 +9,9 @@ description: >-
 
 Keep a human's tracker current from structured evidence, not chat prose. Every run reconciles the tracker's data file against live sources. Completeness is the product: if the human has to ask whether an open PR, draft, new repo, or unblock is on the tracker, the last run failed.
 
+
+**Sync-only panes (Julen HARD t1669–t1671):** no hard-coded keep/allow lists. Architecture tabs = in-flight only. Ready public Decisions = `repos.json` `private=false` evidence (not a frozen `public_repos` name set).
+
 ## Chat Accept must still be recorded (hard — Julen, 26 Oct 2026)
 - A chat Accept and a tracker Accept both count as authority. Do not wait for the second one.
 - Recording is separate. Every Accept, Reject, or alternative must still appear on the tracker, even when the human chose in chat.
@@ -58,7 +61,7 @@ Publish from the git checkout. `./publish.sh` (or `scripts/publish_local.sh`) ru
 Copy `config/sync.example.json` to `config/sync.json` (gitignored). Environment variables override the file.
 - `tracker_data`: `FLIGHTDECK_DATA`, or `./data.json` when that file exists. The demo file is not the default.
 - `owner`: `FLIGHTDECK_GH_OWNER` or `owner` in the sync config. Unset: hooks that need GitHub skip.
-- `public_repos`: `FLIGHTDECK_PUBLIC_REPOS` (comma-separated) or `public_repos`. Every public repo the human merges. A missing name means no ready-merge decision.
+- `public_repos`: `FLIGHTDECK_PUBLIC_REPOS` (comma-separated) or `public_repos`. Optional fallback for unauthenticated REST when hook 01 has no `gh`/token. Ready-merge Decisions use live `repos.json` `private=false` evidence, not this list.
 - `primary_stream`: `label` (else `agent`) is the stream row name. `FLIGHTDECK_STREAM_LABEL`, `FLIGHTDECK_PRIMARY_AGENT`, `FLIGHTDECK_PRIMARY_AREA`. Empty label: inflight does not write a stream row.
 - `responses`: `account_id`, `kv_namespace_id`, `key`, or `FLIGHTDECK_ACCOUNT_ID` / `CLOUDFLARE_ACCOUNT_ID`, `FLIGHTDECK_RESPONSES_KV_ID`, `FLIGHTDECK_RESPONSES_KEY`. Token: `CLOUDFLARE_API_TOKEN`.
 - `agents`: `.cache/bot-reports.json`, fields copied from each bot's own report.
@@ -86,7 +89,7 @@ Hooks, in order. The hook file name is what `hooks/run-pre-render.sh` runs:
 | `03-reconcile-responses` | `scripts/reconcile_responses.py` | Decisions → settled, Settled entries, step ticks | KV when `CLOUDFLARE_API_TOKEN` and the responses ids in sync config are set, else `.cache/responses.json`; plus chat answers in `.cache/responses-chat.json` (`scripts/record_chat_accept.py`) |
 | `05-reconcile-inflight` | `scripts/reconcile_inflight.py` | Merges (open PRs + synthetic rows), primary stream, new-repo Decisions, architecture stubs | `.cache/repos.json`, `.cache/prs.json` |
 | `07-reconcile-merges-lifecycle` | `scripts/reconcile_merges_lifecycle.py` | Drops open rows for merged/closed PRs, ticks steps, settles Decisions, Settled entries | `.cache/prs-closed.json` |
-| `10-reconcile-ready-decisions` | `scripts/reconcile_ready_decisions.py` | Ready-merge Decisions | merges rows in state `Ready…` whose repo is in `public_repos` |
+| `10-reconcile-ready-decisions` | `scripts/reconcile_ready_decisions.py` | Ready-merge Decisions | merges rows in state `Ready…` whose repo is public on `repos.json` (`private=false`) |
 | `30-reconcile-steps-evidence` | `scripts/reconcile_steps_evidence.py` | Steps for ready+green PRs, install tick, release guard | prs cache, `.cache/omb-install.json`, `.cache/omb-releases.json`, `guards` in sync config |
 | `40-apply-bot-reports` | `scripts/apply_bot_reports.py` | Other bots' stream rows, verbatim | `.cache/bot-reports.json` |
 | `50-reconcile-priorities` | `scripts/reconcile_priorities.py` | One priorities block per stream; `src:"stream"` items rebuilt; ladder items kept | streams |
@@ -110,7 +113,7 @@ The hooks above enforce these. A gap means a script or cache writer is missing; 
 3. **Every in-flight repo** (open PR, or pushed in 48h, or created in 7d) is discovered from the owner's full GitHub list — never typed from chat. No-PR in-flight repos get one synthetic merges row. New repos (created ≤48h) appear in an open Decision (or are named by an existing open Decision).
 4. **Streams stay readable.** Each agent row is short current work + next for the human. In-flight repos that no bot owns stay on **Merges** (and Architecture / Decisions), **not** dumped into the primary stream as a link salad. The primary stream's label comes from sync config. Empty label: do not write that row.
 5. **Decisions-only OK.** Ready merges, new-repo cutovers, spend, scope — open Decision with PR links before any chat ask.
-   - `public_repos` in sync config must list every public repo the human merges. Missing names = silent no-Decision bugs.
+   - Ready public Decisions come from `repos.json` `private=false` (not a frozen `public_repos` name set). Missing public evidence = no Decision.
 6. **Your steps** list ready+green phone actions; drafts never appear there.
 7. **Priorities** blocks match each active stream's current/next from evidence; do not wipe done items.
 8. **Settled today** only from the human's recorded responses and merged-PR evidence (hook 07), never invented. Recorded responses are tracker taps (KV) and chat answers written by `scripts/record_chat_accept.py`; hook 03 applies both as first-class answers.

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Open a decision for each ready merge whose repo is in public_repos.
+"""Open a decision for each ready merge whose repo is public on repos.json.
 
-public_repos comes from config/sync.json or FLIGHTDECK_PUBLIC_REPOS.
+Public = private=false on the live repos cache (not a frozen name set).
 An empty list skips. One missing name means that repo gets no decision.
 """
 import sys
