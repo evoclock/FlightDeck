@@ -509,7 +509,7 @@ def fetch_via_gh(cfg, runner, now):
     ])
     if len(repos_raw) >= 200:
         raise DiscoveryError("repo list truncated at 200")
-    repos = [_repo_from_gh(item) for item in repos_raw]
+    repos = [norm_repo(item) for item in repos_raw]
     releases = _releases_from_api(cfg, runner=runner)
     return {"prs": prs, "closed": closed, "repos": repos, "releases": releases, "complete": True, "since": day}
 
@@ -524,6 +524,49 @@ def _repo_from_gh(item):
         "private": bool(item.get("isPrivate") if "isPrivate" in item else item.get("private")),
         "url": item.get("url") or "",
     }
+
+
+def norm_repo(item):
+    """Accept snake_case or camelCase cache/gh rows. Prefer snake_case keys first."""
+    if not isinstance(item, dict):
+        return {
+            "name": "",
+            "full_name": "",
+            "pushed_at": None,
+            "created_at": None,
+            "private": False,
+            "url": "",
+        }
+    full = (
+        item.get("full_name")
+        or item.get("nameWithOwner")
+        or item.get("name")
+        or ""
+    )
+    name = item.get("name") or (full.split("/")[-1] if full else "")
+    if full and "/" not in str(full) and name:
+        # bare short name from a hand cache — keep as-is for matching; callers may own-prefix
+        full = full
+    private = item.get("private")
+    if private is None and "isPrivate" in item:
+        private = item.get("isPrivate")
+    if private is None and "is_private" in item:
+        private = item.get("is_private")
+    url = item.get("url") or item.get("html_url") or ""
+    return {
+        "name": name,
+        "full_name": full,
+        "pushed_at": item.get("pushed_at") or item.get("pushedAt"),
+        "created_at": item.get("created_at") or item.get("createdAt"),
+        "private": bool(private),
+        "url": url,
+        "size": item.get("size") if item.get("size") is not None else item.get("diskUsage"),
+    }
+
+
+def norm_repos(rows):
+    return [norm_repo(r) for r in (rows or []) if isinstance(r, dict)]
+
 
 
 def _releases_from_api(cfg, runner=None, opener=None, token=""):
@@ -696,11 +739,29 @@ def write_payload(cfg, payload, now):
 def refresh_caches(cfg, opener=None, runner=None, now=None):
     now = aware(now)
     payload = fetch_all(cfg, opener=opener, runner=runner, now=now)
+    # Keep prior repos.json when a fresh list is empty or drops every private row the cache knew.
+    old_rows = norm_repos(read_cache_rows(cfg, "repos.json", "repos") or [])
+    fresh_rows = norm_repos(payload.get("repos") or [])
+    if not fresh_rows and old_rows:
+        print("refresh_pr_cache: WARNING repo list came back empty; keeping .cache/repos.json", file=sys.stderr)
+        payload = {**payload, "repos": old_rows}
+    elif any(r.get("private") for r in old_rows) and fresh_rows and not any(r.get("private") for r in fresh_rows):
+        print(
+            "refresh_pr_cache: WARNING fresh list has no private repos but the cache has some; "
+            "keeping .cache/repos.json. Check gh auth has the repo scope.",
+            file=sys.stderr,
+        )
+        payload = {**payload, "repos": old_rows}
+    else:
+        payload = {**payload, "repos": fresh_rows}
     write_payload(cfg, payload, now)
     if not payload["complete"]:
         print("refresh_pr_cache: public repos only; discovery is incomplete", file=sys.stderr)
         return 2
-    print(f"refresh_pr_cache: prs={len(payload['prs'])} closed={len(payload['closed'])} repos={len(payload['repos'])}")
+    print(
+        f"refresh_pr_cache: prs={len(payload['prs'])} closed={len(payload['closed'])} "
+        f"repos={len(payload['repos'])} ({sum(1 for r in payload['repos'] if r.get('private'))} private)"
+    )
     return 0
 
 
@@ -1057,8 +1118,8 @@ def reconcile_inflight(data, cfg, now=None):
     windows = cfg["inflight"]
     synthetic = 0
     new_repos = []
-    for repo in repos or []:
-        full = repo.get("full_name") or ""
+    for repo in norm_repos(repos or []):
+        full = repo.get("full_name") or repo.get("name") or ""
         if not full or full in open_full:
             continue
         if not _inflight_repo(repo, open_full, now, windows):
@@ -1077,7 +1138,7 @@ def reconcile_inflight(data, cfg, now=None):
     data["merges"] = merges
     _upsert_primary_stream(data, cfg, len(open_prs), synthetic, ready)
     _upsert_new_repo_decisions(data, new_repos)
-    _upsert_architecture(data, cfg, merges, repos or [])
+    _upsert_architecture(data, cfg, merges, norm_repos(repos or []))
     print(f"reconcile_inflight: prs={len(open_prs)} active={synthetic}")
     return 0
 
