@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Fail fast when the mac-mini agent does not have Python 3.11+.
+# DEPRECATED: tip CI runs on GitHub Actions (.github/workflows/tip-ci.yml).
+# Kept so accidental Buildkite uploads do not fail looking for this script.
 set -euo pipefail
-command -v python3 >/dev/null
-python3 -c 'import sys; v=sys.version_info; raise SystemExit(0 if v>=(3,11) else "python3 %d.%d.%d is below 3.11" % v[:3])'
-echo "python3 $(python3 -c 'import sys; print("%d.%d.%d" % sys.version_info[:3])')"
+echo "host.sh: no-op (tip CI is GitHub Actions Tip CI)"
+exit 0
