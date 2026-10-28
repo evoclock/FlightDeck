@@ -93,9 +93,9 @@ class ArchitectureTabs(unittest.TestCase):
         # Repos named only in Streams or an open New repo Decision get tabs too.
         self.assertIn("streamed", tabs)
         self.assertIn("decided", tabs)
-        # An auto tab whose repo left the in-flight window drops; a curated tab never drops.
+        # Tabs whose repos left the in-flight window drop (auto or curated keep-set gone).
         self.assertNotIn("old-thing", tabs)
-        self.assertIn("curated", tabs)
+        self.assertNotIn("curated", tabs)
         self.assertEqual(data["projects"]["pending"], [])
 
     def test_new_repo_title_without_colon(self):

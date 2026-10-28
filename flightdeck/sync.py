@@ -1285,7 +1285,7 @@ def _auto_tab(tab):
 def _upsert_architecture(data, cfg, merges, repos=()):
     """Every in-flight product keeps a tab. Reuse a tab or rich diagram that draws the repo, else stub.
 
-    Tabs this sync adds carry auto: true; they drop once their repo leaves flight. Curated tabs never drop.
+    Tabs this sync adds carry auto: true; they drop once their repo leaves flight. No permanent curated keep-set.
     """
     projects = data.get("projects") if isinstance(data.get("projects"), dict) else {}
     tabs = [t for t in projects.get("tabs") or [] if isinstance(t, dict)]
@@ -1324,7 +1324,8 @@ def _upsert_architecture(data, cfg, merges, repos=()):
         tab = {"id": ident, "diagram": _write_stub(assets, ident, full), "auto": True}
         tabs.append(tab)
         by_id[ident] = tab
-    projects["tabs"] = [t for t in tabs if t.get("id") in want or not _auto_tab(t)]
+    # Tabs only for in-flight products; no permanent curated keep-set (Julen t1669–t1671).
+    projects["tabs"] = [t for t in tabs if t.get("id") in want]
     projects["pending"] = pending
     if not projects.get("rule"):
         projects["rule"] = "Every in-flight product keeps a diagram. A stub stands in until a real one is rendered."
@@ -1417,11 +1418,20 @@ def _step_matches_pr(step, pr):
     return mentions(pr, step.get("text"), step.get("url"), step.get("pr"))
 
 
+def public_repo_names(cfg):
+    """Short names of owner repos with private=false on the live repos cache."""
+    names = []
+    for row in norm_repos(read_cache_rows(cfg, "repos.json", "repos") or []):
+        if row.get("private") is False and row.get("name"):
+            names.append(row["name"])
+    return names
+
+
 def reconcile_ready_decisions(data, cfg, now=None):
     del now
-    names = cfg.get("public_repos") or []
+    names = public_repo_names(cfg)
     if not names:
-        print("reconcile_ready_decisions: public_repos empty, skipping", file=sys.stderr)
+        print("reconcile_ready_decisions: no public repos in cache, skipping", file=sys.stderr)
         return 0
     decisions = data.setdefault("decisions", [])
     added = 0
