@@ -68,9 +68,24 @@ def embed(i, s):
 def render(ctx):
     base = Path(ctx.assets_dir)
     P = ctx.data.get("projects") or {}
-    loaded = [(t, *load_diagram(base, t["diagram"])) for t in P.get("tabs") or []]
+    entries = P.get("tabs") or []
+    loaded = [(t, *load_diagram(base, t["diagram"])) for t in entries if t.get("diagram")]
     tabs, panels, pages = [], [], []
-    for i, (t, dg, html_) in enumerate(loaded):
+    for i, t in enumerate(entries):
+        if t.get("status") == "pending" and not t.get("diagram"):
+            pid = e(t["id"])
+            label = t.get("stream") or t.get("repo") or "Diagram"
+            link = t.get("pr_url") or ""
+            if not re.fullmatch(r"https://github\.com/[\w.-]+/[\w.-]+/pull/\d+", link):
+                link = ""
+            tabs.append(f'<button role="tab" id="tab-{pid}" aria-selected="{str(i == 0).lower()}" '
+                        f'aria-controls="arch-{pid}" tabindex="{0 if i == 0 else -1}" type="button">{e(label)}</button>')
+            action = ext_link(link, "Review the draft diagram PR") if link else "A product diagram PR is needed."
+            panels.append(f'<div role="tabpanel" id="arch-{pid}" aria-labelledby="tab-{pid}" '
+                          f'class="tabpanel"{"" if i == 0 else " hidden"}>'
+                          f'<p class="arch-sum">Pending product diagram</p><p class="note">{action}</p></div>')
+            continue
+        dg, html_ = load_diagram(base, t["diagram"])
         pid, name, st = e(t["id"]), dg["meta"]["title"], [tracker_status(n) for n in dg["nodes"]]
         sel = "true" if i == 0 else "false"
         tabs.append(f'<button role="tab" id="tab-{pid}" aria-selected="{sel}" aria-controls="arch-{pid}" '
@@ -90,10 +105,10 @@ def render(ctx):
     legend = "".join(f'<span class="lg"><b>{v}</b> = {BB_LEGEND[k]}</span>' for k, v in STATUS.items())
     checked = f' Checked {e(P["verified"])}.' if P.get("verified") else ""
     note = f'<p class="note">{e(P.get("rule", ""))}{checked}</p>' if (P.get("rule") or checked) else ""
-    if loaded:
+    if entries:
         body = (f'<div class="arch-head"><div class="tabs" role="tablist" aria-label="Projects">{"".join(tabs)}</div>'
-                f'<div class="legend">{legend}</div></div>{"".join(panels)}{note}{"".join(pages)}{embed("bb-font", bb_font(base))}')
+                f'<div class="legend">{legend}</div></div>{"".join(panels)}{note}{"".join(pages)}{embed("bb-font", bb_font(base)) if loaded else ""}')
     else:
         body = f'<p class="muted">No diagrams yet.</p>{note}'
     n_comp = sum(len(dg["nodes"]) for _, dg, _ in loaded)
-    return pane("architecture", "Architecture", f"{len(loaded)} projects · {n_comp} parts", body)
+    return pane("architecture", "Architecture", f"{len(entries)} projects · {n_comp} parts", body)
