@@ -4,12 +4,13 @@ import json
 import re
 import tempfile
 import unittest
+from unittest.mock import patch
 from pathlib import Path
 
 from flightdeck import render as R
 from flightdeck.common import week_start
-from flightdeck.config import SLOT_IDS
-from flightdeck.widgets import RenderContext, render_slot
+from flightdeck.config import SLOT_IDS, ConfigError
+from flightdeck.widgets import RenderContext, REGISTRY, render_slot
 from flightdeck.widgets import activity, cluster
 
 try:
@@ -107,6 +108,23 @@ class RenderTests(Base):
         srcs = [m for m in re.findall(r'<(\w+)\s[^>]*?\b(?:src|href)="https?://', doc) if m != 'a']
         self.assertEqual(srcs, [])
         self.assertNotIn('@import', doc)
+
+    def test_broken_architecture_does_not_block_decisions(self):
+        cfg, dp = self.write()
+        with patch.dict(REGISTRY, {'architecture.diagrams': lambda ctx: (_ for _ in ()).throw(ValueError('broken diagram'))}):
+            with self.assertLogs('flightdeck.render', level='ERROR') as logs:
+                doc = R.render(cfg, dp, self.root / 'o.html')
+        self.assertIn('Ship it?', doc)
+        self.assertIn('data-id="dec-1"', doc)
+        self.assertIn('id="architecture"', doc)
+        self.assertIn('Architecture unavailable', doc)
+        self.assertNotIn('broken diagram', doc)
+        self.assertIn('architecture.diagrams', logs.output[0])
+
+    def test_invalid_widget_configuration_still_fails(self):
+        cfg, dp = self.write(dict(FULL, architecture='not.a.widget'))
+        with self.assertRaises(ConfigError):
+            R.render(cfg, dp, self.root / 'o.html')
 
     def test_empty_cluster_marks_top_row(self):
         slots = dict(FULL, cluster='empty', architecture='empty')

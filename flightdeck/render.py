@@ -7,11 +7,12 @@ Stdlib only; the page makes no runtime requests except optional same-origin /api
 import argparse
 import base64
 import json
+import logging
 import sys
 from pathlib import Path
 
 from flightdeck.common import e, local_now, tz
-from flightdeck.config import SLOT_IDS, load_config, resolve_widget
+from flightdeck.config import SLOT_IDS, ConfigError, load_config, resolve_widget
 from flightdeck.layout_css import CSS
 from flightdeck.page_js import JS
 from flightdeck.widgets import RenderContext, render_slot
@@ -21,6 +22,7 @@ TOP_SLOTS = ('banner', 'cluster', 'activity')       # .top row: banner · cluste
 PANE_SLOTS = tuple(s for s in SLOT_IDS if s not in TOP_SLOTS)   # main grid, in locked order
 TOP_EMPTY_CLASS = {'banner': 'no-banner', 'cluster': 'no-spark', 'activity': 'no-act'}
 PALETTE = ["sage", "rust", "peach", "mustard", "slate", "mauve", "olive", "teal", "ochre", "forest", "clay"]
+LOG = logging.getLogger(__name__)
 
 
 def font_faces(assets_dir):
@@ -42,7 +44,18 @@ def resolve_assets(config, config_path, assets_dir=None):
 
 def render_html(config, data, assets_dir, now=None):
     ctx = RenderContext(assets_dir=Path(assets_dir), data=data, config=config)
-    slots = {s: render_slot(resolve_widget(config, s), ctx) for s in SLOT_IDS}
+    slots = {}
+    for slot in SLOT_IDS:
+        widget = resolve_widget(config, slot)
+        try:
+            slots[slot] = render_slot(widget, ctx)
+        except ConfigError:
+            raise  # Invalid configuration is not a degraded widget.
+        except Exception as exc:
+            LOG.error('widget %s in slot %s failed: %s', widget, slot, type(exc).__name__)
+            label = slot.capitalize()
+            slots[slot] = (f'<section class="pane" id="{slot}"><h2>{label}</h2>'
+                           f'<p role="alert">{label} unavailable.</p></section>')
     top_mods = [TOP_EMPTY_CLASS[s] for s in TOP_SLOTS if not slots[s]]
     top = ''
     if len(top_mods) < len(TOP_SLOTS):
