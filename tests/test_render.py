@@ -178,6 +178,16 @@ class WidgetPortTests(Base):
         self.assertIn('<a href="https://github.com/example/app/pull/1" target="_blank" rel="noopener noreferrer">PR</a>', out)
         self.assertEqual(out.count('data-act="accepted"'), 2)
 
+    def test_pending_architecture_tab_links_draft_without_a_diagram(self):
+        """Why: missing product topology must stay visible with its draft PR evidence."""
+        ctx = self.ctx()
+        ctx.data["projects"] = {"tabs": [{"id": "worker", "status": "pending", "stream": "Worker",
+                                         "repo": "product", "pr_url": "https://github.com/example/product/pull/7"}]}
+        out = render_slot("architecture.diagrams", ctx)
+        self.assertIn('id="tab-worker"', out)
+        self.assertIn('href="https://github.com/example/product/pull/7"', out)
+        self.assertIn("Pending product diagram", out)
+
     def test_steps_and_merges_have_tick_boxes(self):
         st = render_slot('steps.checklist', self.ctx())
         self.assertIn('1 open', st)

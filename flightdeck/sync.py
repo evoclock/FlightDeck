@@ -1382,6 +1382,42 @@ def architecture_registry(assets):
     return registry["repos"]
 
 
+def stream_architecture_entries(data, assets, repos):
+    """One slot per stream; registry only adds a small non-stream allowlist."""
+    allowed = architecture_registry(assets)
+    known = {r.get("name") or str(r.get("full_name") or "").split("/")[-1] for r in repos}
+    known |= {entry["id"] for entry in allowed}
+    if assets is not None:
+        for file in (assets / "architecture").glob("*.bower.json"):
+            try:
+                doc = json.loads(file.read_text(encoding="utf-8"))
+            except (OSError, ValueError):
+                continue
+            known.update(str(r).split("/")[-1] for r in (doc.get("meta") or {}).get("repos") or [])
+    entries = []
+    for stream in data.get("streams") or []:
+        row = as_stream(stream)
+        agent, area = row["bot"], row["project"]
+        if not agent or not area:
+            continue
+        matches = [n for n in sorted((n for n in known if n), key=lambda n: (-len(n), n.lower()))
+                   if re.search(rf"(?<![\w-]){re.escape(n)}(?![\w-])", str(area), re.I)]
+        entries.append({"id": matches[0] if matches else None, "stream": agent,
+                        "source": "docs/diagrams/*.bower.json", "done": isinstance(stream, dict)
+                        and stream.get("done") is True})
+    for entry in allowed:
+        if entry["id"] not in {e["id"] for e in entries}:
+            entries.append(dict(entry, stream=None, done=False))
+    return entries
+
+
+def _complete_at_head(old, name, sha):
+    record = next((r for r in old.get("repos") or [] if r.get("repo") == name), None)
+    overlay = (record or {}).get("overlay") or {}
+    return bool(sha and record and record.get("source_repo_sha") == sha and overlay
+                and all(node.get("completion") == "complete" for node in overlay.values()))
+
+
 def import_product_bowers(entries, assets):
     """Copy only rich registry-listed docs/diagrams; preserve the product's exact bytes."""
     if assets is None:
@@ -1430,8 +1466,10 @@ def import_product_bowers(entries, assets):
 def _upsert_architecture(data, cfg, merges, repos=()):
     """Select only rendered product imports named in the instance registry."""
     assets = _safe_assets(cfg)
-    entries = architecture_registry(assets)
-    imported = import_product_bowers(entries, assets)
+    entries = stream_architecture_entries(data, assets, repos)
+    imported = import_product_bowers(list({e["id"]: e for e in entries if e["id"]}.values()), assets)
+    old = read_json(cache_path(cfg, "architecture-sync.json"), {}) or {}
+    pending_prs = read_json(cache_path(cfg, "architecture-diagram-prs.json"), []) or []
     _demote_thin_architecture(assets)
     projects = data.get("projects") if isinstance(data.get("projects"), dict) else {}
     wanted = []
@@ -1439,14 +1477,29 @@ def _upsert_architecture(data, cfg, merges, repos=()):
     by_name = {r.get("name"): r for r in repos}
     for entry in entries:
         name = entry["id"]
+        key = _slug(entry["stream"] or name or "pending")
         record = imported.get(name)
         if record is None:
-            evidence.append({"repo": name, "source": entry["source"], "source_repo_sha": None,
-                             "bower_hash": None, "node_count": 0, "edge_count": 0,
-                             "status": "missing diagram", "overlay": {}})
-            print(f"architecture: missing diagram for {name}: {entry['source']}", file=sys.stderr)
+            owner = cfg.get("owner") or ""
+            url = next((p.get("url") for p in pending_prs if name and p.get("repo") == name
+                        and p.get("isDraft") is True and re.fullmatch(
+                            rf"https://github\.com/{re.escape(owner)}/{re.escape(name)}/pull/\d+",
+                            p.get("url") or "")), None)
+            evidence.append({"repo": name, "stream": entry.get("stream"), "source": entry["source"],
+                             "source_repo_sha": None, "bower_hash": None, "node_count": 0,
+                             "edge_count": 0, "status": "pending diagram PR", "pr_url": url, "overlay": {}})
+            wanted.append({"id": key, "status": "pending", "repo": name,
+                           "stream": entry.get("stream"), "pr_url": url})
+            print(f"architecture: pending diagram for {name or entry.get('stream')}", file=sys.stderr)
             continue
         meta = by_name.get(name) or {}
+        if entry["done"] and _complete_at_head(old, name, record["source_repo_sha"]):
+            prior = next((r for r in old.get("repos") or [] if r.get("repo") == name), {})
+            evidence.append({"repo": name, "stream": entry.get("stream"), "status": "complete",
+                             "source_repo_sha": record["source_repo_sha"], "bower_hash": record["bower_hash"],
+                             "node_count": record["node_count"], "edge_count": record["edge_count"],
+                             "overlay": prior.get("overlay") or {}})
+            continue
         overlay = {}
         for node in record.pop("nodes"):
             node_meta = node.get("meta") or {}
@@ -1454,11 +1507,12 @@ def _upsert_architecture(data, cfg, merges, repos=()):
             if node.get("id") == name or name in {str(r).split("/")[-1] for r in node_repos}:
                 overlay[node["id"]] = {"repo": name, "pushed_at": meta.get("pushed_at"),
                                        "ci": meta.get("ci") or "unknown"}
-        evidence.append({"repo": name, "status": "imported", "overlay": overlay,
+        evidence.append({"repo": name, "stream": entry.get("stream"), "status": "imported", "overlay": overlay,
                          **{k: v for k, v in record.items() if k != "diagram"}})
         if _rendered(assets, record["diagram"]):
-            wanted.append({"id": _slug(name), "diagram": record["diagram"]})
+            wanted.append({"id": key, "diagram": record["diagram"], "stream": entry.get("stream")})
         else:
+            wanted.append({"id": key, "status": "pending", "repo": name, "stream": entry.get("stream")})
             print(f"architecture: render required for {name}: {record['diagram']}", file=sys.stderr)
     projects["tabs"] = wanted
     projects["pending"] = []

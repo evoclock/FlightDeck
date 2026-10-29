@@ -2,6 +2,7 @@
 import datetime
 import hashlib
 import json
+import subprocess
 import tempfile
 import unittest
 from pathlib import Path
@@ -55,8 +56,8 @@ class ArchitectureTabs(unittest.TestCase):
         (self.arch / "rendered" / "manifest.json").write_text(json.dumps({
             "diagrams": {f"{name}.bower.json": {"sha256": hashlib.sha256(raw).hexdigest()}}}))
 
-    def run_inflight(self, data=None):
-        write(self.cache / "repos.json", {"complete": True, "repos": []})
+    def run_inflight(self, data=None, repos=None):
+        write(self.cache / "repos.json", {"complete": True, "repos": repos or []})
         write(self.cache / "prs.json", {"complete": True, "prs": []})
         data = data if data is not None else {"merges": [], "streams": [], "decisions": [], "projects": {"tabs": []}}
         self.assertEqual(reconcile_inflight(data, self.loaded, now=NOW), 0)
@@ -67,12 +68,14 @@ class ArchitectureTabs(unittest.TestCase):
         source = self.product()
         self.product(name="unlisted")
         data = self.run_inflight()
-        self.assertEqual(data["projects"]["tabs"], [])
+        self.assertTrue(all(t.get("status") == "pending" for t in data["projects"]["tabs"]))
         self.assertEqual((self.arch / "product.bower.json").read_bytes(), source.read_bytes())
         self.render("product")
         data = self.run_inflight(data)
-        self.assertEqual(data["projects"]["tabs"], [{"id": "product", "diagram": "architecture/product.bower.json"}])
-        [e] = json.loads((self.cache / "architecture-sync.json").read_text())["repos"]
+        self.assertIn({"id": "product", "diagram": "architecture/product.bower.json", "stream": None},
+                      data["projects"]["tabs"])
+        [e] = [r for r in json.loads((self.cache / "architecture-sync.json").read_text())["repos"]
+               if r.get("repo") == "product"]
         self.assertEqual((e["status"], e["node_count"], e["edge_count"]), ("imported", 3, 1))
         self.assertEqual(e["bower_hash"], hashlib.sha256(source.read_bytes()).hexdigest())
         self.assertFalse((self.arch / "unlisted.bower.json").exists())
@@ -82,9 +85,10 @@ class ArchitectureTabs(unittest.TestCase):
         self.arch.joinpath("product.bower.json").write_text(json.dumps(diagram()))
         data = self.run_inflight({"merges": [], "streams": [], "decisions": [], "projects": {
             "tabs": [{"id": "product", "diagram": "architecture/product.bower.json"}]}})
-        self.assertEqual(data["projects"]["tabs"], [])
-        [e] = json.loads((self.cache / "architecture-sync.json").read_text())["repos"]
-        self.assertEqual(e["status"], "missing diagram")
+        self.assertTrue(all(t.get("status") == "pending" for t in data["projects"]["tabs"]))
+        [e] = [r for r in json.loads((self.cache / "architecture-sync.json").read_text())["repos"]
+               if r.get("repo") == "product"]
+        self.assertEqual(e["status"], "pending diagram PR")
 
     def test_any_auto_or_thin_diagram_has_no_tab(self):
         """Why: no Architecture tab may ever reference an Auto or thin placeholder."""
@@ -95,12 +99,65 @@ class ArchitectureTabs(unittest.TestCase):
                 self.product(doc=doc)
                 data = self.run_inflight()
                 for tab in data["projects"]["tabs"]:
+                    if not tab.get("diagram"):
+                        continue
                     chosen = json.loads((self.assets / tab["diagram"]).read_text())
                     self.assertFalse(chosen.get("meta", {}).get("auto") or
                                      "Auto stub" in json.dumps(chosen) or
                                      (len(chosen.get("nodes") or []) <= 1 and not chosen.get("edges")))
-                self.assertEqual(data["projects"]["tabs"], [])
+                self.assertTrue(all(not t.get("diagram") for t in data["projects"]["tabs"]))
                 self.assertFalse((self.arch / "product.bower.json").exists())
+
+    def test_stream_auto_discovers_real_diagram_and_pending_pr(self):
+        """Why: streams get a slot without hand registration or an invented placeholder."""
+        self.registry([])
+        rows = {"merges": [], "decisions": [], "streams": [{"bot": "Worker", "project": "product"}]}
+        repo = [{"name": "product", "full_name": "acme/product"}]
+        source = self.product()
+        data = self.run_inflight(rows, repo)
+        self.assertTrue(any(t.get("id") == "worker" and t.get("status") == "pending"
+                            for t in data["projects"]["tabs"]))
+        self.render("product")
+        data = self.run_inflight(rows, repo)
+        self.assertTrue(any(t.get("id") == "worker" and t.get("diagram") == "architecture/product.bower.json"
+                            for t in data["projects"]["tabs"]))
+        self.assertEqual((self.arch / "product.bower.json").read_bytes(), source.read_bytes())
+        deprecated = source.parents[2] / "deprecated"
+        deprecated.mkdir()
+        source.rename(deprecated / source.name)
+        write(self.cache / "architecture-diagram-prs.json", [{"repo": "product", "isDraft": True,
+              "url": "https://github.com/acme/product/pull/7"}])
+        data = self.run_inflight(rows, repo)
+        self.assertTrue(any(t.get("id") == "worker" and t.get("pr_url") ==
+                            "https://github.com/acme/product/pull/7" for t in data["projects"]["tabs"]))
+
+    def test_done_requires_complete_overlay_at_current_head(self):
+        """Why: done with incomplete evidence stays; a later product commit restores a dropped tab."""
+        self.registry([])
+        source = self.product()
+        checkout = source.parents[2]
+        subprocess.run(["git", "init", str(checkout)], check=True, capture_output=True)
+        subprocess.run(["git", "-C", str(checkout), "add", "docs/diagrams"], check=True)
+        subprocess.run(["git", "-C", str(checkout), "-c", "user.name=test", "-c", "user.email=test@example.com",
+                        "commit", "-m", "diagram"], check=True, capture_output=True)
+        data = {"merges": [], "decisions": [], "streams": [{"bot": "Worker", "project": "product", "done": True}]}
+        repo = [{"name": "product", "full_name": "acme/product"}]
+        self.run_inflight(data, repo)
+        self.render("product")
+        data = self.run_inflight(data, repo)
+        self.assertTrue(any(t.get("id") == "worker" for t in data["projects"]["tabs"]))
+        evidence = json.loads((self.cache / "architecture-sync.json").read_text())
+        [record] = [r for r in evidence["repos"] if r.get("stream") == "Worker"]
+        record["overlay"] = {"product": {"completion": "complete"}}
+        write(self.cache / "architecture-sync.json", evidence)
+        data = self.run_inflight(data, repo)
+        self.assertFalse(any(t.get("id") == "worker" for t in data["projects"]["tabs"]))
+        source.write_text(source.read_text() + "\n")
+        subprocess.run(["git", "-C", str(checkout), "add", "docs/diagrams"], check=True)
+        subprocess.run(["git", "-C", str(checkout), "-c", "user.name=test", "-c", "user.email=test@example.com",
+                        "commit", "-m", "change"], check=True, capture_output=True)
+        data = self.run_inflight(data, repo)
+        self.assertTrue(any(t.get("id") == "worker" for t in data["projects"]["tabs"]))
 
     def test_richest_wildcard_wins(self):
         """Why: selection follows authored richness rather than file ordering."""
