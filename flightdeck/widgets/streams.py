@@ -13,4 +13,5 @@ def render(ctx):
         for b, p, n, w in rs)
     need = sum(1 for r in rs if wait_cls(r[3]) == "you")
     badge = f"{len(rs)} bots" + (f" · {need} need you" if need else "")
-    return pane("streams", "Streams", badge, f'<ul class="list">{body}</ul>')
+    return pane("streams", "Streams", badge,
+                f'<ul class="list">{body}</ul>' if rs else '<p class="muted">No active streams.</p>')

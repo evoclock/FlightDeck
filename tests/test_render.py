@@ -178,6 +178,14 @@ class WidgetPortTests(Base):
         self.assertIn('<a href="https://github.com/example/app/pull/1" target="_blank" rel="noopener noreferrer">PR</a>', out)
         self.assertEqual(out.count('data-act="accepted"'), 2)
 
+    def test_empty_work_panes_explain_their_state(self):
+        """Why: an empty evidence feed must not look like a broken, blank pane."""
+        ctx = self.ctx({'streams': [], 'decisions': [], 'steps': [], 'merges': []})
+        self.assertIn('No active streams.', render_slot('streams.table', ctx))
+        self.assertIn('None open.', render_slot('decisions.cards', ctx))
+        self.assertIn('Nothing open.', render_slot('steps.checklist', ctx))
+        self.assertIn('No PRs coming to you.', render_slot('merges.table', ctx))
+
     def test_collapsed_panes_release_desktop_min_height(self):
         """Why: closed pane bodies must not leave empty desktop-sized cards."""
         from flightdeck.layout_css import CSS

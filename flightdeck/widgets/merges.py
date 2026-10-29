@@ -16,5 +16,6 @@ def render(ctx):
     ms = rows(ctx.data.get('merges'), KEYS)
     ready = sum(1 for m in ms if str(m[3]).lower().startswith("ready"))
     note = ctx.data.get('merge_note') or ''
-    body = f'<ul class="list">{"".join(merge(m, R, B) for m in ms)}</ul>' + (f'<p class="note">{e(note)}</p>' if note else '')
+    body = (f'<ul class="list">{"".join(merge(m, R, B) for m in ms)}</ul>' if ms
+            else '<p class="muted">No PRs coming to you.</p>') + (f'<p class="note">{e(note)}</p>' if note else '')
     return pane("merges", "Coming to you for merge", f"{len(ms)} PRs · {ready} ready", body)
