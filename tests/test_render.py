@@ -178,6 +178,29 @@ class WidgetPortTests(Base):
         self.assertIn('<a href="https://github.com/example/app/pull/1" target="_blank" rel="noopener noreferrer">PR</a>', out)
         self.assertEqual(out.count('data-act="accepted"'), 2)
 
+    def test_empty_work_panes_explain_their_state(self):
+        """Why: an empty evidence feed must not look like a broken, blank pane."""
+        ctx = self.ctx({'streams': [], 'decisions': [], 'steps': [], 'merges': []})
+        self.assertIn('No active streams.', render_slot('streams.table', ctx))
+        self.assertIn('None open.', render_slot('decisions.cards', ctx))
+        self.assertIn('Nothing open.', render_slot('steps.checklist', ctx))
+        self.assertIn('No PRs coming to you.', render_slot('merges.table', ctx))
+
+    def test_collapsed_panes_release_desktop_min_height(self):
+        """Why: closed pane bodies must not leave empty desktop-sized cards."""
+        from flightdeck.layout_css import CSS
+        self.assertIn('.pane.closed{min-height:0;', CSS)
+
+    def test_pending_tab_does_not_open_a_missing_diagram_frame(self):
+        """Why: selecting a pending tab must not abort diagram initialization."""
+        from flightdeck.page_js import JS
+        self.assertIn('if(!box)return;', JS)
+        ctx = self.ctx()
+        ctx.data['projects'] = {'tabs': [{'id': 'product', 'status': 'pending', 'repo': 'product'}]}
+        out = render_slot('architecture.diagrams', ctx)
+        self.assertIn('Pending product diagram', out)
+        self.assertNotIn('class="bb-frame"', out)
+
     def test_pending_architecture_tab_links_draft_without_a_diagram(self):
         """Why: missing product topology must stay visible with its draft PR evidence."""
         ctx = self.ctx()
@@ -187,6 +210,8 @@ class WidgetPortTests(Base):
         self.assertIn('id="tab-worker"', out)
         self.assertIn('href="https://github.com/example/product/pull/7"', out)
         self.assertIn("Pending product diagram", out)
+        self.assertIn('>product</button>', out)
+        self.assertNotIn('>Worker</button>', out)
 
     def test_steps_and_merges_have_tick_boxes(self):
         st = render_slot('steps.checklist', self.ctx())

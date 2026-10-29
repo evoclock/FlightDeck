@@ -115,11 +115,11 @@ class ArchitectureTabs(unittest.TestCase):
         repo = [{"name": "product", "full_name": "acme/product"}]
         source = self.product()
         data = self.run_inflight(rows, repo)
-        self.assertTrue(any(t.get("id") == "worker" and t.get("status") == "pending"
+        self.assertTrue(any(t.get("id") == "product" and t.get("status") == "pending"
                             for t in data["projects"]["tabs"]))
         self.render("product")
         data = self.run_inflight(rows, repo)
-        self.assertTrue(any(t.get("id") == "worker" and t.get("diagram") == "architecture/product.bower.json"
+        self.assertTrue(any(t.get("id") == "product" and t.get("diagram") == "architecture/product.bower.json"
                             for t in data["projects"]["tabs"]))
         self.assertEqual((self.arch / "product.bower.json").read_bytes(), source.read_bytes())
         deprecated = source.parents[2] / "deprecated"
@@ -128,7 +128,7 @@ class ArchitectureTabs(unittest.TestCase):
         write(self.cache / "architecture-diagram-prs.json", [{"repo": "product", "isDraft": True,
               "url": "https://github.com/acme/product/pull/7"}])
         data = self.run_inflight(rows, repo)
-        self.assertTrue(any(t.get("id") == "worker" and t.get("pr_url") ==
+        self.assertTrue(any(t.get("id") == "product" and t.get("pr_url") ==
                             "https://github.com/acme/product/pull/7" for t in data["projects"]["tabs"]))
 
     def test_done_requires_complete_overlay_at_current_head(self):
@@ -145,19 +145,29 @@ class ArchitectureTabs(unittest.TestCase):
         self.run_inflight(data, repo)
         self.render("product")
         data = self.run_inflight(data, repo)
-        self.assertTrue(any(t.get("id") == "worker" for t in data["projects"]["tabs"]))
+        self.assertTrue(any(t.get("id") == "product" for t in data["projects"]["tabs"]))
         evidence = json.loads((self.cache / "architecture-sync.json").read_text())
         [record] = [r for r in evidence["repos"] if r.get("stream") == "Worker"]
         record["overlay"] = {"product": {"completion": "complete"}}
         write(self.cache / "architecture-sync.json", evidence)
         data = self.run_inflight(data, repo)
-        self.assertFalse(any(t.get("id") == "worker" for t in data["projects"]["tabs"]))
+        self.assertFalse(any(t.get("id") == "product" for t in data["projects"]["tabs"]))
         source.write_text(source.read_text() + "\n")
         subprocess.run(["git", "-C", str(checkout), "add", "docs/diagrams"], check=True)
         subprocess.run(["git", "-C", str(checkout), "-c", "user.name=test", "-c", "user.email=test@example.com",
                         "commit", "-m", "change"], check=True, capture_output=True)
         data = self.run_inflight(data, repo)
-        self.assertTrue(any(t.get("id") == "worker" for t in data["projects"]["tabs"]))
+        self.assertTrue(any(t.get("id") == "product" for t in data["projects"]["tabs"]))
+
+    def test_project_names_and_shared_repo_do_not_duplicate_tabs(self):
+        self.registry([])
+        rows = {"merges": [], "decisions": [], "streams": [
+            {"bot": "Alpha", "project": "product + second"},
+            {"bot": "Beta", "project": "product"}]}
+        repos = [{"name": "product"}, {"name": "second"}]
+        data = self.run_inflight(rows, repos)
+        self.assertEqual([(t["id"], t["repo"]) for t in data["projects"]["tabs"] if t.get("repo")],
+                         [("product", "product"), ("second", "second")])
 
     def test_richest_wildcard_wins(self):
         """Why: selection follows authored richness rather than file ordering."""
