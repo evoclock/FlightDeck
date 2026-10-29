@@ -1,0 +1,50 @@
+{
+  "schema": "bowerbird/v1",
+  "meta": {
+    "title": "FlightDeck evidence to dashboard",
+    "subtitle": "Repository and response evidence flows through ordered reconciliation into a rendered local dashboard. Product hooks and widgets are reusable by instances.",
+    "statusTracking": false,
+    "animation": "trace",
+    "kind": "architecture",
+    "direction": "LR",
+    "grid": {"col": 440, "row": 190, "gap": 36}
+  },
+  "categories": {
+    "sage": {"label": "Evidence"},
+    "slate": {"label": "Reconciliation"},
+    "mauve": {"label": "State"},
+    "teal": {"label": "Presentation"}
+  },
+  "zones": [
+    {"id": "inputs", "title": "Evidence inputs", "kicker": "01 / collect", "category": "sage"},
+    {"id": "sync", "title": "Ordered reconciliation", "kicker": "02 / derive", "category": "slate"},
+    {"id": "output", "title": "Local dashboard", "kicker": "03 / render", "category": "teal"}
+  ],
+  "traces": [
+    {"id": "activity", "label": "Repository evidence to dashboard"},
+    {"id": "responses", "label": "Recorded answers to dashboard"},
+    {"id": "diagrams", "label": "Product diagram to Architecture tab"}
+  ],
+  "nodes": [
+    {"id": "collect", "status": "implemented", "zone": "inputs", "at": [0, 0], "type": "module", "title": "Repository activity", "lines": ["Collect activity and PR evidence", "Hook order is lexical"], "category": "sage", "traces": ["activity"], "evidence": {"paths": ["hooks/pre-render.d/00-collect-activity", "hooks/pre-render.d/01-refresh-pr-cache"]}},
+    {"id": "answers", "status": "implemented", "zone": "inputs", "at": [0, 1], "type": "module", "title": "Recorded chat answers", "lines": ["Manual answer recording", "Responses reconciled by hook"], "category": "sage", "traces": ["responses"], "evidence": {"paths": ["scripts/record_chat_accept.py", "hooks/pre-render.d/03-reconcile-responses"]}},
+    {"id": "products", "status": "implemented", "zone": "inputs", "at": [0, 2], "type": "module", "title": "Product-owned diagrams", "lines": ["Only real product source files", "Missing sources remain pending"], "category": "sage", "traces": ["diagrams"], "evidence": {"paths": ["flightdeck/sync.py", "docs/architecture-imports.md"]}},
+    {"id": "hooks", "status": "implemented", "zone": "sync", "at": [1, 0], "type": "module", "title": "Pre-render hook runner", "lines": ["Runs hooks in lexical order", "Stops on a failing hook"], "category": "slate", "traces": ["activity", "responses", "diagrams"], "evidence": {"paths": ["hooks/run-pre-render.sh"]}},
+    {"id": "reconcile", "status": "implemented", "zone": "sync", "at": [2, 0], "type": "module", "title": "Evidence reconcilers", "lines": ["Derive streams, merges and decisions", "Draft PRs stay out of ready decisions"], "category": "slate", "traces": ["activity", "responses"], "evidence": {"paths": ["flightdeck/sync.py", "hooks/pre-render.d/05-reconcile-inflight", "hooks/pre-render.d/10-reconcile-ready-decisions"]}},
+    {"id": "architecture", "status": "implemented", "zone": "sync", "at": [2, 2], "type": "module", "title": "Architecture import", "lines": ["Import eligible product diagrams", "Pending tabs do not invent topology"], "category": "slate", "traces": ["diagrams"], "evidence": {"paths": ["flightdeck/sync.py", "flightdeck/widgets/architecture.py"]}},
+    {"id": "state", "status": "implemented", "zone": "output", "at": [3, 0], "type": "storage", "title": "Tracker state", "lines": ["Reconciled data.json", "Instance-owned input to renderer"], "category": "mauve", "traces": ["activity", "responses", "diagrams"], "evidence": {"paths": ["examples/demo/data.json", "flightdeck/render.py"]}},
+    {"id": "render", "status": "implemented", "zone": "output", "at": [4, 0], "type": "module", "title": "HTML renderer", "lines": ["Assemble layout and widgets", "Emit standalone HTML"], "category": "teal", "traces": ["activity", "responses", "diagrams"], "evidence": {"paths": ["flightdeck/render.py", "flightdeck/widgets/streams.py", "flightdeck/widgets/decisions.py"]}},
+    {"id": "dashboard", "status": "implemented", "zone": "output", "at": [5, 0], "type": "ui", "title": "Crew dashboard", "lines": ["Streams, decisions and steps", "Project Architecture tabs"], "category": "teal", "traces": ["activity", "responses", "diagrams"], "evidence": {"paths": ["flightdeck/widgets/architecture.py", "flightdeck/widgets/steps.py", "flightdeck/page_js.py"]}}
+  ],
+  "edges": [
+    {"from": "collect", "to": "hooks", "label": "collected evidence", "traces": ["activity"]},
+    {"from": "answers", "to": "hooks", "label": "recorded answers", "traces": ["responses"]},
+    {"from": "products", "to": "hooks", "label": "diagram sources", "traces": ["diagrams"]},
+    {"from": "hooks", "to": "reconcile", "label": "ordered hooks", "traces": ["activity", "responses"]},
+    {"from": "hooks", "to": "architecture", "label": "architecture sync", "traces": ["diagrams"]},
+    {"from": "reconcile", "to": "state", "label": "reconciled tracker", "traces": ["activity", "responses"]},
+    {"from": "architecture", "to": "state", "label": "diagram tabs", "traces": ["diagrams"]},
+    {"from": "state", "to": "render", "label": "data and config", "traces": ["activity", "responses", "diagrams"]},
+    {"from": "render", "to": "dashboard", "label": "HTML", "traces": ["activity", "responses", "diagrams"]}
+  ]
+}
