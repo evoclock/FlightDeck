@@ -233,6 +233,7 @@ footer{margin-top:var(--gap);font-size:15.5px;color:var(--sub);display:flex;gap:
 """
 
 EXTRA = """
+.pane.closed{min-height:0;align-self:start}
 .metrics .mlist{display:flex;flex-direction:column}
 .mrow{display:grid;grid-template-columns:minmax(6em,.8fr) minmax(4em,.4fr) minmax(0,1.6fr) minmax(0,1fr);gap:4px 12px;align-items:center;padding:6px 0;border-top:1px solid var(--rule)}
 .mrow .bar i{background:var(--teal)}

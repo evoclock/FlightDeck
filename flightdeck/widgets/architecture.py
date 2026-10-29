@@ -74,7 +74,7 @@ def render(ctx):
     for i, t in enumerate(entries):
         if t.get("status") == "pending" and not t.get("diagram"):
             pid = e(t["id"])
-            label = t.get("stream") or t.get("repo") or "Diagram"
+            label = t.get("label") or t.get("repo") or "Diagram"
             link = t.get("pr_url") or ""
             if not re.fullmatch(r"https://github\.com/[\w.-]+/[\w.-]+/pull/\d+", link):
                 link = ""

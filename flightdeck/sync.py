@@ -1394,21 +1394,26 @@ def stream_architecture_entries(data, assets, repos):
             except (OSError, ValueError):
                 continue
             known.update(str(r).split("/")[-1] for r in (doc.get("meta") or {}).get("repos") or [])
-    entries = []
+    entries = {}
     for stream in data.get("streams") or []:
         row = as_stream(stream)
         agent, area = row["bot"], row["project"]
         if not agent or not area:
             continue
-        matches = [n for n in sorted((n for n in known if n), key=lambda n: (-len(n), n.lower()))
+        matches = [n for n in sorted((n for n in known if n), key=str.lower)
                    if re.search(rf"(?<![\w-]){re.escape(n)}(?![\w-])", str(area), re.I)]
-        entries.append({"id": matches[0] if matches else None, "stream": agent,
-                        "source": "docs/diagrams/*.bower.json", "done": isinstance(stream, dict)
-                        and stream.get("done") is True})
+        done = isinstance(stream, dict) and stream.get("done") is True
+        for name in matches or [None]:
+            key = (name or str(area)).lower()
+            if key in entries:
+                entries[key]["done"] &= done
+            else:
+                entries[key] = {"id": name, "label": name or str(area), "stream": agent,
+                                "source": "docs/diagrams/*.bower.json", "done": done}
     for entry in allowed:
-        if entry["id"] not in {e["id"] for e in entries}:
-            entries.append(dict(entry, stream=None, done=False))
-    return entries
+        if entry["id"].lower() not in entries:
+            entries[entry["id"].lower()] = dict(entry, label=entry["id"], stream=None, done=False)
+    return list(entries.values())
 
 
 def _complete_at_head(old, name, sha):
@@ -1477,7 +1482,7 @@ def _upsert_architecture(data, cfg, merges, repos=()):
     by_name = {r.get("name"): r for r in repos}
     for entry in entries:
         name = entry["id"]
-        key = _slug(entry["stream"] or name or "pending")
+        key = _slug(entry["label"])
         record = imported.get(name)
         if record is None:
             owner = cfg.get("owner") or ""
@@ -1488,7 +1493,7 @@ def _upsert_architecture(data, cfg, merges, repos=()):
             evidence.append({"repo": name, "stream": entry.get("stream"), "source": entry["source"],
                              "source_repo_sha": None, "bower_hash": None, "node_count": 0,
                              "edge_count": 0, "status": "pending diagram PR", "pr_url": url, "overlay": {}})
-            wanted.append({"id": key, "status": "pending", "repo": name,
+            wanted.append({"id": key, "status": "pending", "repo": name, "label": entry["label"],
                            "stream": entry.get("stream"), "pr_url": url})
             print(f"architecture: pending diagram for {name or entry.get('stream')}", file=sys.stderr)
             continue
@@ -1512,7 +1517,8 @@ def _upsert_architecture(data, cfg, merges, repos=()):
         if _rendered(assets, record["diagram"]):
             wanted.append({"id": key, "diagram": record["diagram"], "stream": entry.get("stream")})
         else:
-            wanted.append({"id": key, "status": "pending", "repo": name, "stream": entry.get("stream")})
+            wanted.append({"id": key, "status": "pending", "repo": name, "label": entry["label"],
+                           "stream": entry.get("stream")})
             print(f"architecture: render required for {name}: {record['diagram']}", file=sys.stderr)
     projects["tabs"] = wanted
     projects["pending"] = []

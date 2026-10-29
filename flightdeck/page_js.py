@@ -15,7 +15,8 @@ document.getElementById('ca').onclick=function(){ps.forEach(function(p){set(p,tr
 var views={};try{views=JSON.parse(localStorage.getItem(V)||'{}')||{}}catch(_){views={}}
 var bf=document.getElementById('bb-font'),fonts=bf?JSON.parse(bf.textContent):'',LBL={iso:'isometric',flat:'regular'};
 // Each view is bowerbird's own page in a sandboxed frame (scripts, popups and downloads only), built on first use.
-function frame(pid,v){var box=document.querySelector('.bb-frame[data-p="'+pid+'"]'),f=box.querySelector('iframe[data-view="'+v+'"]');
+function frame(pid,v){var box=document.querySelector('.bb-frame[data-p="'+pid+'"]');if(!box)return;
+var f=box.querySelector('iframe[data-view="'+v+'"]');
 if(!f){var src=document.getElementById('bb-'+pid+'-'+v);if(!src)return;f=document.createElement('iframe');f.dataset.view=v;f.title=box.dataset.name+' architecture, '+LBL[v]+' view';
 f.setAttribute('sandbox','allow-scripts allow-popups allow-popups-to-escape-sandbox allow-downloads');f.setAttribute('allow','fullscreen');
 f.srcdoc=JSON.parse(src.textContent).replace('<!--flightdeck-fonts-->','<style>'+fonts+'</style>');box.appendChild(f)}
