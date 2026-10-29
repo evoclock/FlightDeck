@@ -31,3 +31,5 @@ python3 -m flightdeck.render config.json data.json dist/local/index.html
 Serve the folder with any static file server if you want the optional same-origin `/api/responses` and `/api/spark` calls. Opened as a file, the page keeps responses in the browser.
 
 `./publish.sh` and `scripts/publish_local.sh` run `hooks/pre-render.d` before the render. With no `FLIGHTDECK_GH_OWNER` and no `data.json` in the repo root, the hooks skip and the demo data file is left as it is in git. An instance sets `FLIGHTDECK_DATA` (or keeps `data.json` at the root) and `config/sync.json`. See the sync section of the README.
+
+If a private instance adds a dirty-checkout guard around publish, see [instance-publish-guard.md](instance-publish-guard.md) so hook-rewritten `data.json` cannot self-block the next build.
