@@ -1203,6 +1203,7 @@ def _safe_assets(cfg):
 
 
 STUB_DIR = "architecture/stubs/"
+NEW_REPO_TITLE = re.compile(r"^New repo:?\s+(\S.*)$")
 
 
 def _architecture_repos(data, cfg, merges, repos):
@@ -1253,7 +1254,10 @@ def _rendered(assets, rel):
         src = (assets / rel).read_bytes()
     except OSError:
         return False
-    return entry.get("sha256") == hashlib.sha256(src).hexdigest()
+    stem = Path(rel).name.removesuffix(".bower.json")
+    views = all((assets / "architecture" / "rendered" / view / f"{stem}.html").is_file()
+                for view in ("flat", "iso"))
+    return views and entry.get("sha256") == hashlib.sha256(src).hexdigest()
 
 
 def _diagram_index(assets):
