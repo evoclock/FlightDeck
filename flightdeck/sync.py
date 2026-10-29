@@ -1203,7 +1203,6 @@ def _safe_assets(cfg):
 
 
 STUB_DIR = "architecture/stubs/"
-NEW_REPO_TITLE = re.compile(r"^New repo:?\s+(\S.*)$")
 
 
 def _architecture_repos(data, cfg, merges, repos):
@@ -1355,129 +1354,116 @@ def _product_bower_candidates(checkout):
     return out
 
 
-def import_product_bowers(names, assets, org="evoclock"):
-    """Copy richest non-thin product-side bowers into assets/architecture/."""
+def architecture_registry(assets):
+    """The instance's architecture/registry.json is the sole tab opt-in list."""
     if assets is None:
-        return 0
+        return []
+    path = assets / "architecture" / "registry.json"
+    if not path.is_file():
+        print(f"architecture: missing registry {path}; no tabs", file=sys.stderr)
+        return []
+    registry = json.loads(path.read_text(encoding="utf-8"))
+    if registry.get("version") != 1 or not isinstance(registry.get("repos"), list):
+        raise ValueError("architecture registry must have version 1 and a repos list")
+    seen = set()
+    for entry in registry["repos"]:
+        if not isinstance(entry, dict):
+            raise ValueError("architecture registry entry must be an object")
+        name, source = entry.get("id"), entry.get("source")
+        if (not isinstance(name, str) or not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._-]*", name)
+                or name.lower() in seen or not isinstance(source, str)
+                or not re.fullmatch(r"docs/diagrams/(?:[A-Za-z0-9._-]+|\*)\.bower\.json", source)):
+            raise ValueError(f"invalid architecture registry entry: {entry!r}")
+        seen.add(name.lower())
+    return registry["repos"]
+
+
+def import_product_bowers(entries, assets):
+    """Copy only rich registry-listed docs/diagrams; preserve the product's exact bytes."""
+    if assets is None:
+        return {}
     arch = assets / "architecture"
     arch.mkdir(parents=True, exist_ok=True)
-    written = 0
-    for name in names:
-        full = name if "/" in str(name) else f"{org}/{name}"
-        short = full.split("/", 1)[-1]
+    imported = {}
+    for entry in entries:
+        name, source = entry["id"], entry["source"]
         best = None
-        for checkout in product_checkout_roots(short):
-            for src in _product_bower_candidates(checkout):
+        for checkout in product_checkout_roots(name):
+            folder = checkout / "docs" / "diagrams"
+            for path in sorted(folder.glob("*.bower.json")) if folder.is_dir() else []:
+                if path.name != Path(source).name and not source.endswith("/*.bower.json"):
+                    continue
+                if not path.resolve().is_relative_to(folder.resolve()):
+                    continue
                 try:
-                    doc = json.loads(src.read_text(encoding="utf-8"))
+                    raw = path.read_bytes()
+                    doc = json.loads(raw)
                 except (OSError, ValueError):
                     continue
-                if _is_thin_stub(doc):
+                if _is_thin_stub(doc) or not doc.get("nodes") or not doc.get("edges"):
                     continue
-                n = len(doc.get("nodes") or [])
-                if best is None or n > best[0]:
-                    best = (n, src, doc)
+                score = (len(doc["nodes"]), len(doc["edges"]))
+                if best is None or score > best[0]:
+                    best = (score, checkout, path, raw, doc)
         if best is None:
             continue
-        nodes, src, doc = best
-        doc = json.loads(json.dumps(doc))
-        meta = doc.setdefault("meta", {})
-        repos = list(meta.get("repos") or [])
-        shorts = {r.split("/", 1)[-1] for r in repos}
-        if full not in repos and short not in shorts:
-            repos.append(full)
-            meta["repos"] = repos
-        dest = arch / f"{short}.bower.json"
-        if dest.is_file():
-            try:
-                cur = json.loads(dest.read_text(encoding="utf-8"))
-            except (OSError, ValueError):
-                cur = None
-            if cur is not None and not _is_thin_stub(cur) and len(cur.get("nodes") or []) >= nodes:
-                before = json.dumps((cur.get("meta") or {}), sort_keys=True)
-                cmeta = cur.setdefault("meta", {})
-                crepos = list(cmeta.get("repos") or [])
-                cshorts = {r.split("/", 1)[-1] for r in crepos}
-                if full not in crepos and short not in cshorts:
-                    crepos.append(full)
-                    cmeta["repos"] = crepos
-                after = json.dumps((cur.get("meta") or {}), sort_keys=True)
-                if after != before:
-                    dest.write_text(json.dumps(cur, indent=2) + "\n", encoding="utf-8")
-                    written += 1
-                continue
-        dest.write_text(json.dumps(doc, indent=2) + "\n", encoding="utf-8")
-        written += 1
-    return written
+        _, checkout, path, raw, doc = best
+        dest = arch / f"{name}.bower.json"
+        if not dest.is_file() or dest.read_bytes() != raw:
+            dest.write_bytes(raw)
+        try:
+            sha = subprocess.run(["git", "-C", str(checkout), "rev-parse", "HEAD"],
+                                 capture_output=True, text=True, timeout=5, check=True).stdout.strip()
+        except (OSError, subprocess.CalledProcessError, subprocess.TimeoutExpired):
+            sha = None
+        imported[name] = {"source": path.relative_to(checkout).as_posix(), "source_repo_sha": sha,
+                          "bower_hash": hashlib.sha256(raw).hexdigest(),
+                          "node_count": len(doc["nodes"]), "edge_count": len(doc["edges"]),
+                          "diagram": f"architecture/{name}.bower.json", "nodes": doc["nodes"]}
+    return imported
 
 
 def _upsert_architecture(data, cfg, merges, repos=()):
-    """In-flight products keep a tab only when a rich authored diagram draws the repo.
-
-    Thin Auto stubs and 1-node placeholders under architecture/ are demoted to
-    architecture/stubs/ and never shown as Architecture tabs. No permanent curated keep-set.
-    """
-    projects = data.get("projects") if isinstance(data.get("projects"), dict) else {}
-    tabs = [t for t in projects.get("tabs") or [] if isinstance(t, dict)]
-    by_id = {t.get("id"): t for t in tabs}
-    pending = []
-    want = set()
+    """Select only rendered product imports named in the instance registry."""
     assets = _safe_assets(cfg)
-    if assets is not None:
-        full_names = list(_architecture_repos(data, cfg, merges, repos))
-        import_product_bowers(full_names, assets)
-        _demote_thin_architecture(assets)
-    index = _diagram_index(assets) if assets is not None else {}
-
-    def _rich_hits(hits):
-        out = []
-        for nodes, rel in hits:
-            if rel.startswith(STUB_DIR):
-                continue
-            if assets is None:
-                out.append((nodes, rel))
-                continue
-            try:
-                doc = json.loads((assets / rel).read_text(encoding="utf-8"))
-            except (OSError, ValueError):
-                continue
-            if _is_thin_stub(doc):
-                continue
-            out.append((nodes, rel))
-        return out
-
-    for full in _architecture_repos(data, cfg, merges, repos):
-        ident = _slug(full)
-        hits = index.get(full.lower()) or index.get(full.split("/")[-1].lower()) or []
-        rich = _rich_hits(hits)
-        if not rich:
-            if assets is None and ident not in by_id:
-                pending.append({"id": ident, "repo": full})
+    entries = architecture_registry(assets)
+    imported = import_product_bowers(entries, assets)
+    _demote_thin_architecture(assets)
+    projects = data.get("projects") if isinstance(data.get("projects"), dict) else {}
+    wanted = []
+    evidence = []
+    by_name = {r.get("name"): r for r in repos}
+    for entry in entries:
+        name = entry["id"]
+        record = imported.get(name)
+        if record is None:
+            evidence.append({"repo": name, "source": entry["source"], "source_repo_sha": None,
+                             "bower_hash": None, "node_count": 0, "edge_count": 0,
+                             "status": "missing diagram", "overlay": {}})
+            print(f"architecture: missing diagram for {name}: {entry['source']}", file=sys.stderr)
             continue
-        path = max(rich)[1]
-        drawn = {p for _, p in rich}
-        reuse = next((t for t in tabs if t.get("diagram") in drawn), None)
-        if reuse is not None:
-            if reuse.get("diagram") != path:
-                reuse["diagram"] = path
-            want.add(reuse.get("id"))
-            continue
-        tid = _slug(Path(path).name.removesuffix(".bower.json"))
-        tab = by_id.get(tid)
-        if tab is None:
-            tab = {"id": tid, "diagram": path, "auto": True}
-            tabs.append(tab)
-            by_id[tid] = tab
-        elif _auto_tab(tab):
-            tab["diagram"] = path
-        want.add(tid)
-    projects["tabs"] = [t for t in tabs if t.get("id") in want]
-    projects["pending"] = pending
-    projects["rule"] = (
-        "Architecture tabs come from rich authored diagrams only. "
-        "Products without a real shape have no tab until one is authored."
-    )
+        meta = by_name.get(name) or {}
+        overlay = {}
+        for node in record.pop("nodes"):
+            node_meta = node.get("meta") or {}
+            node_repos = node_meta.get("repos") or []
+            if node.get("id") == name or name in {str(r).split("/")[-1] for r in node_repos}:
+                overlay[node["id"]] = {"repo": name, "pushed_at": meta.get("pushed_at"),
+                                       "ci": meta.get("ci") or "unknown"}
+        evidence.append({"repo": name, "status": "imported", "overlay": overlay,
+                         **{k: v for k, v in record.items() if k != "diagram"}})
+        if _rendered(assets, record["diagram"]):
+            wanted.append({"id": _slug(name), "diagram": record["diagram"]})
+        else:
+            print(f"architecture: render required for {name}: {record['diagram']}", file=sys.stderr)
+    projects["tabs"] = wanted
+    projects["pending"] = []
+    projects["rule"] = "Architecture tabs use registry-listed rendered product diagrams only."
     data["projects"] = projects
+    if assets is not None:
+        target = cache_path(cfg, "architecture-sync.json")
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(json.dumps({"version": 1, "repos": evidence}, indent=2) + "\n", encoding="utf-8")
 
 
 def _slug(full):
@@ -1497,77 +1483,10 @@ def _is_thin_stub(doc):
         return False
     sub = ((doc.get("meta") or {}).get("subtitle") or "")
     meta = doc.get("meta") or {}
-    if "Stub until" in sub or sub.startswith("Auto stub for ") or meta.get("auto") is True:
+    if "Stub until" in sub or "Auto stub" in sub or "Auto stub" in str(meta.get("title") or "") or meta.get("auto"):
         return True
     nodes = doc.get("nodes") or []
     return len(nodes) <= 1 and not (doc.get("edges") or [])
-
-
-def _write_stub(assets, ident, full):
-    """Write a small usable layout stub (repo + evidence + tracker), not a single blob node."""
-    name = full.split("/")[-1]
-    diagram = Path("architecture") / "stubs" / f"{ident}.bower.json"
-    doc = {
-        "schema": "bowerbird/v1",
-        "meta": {
-            "title": name,
-            "kicker": "FlightDeck · architecture",
-            "subtitle": f"Auto stub for {name}. Replace when the shape is known.",
-            "statusTracking": True,
-            "grid": {"col": 360, "row": 180, "gap": 44},
-            "repository": {"url": f"https://github.com/{full}", "ref": "main"},
-            "repos": [full],
-        },
-        "categories": {
-            "teal": {"label": "Docs / contracts"},
-            "mustard": {"label": "CI / release"},
-            "peach": {"label": "Orchestration / agents"},
-        },
-        "nodes": [
-            {"id": "repo", "at": [0, 0], "type": "main", "title": name,
-             "hint": "GitHub repo", "category": "teal", "status": "partial",
-             "details": f"Repository stub.\n\n#### Where\n- [https://github.com/{full}](https://github.com/{full})"},
-            {"id": "evidence", "at": [1, 0], "type": "service", "title": "Git evidence",
-             "hint": "Open PRs / recent pushes", "category": "mustard", "status": "partial",
-             "details": "Filled by sync from the PR and repos caches."},
-            {"id": "tracker", "at": [0, 1], "type": "service", "title": "Crew tracker",
-             "hint": "Merges + Architecture tab", "category": "peach", "status": "partial",
-             "details": "Auto-created for an in-flight product. Replace when the real shape is known."},
-        ],
-        "edges": [
-            {"from": "repo", "to": "evidence", "label": "sync"},
-            {"from": "evidence", "to": "tracker", "label": "pane"},
-        ],
-    }
-    target = assets / diagram
-    target.parent.mkdir(parents=True, exist_ok=True)
-    raw = (json.dumps(doc, indent=2) + "\n").encode()
-    target.write_bytes(raw)
-    digest = hashlib.sha256(raw).hexdigest()
-    rendered = assets / "architecture" / "rendered"
-    html = (
-        "<!doctype html><html><head><meta charset=\"utf-8\"><title>"
-        + name
-        + " stub</title></head><body>"
-        + "<h1>" + name + " (auto stub)</h1>"
-        + "<ul>"
-        + "<li>Repo - GitHub</li>"
-        + "<li>Git evidence - PRs / pushes</li>"
-        + "<li>Crew tracker - Architecture tab</li>"
-        + "</ul>"
-        + "<p>Replace this stub when the real architecture shape is known.</p>"
-        + "</body></html>\n"
-    )
-    for view in ("flat", "iso"):
-        page = rendered / view / f"{ident}.html"
-        page.parent.mkdir(parents=True, exist_ok=True)
-        page.write_text(html, encoding="utf-8")
-    manifest_path = rendered / "manifest.json"
-    manifest = read_json(manifest_path, {"diagrams": {}}) or {"diagrams": {}}
-    diagrams = manifest.setdefault("diagrams", {})
-    diagrams[f"{ident}.bower.json"] = {"sha256": digest}
-    manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
-    return diagram.as_posix()
 
 
 
