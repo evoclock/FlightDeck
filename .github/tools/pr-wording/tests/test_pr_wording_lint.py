@@ -22,6 +22,16 @@ A loop with no limit could run until the session ended.
 
 ## How verified
 `npm test` passes, including two new tests for both limits.
+"""
+
+GOOD_BODY_WITH_NOTES = """## What changed
+Looping tasks now stop after a set time or step count.
+
+## Why
+A loop with no limit could run until the session ended.
+
+## How verified
+`npm test` passes, including two new tests for both limits.
 
 ## Notes for agents
 - Give every loop an explicit stop condition and test that it fires.
@@ -73,7 +83,7 @@ def run(title: str, body: str, *extra: str, config: dict | None = None, env_conf
 
 
 def with_line(line: str) -> str:
-    return GOOD_BODY.replace("## Notes for agents", f"{line}\n\n## Notes for agents")
+    return GOOD_BODY_WITH_NOTES.replace("## Notes for agents", f"{line}\n\n## Notes for agents")
 
 
 class PrWordingLint(unittest.TestCase):
@@ -121,7 +131,9 @@ class PrWordingLint(unittest.TestCase):
 
     def test_sections_and_notes(self) -> None:
         self.assert_rejects(GOOD_TITLE, GOOD_BODY.replace("## Why", "## Background"), "use exactly")
-        many = GOOD_BODY + "".join(f"- Lesson {i}.\n" for i in range(5))
+        self.assert_passes(GOOD_BODY)
+        self.assert_passes(GOOD_BODY_WITH_NOTES)
+        many = GOOD_BODY_WITH_NOTES + "".join(f"- Lesson {i}.\n" for i in range(5))
         self.assert_rejects(GOOD_TITLE, many, "Notes for agents: 6 bullets")
 
     def test_title_rules(self) -> None:
