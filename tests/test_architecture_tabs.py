@@ -8,7 +8,7 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-from flightdeck.sync import reconcile_inflight
+from flightdeck.sync import import_product_bowers, reconcile_inflight
 from tests.test_sync import cfg, write
 
 NOW = datetime.datetime(2026, 10, 25, 12, 0, tzinfo=datetime.timezone.utc)
@@ -33,7 +33,8 @@ class ArchitectureTabs(unittest.TestCase):
         self.arch.mkdir(parents=True)
         self.registry([{"id": "product", "source": "docs/diagrams/*.bower.json"}])
         self.products = self.tmp / "products"
-        self.env = mock.patch.dict("os.environ", {"CREW_PRODUCT_ROOTS": str(self.products)})
+        self.env = mock.patch.dict("os.environ", {"CREW_PRODUCT_ROOTS": str(self.products),
+                                                 "CREW_TRACKER_OFFLINE": "1"})
         self.env.start()
         self.addCleanup(self.env.stop)
 
@@ -168,6 +169,27 @@ class ArchitectureTabs(unittest.TestCase):
         data = self.run_inflight(rows, repos)
         self.assertEqual([(t["id"], t["repo"]) for t in data["projects"]["tabs"] if t.get("repo")],
                          [("product", "product"), ("second", "second")])
+
+    def test_main_tip_overrides_dirty_checkout(self):
+        """Why: discovery follows the product commit, not a locally stale diagram."""
+        source = self.product(doc=diagram("local"))
+        raw = json.dumps(diagram("main")).encode()
+        with mock.patch("flightdeck.sync._product_tip_bowers", return_value=("a" * 40, [("system.bower.json", raw)])):
+            imported = import_product_bowers([{"id": "product", "source": "docs/diagrams/*.bower.json"}],
+                                             self.assets, "acme")
+        self.assertEqual(imported["product"]["source_repo_sha"], "a" * 40)
+        self.assertEqual((self.arch / "product.bower.json").read_bytes(), raw)
+        self.assertNotEqual(source.read_bytes(), raw)
+
+    def test_online_remote_failure_keeps_local_checkout_pending(self):
+        """Why: an unverified local file cannot substitute for missing main evidence."""
+        self.product()
+        with mock.patch("flightdeck.sync._product_tip_bowers", return_value=None), \
+             mock.patch.dict("os.environ", {"CREW_TRACKER_OFFLINE": "0"}):
+            imported = import_product_bowers([{"id": "product", "source": "docs/diagrams/*.bower.json"}],
+                                             self.assets, "acme")
+        self.assertEqual(imported, {})
+        self.assertFalse((self.arch / "product.bower.json").exists())
 
     def test_richest_wildcard_wins(self):
         """Why: selection follows authored richness rather than file ordering."""

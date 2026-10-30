@@ -6,6 +6,7 @@ is unset. Tokens are read from the environment and never printed.
 
 Stdlib only.
 """
+import base64
 import copy
 import datetime
 import hashlib
@@ -1359,7 +1360,7 @@ def _product_bower_candidates(checkout):
 
 
 def architecture_registry(assets):
-    """The instance's architecture/registry.json is the sole tab opt-in list."""
+    """The instance registry adds non-stream repositories and import options."""
     if assets is None:
         return []
     path = assets / "architecture" / "registry.json"
@@ -1423,8 +1424,46 @@ def _complete_at_head(old, name, sha):
                 and all(node.get("completion") == "complete" for node in overlay.values()))
 
 
-def import_product_bowers(entries, assets):
-    """Copy only rich registry-listed docs/diagrams; preserve the product's exact bytes."""
+def _product_tip_bowers(owner, name):
+    """Read a verified product main commit rather than an uncommitted or behind checkout."""
+    if (os.environ.get("CREW_TRACKER_OFFLINE") == "1" or not re.fullmatch(r"[A-Za-z0-9-]+", owner or "")
+            or not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._-]*", name)):
+        return None
+    def api(endpoint):
+        try:
+            result = subprocess.run(["gh", "api", endpoint], capture_output=True, text=True,
+                                    timeout=12, check=True)
+            return json.loads(result.stdout)
+        except (OSError, ValueError, subprocess.CalledProcessError, subprocess.TimeoutExpired):
+            return None
+    repo = api(f"repos/{owner}/{name}")
+    if not isinstance(repo, dict) or repo.get("full_name") != f"{owner}/{name}" or repo.get("default_branch") != "main":
+        return None
+    commit = api(f"repos/{owner}/{name}/commits/main")
+    sha = commit.get("sha") if isinstance(commit, dict) else None
+    if not isinstance(sha, str) or not re.fullmatch(r"[0-9a-f]{40}", sha):
+        return None
+    listing = api(f"repos/{owner}/{name}/contents/docs/diagrams?ref={sha}")
+    if not isinstance(listing, list):
+        return None
+    files = []
+    for item in listing:
+        fn = item.get("name") if isinstance(item, dict) else None
+        if not isinstance(fn, str) or not re.fullmatch(r"[A-Za-z0-9._-]+\.bower\.json", fn) or item.get("type") != "file":
+            continue
+        content = api(f"repos/{owner}/{name}/contents/docs/diagrams/{fn}?ref={sha}")
+        if not isinstance(content, dict) or content.get("encoding") != "base64":
+            continue
+        try:
+            raw = base64.b64decode(content["content"], validate=False)
+        except (KeyError, ValueError):
+            continue
+        files.append((fn, raw))
+    return sha, files
+
+
+def import_product_bowers(entries, assets, owner=""):
+    """Copy rich product-owned docs/diagrams from main; preserve exact bytes."""
     if assets is None:
         return {}
     arch = assets / "architecture"
@@ -1432,36 +1471,58 @@ def import_product_bowers(entries, assets):
     imported = {}
     for entry in entries:
         name, source = entry["id"], entry["source"]
+        if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._-]*", name):
+            continue
         best = None
-        for checkout in product_checkout_roots(name):
-            folder = checkout / "docs" / "diagrams"
-            for path in sorted(folder.glob("*.bower.json")) if folder.is_dir() else []:
-                if path.name != Path(source).name and not source.endswith("/*.bower.json"):
-                    continue
-                if not path.resolve().is_relative_to(folder.resolve()):
+        tip = _product_tip_bowers(owner, name)
+        if tip is not None:
+            sha, files = tip
+            for fn, raw in files:
+                if fn != Path(source).name and not source.endswith("/*.bower.json"):
                     continue
                 try:
-                    raw = path.read_bytes()
                     doc = json.loads(raw)
-                except (OSError, ValueError):
+                except ValueError:
                     continue
-                if _is_thin_stub(doc) or not doc.get("nodes") or not doc.get("edges"):
+                if not isinstance(doc, dict) or _is_thin_stub(doc) or not doc.get("nodes") or not doc.get("edges"):
                     continue
                 score = (len(doc["nodes"]), len(doc["edges"]))
                 if best is None or score > best[0]:
-                    best = (score, checkout, path, raw, doc)
+                    best = (score, f"docs/diagrams/{fn}", sha, raw, doc)
+        # Explicit roots are used for isolated offline fixtures; not as a production fallback.
+        if tip is None and os.environ.get("CREW_TRACKER_OFFLINE") == "1" and "CREW_PRODUCT_ROOTS" in os.environ:
+            for checkout in product_checkout_roots(name):
+                folder = checkout / "docs" / "diagrams"
+                for path in sorted(folder.glob("*.bower.json")) if folder.is_dir() else []:
+                    if path.name != Path(source).name and not source.endswith("/*.bower.json"):
+                        continue
+                    if not path.resolve().is_relative_to(folder.resolve()):
+                        continue
+                    try:
+                        raw = path.read_bytes()
+                        doc = json.loads(raw)
+                    except (OSError, ValueError):
+                        continue
+                    if not isinstance(doc, dict) or _is_thin_stub(doc) or not doc.get("nodes") or not doc.get("edges"):
+                        continue
+                    score = (len(doc["nodes"]), len(doc["edges"]))
+                    try:
+                        root = subprocess.run(["git", "-C", str(checkout), "rev-parse", "--show-toplevel"],
+                                              capture_output=True, text=True, timeout=5, check=True).stdout.strip()
+                        local_sha = (subprocess.run(["git", "-C", str(checkout), "rev-parse", "HEAD"],
+                                                    capture_output=True, text=True, timeout=5, check=True).stdout.strip()
+                                     if Path(root).resolve() == checkout.resolve() else None)
+                    except (OSError, subprocess.CalledProcessError, subprocess.TimeoutExpired):
+                        local_sha = None
+                    if best is None or score > best[0]:
+                        best = (score, path.relative_to(checkout).as_posix(), local_sha, raw, doc)
         if best is None:
             continue
-        _, checkout, path, raw, doc = best
+        _, source_path, sha, raw, doc = best
         dest = arch / f"{name}.bower.json"
         if not dest.is_file() or dest.read_bytes() != raw:
             dest.write_bytes(raw)
-        try:
-            sha = subprocess.run(["git", "-C", str(checkout), "rev-parse", "HEAD"],
-                                 capture_output=True, text=True, timeout=5, check=True).stdout.strip()
-        except (OSError, subprocess.CalledProcessError, subprocess.TimeoutExpired):
-            sha = None
-        imported[name] = {"source": path.relative_to(checkout).as_posix(), "source_repo_sha": sha,
+        imported[name] = {"source": source_path, "source_repo_sha": sha,
                           "bower_hash": hashlib.sha256(raw).hexdigest(),
                           "node_count": len(doc["nodes"]), "edge_count": len(doc["edges"]),
                           "diagram": f"architecture/{name}.bower.json", "nodes": doc["nodes"]}
@@ -1469,10 +1530,10 @@ def import_product_bowers(entries, assets):
 
 
 def _upsert_architecture(data, cfg, merges, repos=()):
-    """Select only rendered product imports named in the instance registry."""
+    """Select rendered product imports for stream and registry entries."""
     assets = _safe_assets(cfg)
     entries = stream_architecture_entries(data, assets, repos)
-    imported = import_product_bowers(list({e["id"]: e for e in entries if e["id"]}.values()), assets)
+    imported = import_product_bowers(list({e["id"]: e for e in entries if e["id"]}.values()), assets, cfg.get("owner") or "")
     old = read_json(cache_path(cfg, "architecture-sync.json"), {}) or {}
     pending_prs = read_json(cache_path(cfg, "architecture-diagram-prs.json"), []) or []
     _demote_thin_architecture(assets)
@@ -1522,7 +1583,7 @@ def _upsert_architecture(data, cfg, merges, repos=()):
             print(f"architecture: render required for {name}: {record['diagram']}", file=sys.stderr)
     projects["tabs"] = wanted
     projects["pending"] = []
-    projects["rule"] = "Architecture tabs use registry-listed rendered product diagrams only."
+    projects["rule"] = "Architecture tabs follow crew streams and product-owned rendered diagrams."
     data["projects"] = projects
     if assets is not None:
         target = cache_path(cfg, "architecture-sync.json")
