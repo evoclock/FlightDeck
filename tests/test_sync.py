@@ -308,6 +308,48 @@ class PaneTests(unittest.TestCase):
         self.assertIn("acme/app#26", data["decisions"][0]["text"])
         self.assertNotIn("acme/app#27", data["decisions"][0]["text"])
 
+    def test_architecture_reviews_do_not_open_chat_merge_or_undraft_asks(self):
+        """Why: architecture reviews belong to the reviewer's GitHub merge path, not chat Accept."""
+        loaded = cfg(self.tmp)
+        cache = Path(loaded["cache_dir"])
+        write(cache / "repos.json", {"repos": [
+            {"name": name, "full_name": f"acme/{name}", "private": False}
+            for name in ("FlightDeck", "flock-master", "app")
+        ]})
+        write(cache / "prs.json", {"prs": [
+            {"number": 6, "repo": "acme/FlightDeck", "draft": True, "checks": "success"},
+        ]})
+        data = {"merges": [
+            {"title": "Architecture diagrams", "repo": "acme/FlightDeck", "state": "Draft, checks green", "number": 6,
+             "url": "https://github.com/acme/FlightDeck/pull/6"},
+            {"title": "Review Bowerbird layout", "repo": "acme/flock-master", "state": "Ready to merge", "number": 7,
+             "url": "https://github.com/acme/flock-master/pull/7"},
+            {"title": "Repair panel", "repo": "acme/FlightDeck", "state": "Ready to merge", "number": 8,
+             "url": "https://github.com/acme/FlightDeck/pull/8"},
+            {"title": "Architecture for app", "repo": "acme/app", "state": "Ready to merge", "number": 9,
+             "url": "https://github.com/acme/app/pull/9"},
+        ], "decisions": []}
+        self.assertEqual(reconcile_ready_decisions(data, loaded), 0)
+        titles = [d["title"] for d in data["decisions"]]
+        self.assertEqual(len(titles), 2)
+        self.assertTrue(any("FlightDeck#8" in title for title in titles))
+        self.assertTrue(any("app#9" in title for title in titles))
+        self.assertFalse(any("FlightDeck#6" in title or "flock-master#7" in title for title in titles))
+
+    def test_existing_architecture_only_chat_ask_is_removed(self):
+        """Why: a previous automatic chat ask must not linger after the new routing rule."""
+        loaded = cfg(self.tmp)
+        write(Path(loaded["cache_dir"]) / "repos.json", {"repos": [
+            {"name": "FlightDeck", "full_name": "acme/FlightDeck", "private": False},
+        ]})
+        data = {"merges": [{"title": "Architecture diagrams", "repo": "acme/FlightDeck",
+                            "state": "Ready to merge", "number": 6,
+                            "url": "https://github.com/acme/FlightDeck/pull/6"}],
+                "decisions": [{"src": "ready", "state": "open", "title": "Merge acme/FlightDeck#6?",
+                               "text": "- https://github.com/acme/FlightDeck/pull/6"}]}
+        self.assertEqual(reconcile_ready_decisions(data, loaded), 0)
+        self.assertEqual(data["decisions"], [])
+
     def test_steps_skip_drafts_and_guard_the_release(self):
         loaded = cfg(self.tmp, guards=[{"step_contains": "first release", "needs": "nondraft_release"}],
                      omb={"repo": "acme/app", "install_step_contains": "Install the app"})

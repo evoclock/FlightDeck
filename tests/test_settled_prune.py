@@ -102,6 +102,23 @@ class HooksPrune(unittest.TestCase):
             reconcile_merges_lifecycle(data, self.cfg, now=NOW)
         self.assertEqual([r["src_id"] for r in data["settled"]], ["merged:acme/app#8"])
 
+    def test_architecture_review_settles_only_after_observed_merge(self):
+        """Why: closing a review without merging must not claim Architecture was delivered."""
+        cache = self.cache / "prs-closed.json"
+        pr = {"number": 9, "title": "Architecture diagrams", "repo": "acme/FlightDeck",
+              "closed_at": "2026-10-26T22:50:00Z", "url": "https://github.com/acme/FlightDeck/pull/9"}
+        cache.write_text(json.dumps({"prs": [pr]}))
+        data = {"merges": [{"title": "Architecture diagrams", "repo": "acme/FlightDeck", "number": 9}],
+                "steps": [], "decisions": [], "settled": []}
+        with mock.patch("sys.stderr", io.StringIO()), mock.patch("sys.stdout", io.StringIO()):
+            self.assertEqual(reconcile_merges_lifecycle(data, self.cfg, now=NOW), 0)
+        self.assertEqual(data["settled"], [])
+        pr.update(merged=True, merged_at="2026-10-26T22:51:00Z")
+        cache.write_text(json.dumps({"prs": [pr]}))
+        with mock.patch("sys.stderr", io.StringIO()), mock.patch("sys.stdout", io.StringIO()):
+            self.assertEqual(reconcile_merges_lifecycle(data, self.cfg, now=NOW), 0)
+        self.assertEqual([r["src_id"] for r in data["settled"]], ["merged:acme/FlightDeck#9"])
+
     def test_merge_settled_card_is_dated_and_kept_for_its_day(self):
         """A card settled by a merge keeps settled_at, so the same-run prune does not drop it."""
         (self.cache / "prs-closed.json").write_text(json.dumps({"prs": [
