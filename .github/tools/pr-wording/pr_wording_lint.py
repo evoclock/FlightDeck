@@ -177,9 +177,16 @@ def lint(title: str, body: str, rules: dict) -> list[str]:
 
     found = sections(prose)
     names = [name for name, _ in found]
-    if names != rules["sections"]:
-        want = " / ".join(f"## {name}" for name in rules["sections"])
+    required = list(rules["sections"])
+    optional = list(rules.get("optional_sections") or [])
+    if names[: len(required)] != required:
+        want = " / ".join(f"## {name}" for name in required)
         problems.append(f"body: sections are {names or 'missing'}; use exactly {want}")
+    else:
+        extra = names[len(required) :]
+        if extra and (any(name not in optional for name in extra) or extra != [name for name in optional if name in extra]):
+            want_opt = " / ".join(f"## {name}" for name in optional) or "(none)"
+            problems.append(f"body: extra sections {extra}; optional only {want_opt}")
     notes = dict(found).get("Notes for agents")
     if notes is not None:
         bullets = [m.group(1) for m in map(BULLET_RE.match, notes) if m]

@@ -10,8 +10,7 @@
   "sections": [
     "What changed",
     "Why",
-    "How verified",
-    "Notes for agents"
+    "How verified"
   ],
   "allowed_names": [],
   "banned": [
@@ -56,5 +55,8 @@
     "utilize",
     "facilitate",
     "aforementioned"
+  ],
+  "optional_sections": [
+    "Notes for agents"
   ]
 }
