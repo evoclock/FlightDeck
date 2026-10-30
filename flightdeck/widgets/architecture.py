@@ -25,7 +25,14 @@ class DiagramError(ValueError):
 
 
 def tracker_status(n):
-    return "unverified" if n.get("unverified") else BB_STATUS[n["status"]]
+    """Map a bowerbird node to a tracker status chip.
+
+    Product diagrams sometimes omit `status` (category/type only). Missing or
+    unknown values become unverified so one tab cannot blank the whole pane.
+    """
+    if n.get("unverified"):
+        return "unverified"
+    return BB_STATUS.get(n.get("status"), "unverified")
 
 
 def bb_page(src):
@@ -69,7 +76,14 @@ def render(ctx):
     base = Path(ctx.assets_dir)
     P = ctx.data.get("projects") or {}
     entries = P.get("tabs") or []
-    loaded = [(t, *load_diagram(base, t["diagram"])) for t in entries if t.get("diagram")]
+    loaded = []
+    for t in entries:
+        if not t.get("diagram"):
+            continue
+        try:
+            loaded.append((t, *load_diagram(base, t["diagram"])))
+        except DiagramError:
+            continue
     tabs, panels, pages = [], [], []
     for i, t in enumerate(entries):
         if t.get("status") == "pending" and not t.get("diagram"):
@@ -85,8 +99,19 @@ def render(ctx):
                           f'class="tabpanel"{"" if i == 0 else " hidden"}>'
                           f'<p class="arch-sum">Pending product diagram</p><p class="note">{action}</p></div>')
             continue
-        dg, html_ = load_diagram(base, t["diagram"])
-        pid, name, st = e(t["id"]), dg["meta"]["title"], [tracker_status(n) for n in dg["nodes"]]
+        try:
+            dg, html_ = load_diagram(base, t["diagram"])
+            pid, name, st = e(t["id"]), dg["meta"]["title"], [tracker_status(n) for n in dg["nodes"]]
+        except (DiagramError, KeyError, TypeError) as err:
+            pid = e(t["id"])
+            label = t.get("label") or Path(t.get("diagram") or pid).stem
+            tabs.append(f'<button role="tab" id="tab-{pid}" aria-selected="{str(i == 0).lower()}" '
+                        f'aria-controls="arch-{pid}" tabindex="{0 if i == 0 else -1}" type="button">{e(label)}</button>')
+            panels.append(f'<div role="tabpanel" id="arch-{pid}" aria-labelledby="tab-{pid}" '
+                          f'class="tabpanel"{"" if i == 0 else " hidden"}>'
+                          f'<p class="arch-sum">Diagram unavailable</p>'
+                          f'<p class="note" role="alert">{e(type(err).__name__)}: {e(str(err))}</p></div>')
+            continue
         sel = "true" if i == 0 else "false"
         tabs.append(f'<button role="tab" id="tab-{pid}" aria-selected="{sel}" aria-controls="arch-{pid}" '
                     f'tabindex="{0 if i == 0 else -1}" type="button">{e(name)}</button>')

@@ -322,14 +322,23 @@ class WidgetPortTests(Base):
         self.assertGreater(start, NOW - datetime.timedelta(days=7))
 
     def test_architecture_refuses_stale_render(self):
+        """Why: a stale diagram fails that tab only; Architecture stays available."""
         arch = self.assets / 'architecture'
         (arch / 'rendered').mkdir(parents=True)
         (arch / 'demo.bower.json').write_text(json.dumps({'schema': 'bowerbird/v1', 'meta': {'title': 'D'}, 'nodes': []}))
         (arch / 'rendered' / 'manifest.json').write_text(json.dumps({'diagrams': {'demo.bower.json': {'sha256': 'old'}}}))
         d = {'projects': {'tabs': [{'id': 'demo', 'diagram': 'architecture/demo.bower.json'}]}}
-        with self.assertRaises(ValueError) as cm:
-            render_slot('architecture.diagrams', self.ctx(d))
-        self.assertIn('changed since it was rendered', str(cm.exception))
+        out = render_slot('architecture.diagrams', self.ctx(d))
+        self.assertIn('Architecture', out)
+        self.assertIn('Diagram unavailable', out)
+        self.assertIn('changed since it was rendered', out)
+
+    def test_architecture_node_without_status_stays_available(self):
+        """Why: CES diagrams that omit node status must not blank Architecture."""
+        from flightdeck.widgets.architecture import tracker_status
+        self.assertEqual(tracker_status({"id": "lex"}), "unverified")
+        self.assertEqual(tracker_status({"id": "x", "status": "implemented"}), "built")
+
 
     def test_architecture_inlines_self_contained_pages(self):
         import hashlib
