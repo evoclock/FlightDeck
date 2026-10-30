@@ -351,6 +351,15 @@ def within(moment, now, **delta):
     return aware(now) - parsed <= datetime.timedelta(**delta)
 
 
+ARCH_REVIEW_REPOS = {"flock-master", "FlightDeck"}
+ARCH_REVIEW_TITLE = re.compile(r"\b(?:architectur\w*|diagram\w*|bowerbird)\b", re.I)
+
+
+def is_architecture_review(repo, title):
+    """Architecture review of these two repos stays on the human GitHub merge path."""
+    return (repo or "").split("/")[-1] in ARCH_REVIEW_REPOS and bool(ARCH_REVIEW_TITLE.search(title or ""))
+
+
 def repo_listed(repo, names):
     repo_l = (repo or "").lower()
     short = repo_l.split("/")[-1]
@@ -1626,6 +1635,8 @@ def reconcile_merges_lifecycle(data, cfg, now=None):
         key = pr_key(pr)
         merges = [row for row in merges if not _row_matches_pr(as_merge(row), pr)]
         title = pr.get("title") or key
+        if not pr.get("merged") and is_architecture_review(pr.get("repo"), title):
+            continue  # Closing a review is not an observed Architecture merge.
         if pr.get("merged"):
             detail = f"- {key} merged."
             heading = f"Merged {title}"
@@ -1704,6 +1715,11 @@ def reconcile_ready_decisions(data, cfg, now=None):
         pr = {"repo": info.get("repo"), "number": info.get("number"), "url": info.get("url"), "title": info.get("title")}
         if info.get("number") is None:
             pr["number"] = ""
+        if is_architecture_review(info.get("repo"), info.get("title")):
+            decisions[:] = [decision for decision in decisions
+                            if not (isinstance(decision, dict) and decision.get("src") in {"ready", "ready-draft"}
+                                    and _open_mentions([decision], pr))]
+            continue
         if draft:
             short = (info.get("repo") or "").split("/")[-1]
             live = None
