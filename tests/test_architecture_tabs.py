@@ -8,7 +8,7 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-from flightdeck.sync import import_product_bowers, reconcile_inflight
+from flightdeck.sync import _upsert_architecture, import_product_bowers, reconcile_inflight
 from tests.test_sync import cfg, write
 
 NOW = datetime.datetime(2026, 10, 25, 12, 0, tzinfo=datetime.timezone.utc)
@@ -63,6 +63,19 @@ class ArchitectureTabs(unittest.TestCase):
         data = data if data is not None else {"merges": [], "streams": [], "decisions": [], "projects": {"tabs": []}}
         self.assertEqual(reconcile_inflight(data, self.loaded, now=NOW), 0)
         return data
+
+    def test_empty_upsert_keeps_existing_tabs(self):
+        """Why: an architecture upsert that produces no tabs must not blank the pane."""
+        self.registry([])
+        prior = [{"id": "omb", "diagram": "architecture/openmausbot.bower.json"}]
+        data = {"merges": [], "streams": [], "decisions": [],
+                "projects": {"tabs": list(prior), "rule": "tip rule", "verified": "kept"}}
+        with mock.patch("flightdeck.sync.stream_architecture_entries", return_value=[]), \
+             mock.patch("flightdeck.sync.import_product_bowers", return_value={}), \
+             mock.patch("flightdeck.sync._demote_thin_architecture"):
+            _upsert_architecture(data, self.loaded, [], [])
+        self.assertEqual(data["projects"]["tabs"], prior)
+        self.assertEqual(len(data["projects"]["tabs"]), 1)
 
     def test_opt_in_requires_product_source_and_rendered_views(self):
         """Why: no tab can show a stale page before the product's diagram is rendered."""

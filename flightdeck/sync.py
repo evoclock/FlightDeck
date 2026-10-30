@@ -1590,6 +1590,14 @@ def _upsert_architecture(data, cfg, merges, repos=()):
             wanted.append({"id": key, "status": "pending", "repo": name, "label": entry["label"],
                            "stream": entry.get("stream")})
             print(f"architecture: render required for {name}: {record['diagram']}", file=sys.stderr)
+    prior_tabs = projects.get("tabs") or []
+    # Never blank Architecture: an empty upsert must not erase tips that still load.
+    if not wanted and prior_tabs:
+        print(
+            f"architecture: keeping {len(prior_tabs)} existing tabs; upsert produced none",
+            file=sys.stderr,
+        )
+        wanted = list(prior_tabs)
     projects["tabs"] = wanted
     projects["pending"] = []
     projects["rule"] = "Architecture tabs follow crew streams and product-owned rendered diagrams."
