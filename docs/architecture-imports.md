@@ -13,4 +13,6 @@ It never rewrites product nodes or invents a placeholder. Render both HTML
 views and update the diagram manifest before a newly imported diagram gets a
 tab. Missing sources and unrendered diagrams remain pending with a verified
 product draft PR link when available. A stream drops only when explicitly done
-and every overlay node is complete at the current product head.
+and every overlay node is complete at the current product head. Last-tab
+retention is policy: Never blank Architecture, even when the last product is
+complete. Retention never bypasses the source hash or two-view guard.

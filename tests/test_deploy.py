@@ -96,6 +96,24 @@ class PublishTests(unittest.TestCase):
                 self.assertNotIn(bad, low, bad)
 
 
+class PartialReceiptTests(unittest.TestCase):
+    def test_uploaded_worker_reports_domain_failure(self):
+        """Why: uploaded code must get a receipt even when domain binding fails."""
+        import importlib.util
+        spec = importlib.util.spec_from_file_location('flightdeck_site_build', SITE / 'build.py')
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        cfg = json.loads(_text(SITE / 'site.example.json'))
+        source = module.deploy_mcp('worker', cfg, {})
+        script = """const cloudflare={request:async x=>{if(x.path.endsWith('/workers/domains'))throw Error('domain unavailable');return {success:true,result:{etag:'ok'}}}};
+""" + '(' + source.strip() + ')().then(x=>console.log(JSON.stringify(x)))'
+        result = subprocess.run(['node', '-e', script], cwd=ROOT, capture_output=True, text=True)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        receipt = json.loads(result.stdout)
+        self.assertTrue(receipt['uploaded'])
+        self.assertEqual(receipt['domain'], 'failed: domain unavailable')
+
+
 class PublicTreeSecretTests(unittest.TestCase):
     def test_site_scripts_and_readme_have_no_live_secrets(self):
         required = [

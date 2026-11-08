@@ -19,6 +19,7 @@ import sys
 import urllib.error
 import urllib.parse
 import urllib.request
+import uuid
 from pathlib import Path
 
 from collectors import load, refuse_demo_write, save
@@ -362,10 +363,8 @@ def is_architecture_review(repo, title):
 
 def repo_listed(repo, names):
     repo_l = (repo or "").lower()
-    short = repo_l.split("/")[-1]
     for name in names:
-        item = name.lower()
-        if repo_l == item or short == item or repo_l.endswith("/" + item):
+        if repo_l == name.lower():
             return True
     return False
 
@@ -531,7 +530,7 @@ def _repo_from_gh(item):
         "full_name": full,
         "pushed_at": item.get("pushedAt") or item.get("pushed_at"),
         "created_at": item.get("createdAt") or item.get("created_at"),
-        "private": bool(item.get("isPrivate") if "isPrivate" in item else item.get("private")),
+        "private": item.get("isPrivate") if "isPrivate" in item else item.get("private"),
         "url": item.get("url") or "",
     }
 
@@ -544,7 +543,7 @@ def norm_repo(item):
             "full_name": "",
             "pushed_at": None,
             "created_at": None,
-            "private": False,
+            "private": None,
             "url": "",
         }
     full = (
@@ -568,7 +567,7 @@ def norm_repo(item):
         "full_name": full,
         "pushed_at": item.get("pushed_at") or item.get("pushedAt"),
         "created_at": item.get("created_at") or item.get("createdAt"),
-        "private": bool(private),
+        "private": private if isinstance(private, bool) else None,
         "url": url,
         "size": item.get("size") if item.get("size") is not None else item.get("diskUsage"),
     }
@@ -701,7 +700,7 @@ def _fetch_rest_token(cfg, opener, token, now):
             "full_name": item.get("full_name"),
             "pushed_at": item.get("pushed_at"),
             "created_at": item.get("created_at"),
-            "private": bool(item.get("private")),
+            "private": item.get("private") if isinstance(item.get("private"), bool) else None,
             "url": item.get("html_url") or "",
         })
     releases = _releases_from_api(cfg, opener=opener, token=token)
@@ -796,7 +795,7 @@ def reconcile_responses(data, cfg, opener=None, now=None):
             handled = set(handled_doc.get("ids") or [])
             applied = apply_responses(data, responses, handled, now)
             if applied:
-                write_json(cache_path(cfg, "responses-handled.json"), {"ids": sorted(handled | set(applied))})
+                data["_responses_handled_pending"] = sorted(handled | set(applied))
     # Settled hard ceiling: every publish drops Settled rows and settled Decisions older than one day.
     for note in prune_settled(data, read_cache_rows(cfg, "prs-closed.json", "prs"), now):
         print(f"reconcile_responses: {note}")
@@ -875,6 +874,9 @@ def upsert_response(doc, entry, email=""):
     out = dict(doc or {})
     if email:
         out.setdefault("email", email)
+    if any(isinstance(r, dict) and r.get("id") == entry["id"] and r.get("value") == "undone"
+           for r in out.get("responses") or []):
+        return out
     rows = [
         r for r in out.get("responses") or []
         if not (isinstance(r, dict) and r.get("id") == entry["id"]
@@ -1034,19 +1036,19 @@ def _authorised_alternative_text(text, hm):
 
 def apply_responses(data, responses, handled, now):
     applied = []
+    undone = {r.get("id") for r in responses
+              if isinstance(r, dict) and r.get("id") and r.get("value") == "undone"}
     for resp in responses:
         if not isinstance(resp, dict):
             continue
         rid = str(resp.get("id") or "")
-        if not rid:
+        if not rid or rid in undone:
             continue
         value = resp.get("value") or ""
         kind = resp.get("type") or ""
         if kind == "step" or value == "done":
-            if rid in handled:
-                continue
             step = _find_by_id(data.get("steps"), rid, "step")
-            if not step or value != "done":
+            if not step or value != "done" or step.get("done"):
                 continue
             step["done"] = True
             applied.append(rid)
@@ -1687,11 +1689,13 @@ def _step_matches_pr(step, pr):
 
 
 def public_repo_names(cfg):
-    """Short names of owner repos with private=false on the live repos cache."""
+    """Only explicitly public full names owned by the configured owner."""
     names = []
-    for row in norm_repos(read_cache_rows(cfg, "repos.json", "repos") or []):
-        if row.get("private") is False and row.get("name"):
-            names.append(row["name"])
+    for raw in read_cache_rows(cfg, "repos.json", "repos") or []:
+        full = raw.get("full_name") or raw.get("nameWithOwner") or ""
+        owner = cfg.get("owner") or ""
+        if owner and raw.get("private") is False and full.lower().startswith(owner.lower() + "/"):
+            names.append(full)
     return names
 
 
@@ -1706,16 +1710,23 @@ def _green_draft_pr(pr):
 def reconcile_ready_decisions(data, cfg, now=None):
     del now
     names = public_repo_names(cfg)
+    live_prs = read_cache_rows(cfg, "prs.json", "prs")
+    eligible = {pr_key(p): ("ready-draft" if _green_draft_pr(p) else "ready")
+                for p in live_prs or [] if str(p.get("state") or "open").lower() == "open"
+                and (_green_draft_pr(p) or pr_is_ready(p))}
+    decisions = data.setdefault("decisions", [])
+    decisions[:] = [d for d in decisions if not (isinstance(d, dict) and d.get("state") == "open"
+                   and d.get("src") in {"ready", "ready-draft"}
+                   and (eligible.get(d.get("pr")) != d.get("src")
+                        or (d.get("pr") or "").rsplit("#", 1)[0] not in names))]
     if not names:
         print("reconcile_ready_decisions: no public repos in cache, skipping", file=sys.stderr)
         return 0
-    decisions = data.setdefault("decisions", [])
     added = 0
     for row in data.get("merges") or []:
         info = as_merge(row)
-        state = str(info.get("state") or "").lower()
-        ready = state.startswith("ready")
-        draft = state.startswith("draft")
+        ready = eligible.get(f"{info.get('repo')}#{info.get('number')}") == "ready"
+        draft = eligible.get(f"{info.get('repo')}#{info.get('number')}") == "ready-draft"
         if not ready and not draft:
             continue
         if not repo_listed(info.get("repo"), names):
@@ -1728,18 +1739,6 @@ def reconcile_ready_decisions(data, cfg, now=None):
                             if not (isinstance(decision, dict) and decision.get("src") in {"ready", "ready-draft"}
                                     and _open_mentions([decision], pr))]
             continue
-        if draft:
-            short = (info.get("repo") or "").split("/")[-1]
-            live = None
-            for cand in read_cache_rows(cfg, "prs.json", "prs") or []:
-                if str(cand.get("number")) != str(info.get("number")):
-                    continue
-                if (cand.get("repo") or "").split("/")[-1] != short:
-                    continue
-                live = cand
-                break
-            if live is None or not _green_draft_pr(live):
-                continue
         if _open_mentions(decisions, pr):
             continue
         number = info.get("number")
@@ -1748,6 +1747,7 @@ def reconcile_ready_decisions(data, cfg, now=None):
         link = f"[{info.get('title') or label}]({url})" if url else (info.get("title") or label)
         if draft:
             decisions.append({
+                "id": "dec-" + uuid.uuid4().hex, "pr": f"{info.get('repo')}#{number}",
                 "state": "open",
                 "title": f"Accept draft {label}?",
                 "meta": "green draft",
@@ -1758,6 +1758,7 @@ def reconcile_ready_decisions(data, cfg, now=None):
             })
         else:
             decisions.append({
+                "id": "dec-" + uuid.uuid4().hex, "pr": f"{info.get('repo')}#{number}",
                 "state": "open",
                 "title": f"Merge {label}?",
                 "meta": "ready to merge",
@@ -1966,8 +1967,11 @@ def cli_data(fn, argv=None):
     data = load(path) if path.is_file() else {}
     before = copy.deepcopy(data)
     code = fn(data, cfg)
+    pending = data.pop("_responses_handled_pending", None)
     if data != before:
         save(path, data)
+    if pending is not None:
+        write_json(os.environ.get("FLIGHTDECK_HANDLED") or cache_path(cfg, "responses-handled.json"), {"ids": pending})
     return 0 if code is None else code
 
 

@@ -35,11 +35,33 @@ async function api(req, env, path) {
     if (req.method !== "POST") return json(405, { error: "POST only." });
     const r = await readBody(req);
     if (r.res) return r.res;
-    if (!r.body || !Array.isArray(r.body.responses)) return json(400, { error: "Expected {responses: [...]}." });
+    if (!r.body || !Array.isArray(r.body.responses) || r.body.responses.some(x =>
+      !x || typeof x.id !== "string" || !x.id || typeof x.timestamp !== "string" ||
+      !["accepted", "rejected", "comment", "done", "undone"].includes(x.value)))
+      return json(400, { error: "Expected valid responses with id, value and timestamp." });
     if (!env || !env.FLIGHTDECK_RESPONSES) return json(501, { error: "No FLIGHTDECK_RESPONSES binding; responses stay in this browser." });
+    const key = `responses/${email}`;
+    const kv = env.FLIGHTDECK_RESPONSES;
+    const snapshot = await kv.get(key);
+    let raw = null;
+    try { raw = JSON.parse(snapshot || "null"); } catch (_) { return json(503, { error: "Responses unavailable; retry." }); }
+    if (snapshot && (!raw || !Array.isArray(raw.responses)))
+      return json(503, { error: "Responses unavailable; retry." });
+    const rows = new Map();
+    for (const x of raw && Array.isArray(raw.responses) ? raw.responses : []) {
+      if (x && x.id) rows.set(x.id, x);
+    }
+    for (const x of r.body.responses) {
+      const prior = rows.get(x.id);
+      if (prior && prior.value === "undone") continue;
+      if (!prior || x.value === "undone" || x.timestamp > (prior.timestamp || "")) rows.set(x.id, x);
+    }
+    // KV has no atomic compare-and-swap. Detect a changed snapshot before writing
+    // and ask the client to retry rather than knowingly overwrite another writer.
+    if (await kv.get(key) !== snapshot) return json(409, { error: "Responses changed; retry." });
     const at = new Date().toISOString();
-    await env.FLIGHTDECK_RESPONSES.put(`responses/${email}`, JSON.stringify({ at, email, responses: r.body.responses }));
-    return json(200, { ok: true, stored: r.body.responses.length, at });
+    await kv.put(key, JSON.stringify({ at, email, responses: [...rows.values()] }));
+    return json(200, { ok: true, stored: rows.size, at });
   }
   // Chat Accept ingest: merge one answer into KV without wiping the page's list.
   // scripts/record_chat_accept.py writes the same shape; this route needs no bot memory.
@@ -54,8 +76,11 @@ async function api(req, env, path) {
     if (!["accepted", "rejected", "comment"].includes(value)) return json(400, { error: "value must be accepted|rejected|comment." });
     if (!env || !env.FLIGHTDECK_RESPONSES) return json(501, { error: "No FLIGHTDECK_RESPONSES binding." });
     const key = `responses/${email}`;
+    const snapshot = await env.FLIGHTDECK_RESPONSES.get(key);
     let raw = null;
-    try { raw = JSON.parse(await env.FLIGHTDECK_RESPONSES.get(key) || "null"); } catch (_) { raw = null; }
+    try { raw = JSON.parse(snapshot || "null"); } catch (_) { return json(503, { error: "Responses unavailable; retry." }); }
+    if (snapshot && (!raw || !Array.isArray(raw.responses)))
+      return json(503, { error: "Responses unavailable; retry." });
     const at = new Date().toISOString();
     const row = {
       id,
@@ -67,8 +92,12 @@ async function api(req, env, path) {
       ref: String(entry.ref || "chat").slice(0, 200),
     };
     const prev = (raw && Array.isArray(raw.responses)) ? raw.responses : [];
+    if (prev.some(x => x && x.id === id && x.value === "undone"))
+      return json(200, { ok: true, id, stored: prev.length, at });
     const rows = prev.filter((x) => !(x && x.id === id && (x.channel === "chat" || x.timestamp === row.timestamp)));
     rows.push(row);
+    if (await env.FLIGHTDECK_RESPONSES.get(key) !== snapshot)
+      return json(409, { error: "Responses changed; retry." });
     await env.FLIGHTDECK_RESPONSES.put(key, JSON.stringify({ at, email, responses: rows }));
     return json(200, { ok: true, id, stored: rows.length, at });
   }
