@@ -5,6 +5,7 @@ import re
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 from flightdeck import render as R
 
@@ -21,7 +22,11 @@ class DemoRenderTests(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
         self.out = Path(self.tmp.name) / 'index.html'
-        self.doc = R.render(DEMO / 'config.json', DEMO / 'data.json', self.out)
+        # The static example belongs to its recorded week, not the week this test runs.
+        weekly = json.loads((DEMO / 'data.json').read_text())['activity_weekly']
+        fixture_time = datetime.datetime.fromisoformat(weekly['at'])
+        with mock.patch('flightdeck.widgets.activity.local_now', return_value=fixture_time):
+            self.doc = R.render(DEMO / 'config.json', DEMO / 'data.json', self.out, now=fixture_time)
 
     def tearDown(self):
         self.tmp.cleanup()
