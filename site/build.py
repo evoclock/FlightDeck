@@ -93,8 +93,10 @@ def deploy_mcp(src, cfg, meta):
     "--" + b + "--", ""].join("\\r\\n");
   const up = await cloudflare.request({{ method: "PUT", path: `/accounts/${{A}}/workers/scripts/${{NAME}}`, body, contentType: `multipart/form-data; boundary=${{b}}`, rawBody: true }});
   let sub = null; try {{ sub = (await cloudflare.request({{ method: "POST", path: `/accounts/${{A}}/workers/scripts/${{NAME}}/subdomain`, body: {{ enabled: false }} }})).success; }} catch (e) {{ sub = "skip: " + e.message.slice(0, 120); }}
-  const dom = await cloudflare.request({{ method: "PUT", path: `/accounts/${{A}}/workers/domains`, body: {{ hostname: HOST, service: NAME, zone_id: ZONE, environment: "production" }} }});
-  return {{ uploaded: up.success, etag: up.result && up.result.etag, workers_dev_disabled: sub, domain: dom.result && dom.result.hostname, bytes: src.length }};
+  let domain;
+  try {{ const dom = await cloudflare.request({{ method: "PUT", path: `/accounts/${{A}}/workers/domains`, body: {{ hostname: HOST, service: NAME, zone_id: ZONE, environment: "production" }} }}); domain = dom.result && dom.result.hostname; }}
+  catch (e) {{ domain = "failed: " + e.message.slice(0, 120); }}
+  return {{ uploaded: up.success, etag: up.result && up.result.etag, workers_dev_disabled: sub, domain, bytes: src.length }};
 }}
 """
 

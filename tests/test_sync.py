@@ -266,13 +266,15 @@ class PaneTests(unittest.TestCase):
         self.assertIn("acme/app#7 merged.", data["settled"][0]["detail"])
 
     def test_ready_decision_respects_public_repos(self):
-        loaded = cfg(self.tmp, public_repos=[])  # evidence from repos.json, not config list
+        loaded = cfg(self.tmp, owner="acme", public_repos=[])  # evidence from repos.json, not config list
         write(Path(loaded["cache_dir"]) / "repos.json", {"complete": True, "repos": [
             {"name": "app", "full_name": "acme/app", "private": False, "pushed_at": "2026-10-25T10:00:00Z",
              "created_at": "2020-01-01T00:00:00Z", "url": "https://github.com/acme/app"},
             {"name": "lib", "full_name": "acme/lib", "private": True, "pushed_at": "2026-10-25T10:00:00Z",
              "created_at": "2020-01-01T00:00:00Z", "url": "https://github.com/acme/lib"},
         ]})
+        write(Path(loaded["cache_dir"]) / "prs.json", {"prs": [
+            {"repo": "acme/app", "number": 7, "draft": False, "merge_state": "CLEAN", "checks": "success"}]})
         data = {"merges": [
             {"title": "Add", "repo": "acme/app", "state": "Ready to merge", "number": 7, "url": "https://github.com/acme/app/pull/7"},
             {"title": "Other", "repo": "acme/lib", "state": "Ready to merge", "number": 3, "url": "https://github.com/acme/lib/pull/3"},
@@ -284,8 +286,44 @@ class PaneTests(unittest.TestCase):
         self.assertNotIn("acme/lib", data["decisions"][0]["text"])
         self.assertTrue(data["decisions"][0]["text"].startswith("- "))
 
+    def test_ready_visibility_requires_raw_owner_evidence(self):
+        """Why: missing privacy and another owner's matching name cannot authorize a public ask."""
+        loaded = cfg(self.tmp, owner="acme")
+        cache = Path(loaded["cache_dir"])
+        write(cache / "repos.json", {"repos": [
+            {"full_name": "acme/unknown", "name": "unknown"},
+            {"full_name": "other/app", "name": "app", "private": False},
+            {"full_name": "acme/app", "name": "app", "isPrivate": False},
+        ]})
+        from flightdeck.sync import public_repo_names
+        self.assertEqual(public_repo_names(loaded), [])
+
+    def test_ready_ask_withdraws_and_reopens_with_fresh_identity(self):
+        """Why: stale checks retire the ask and an earlier Accept must not answer the replacement."""
+        loaded = cfg(self.tmp, owner="acme")
+        cache = Path(loaded["cache_dir"])
+        write(cache / "repos.json", {"repos": [{"name": "app", "full_name": "acme/app", "private": False}]})
+        data = {"merges": [{"repo": "acme/app", "number": 7, "title": "Ship", "state": "Ready to merge"}], "decisions": []}
+        pr = {"repo": "acme/app", "number": 7, "draft": False, "merge_state": "CLEAN", "checks": "success"}
+        write(cache / "prs.json", {"prs": [pr]})
+        reconcile_ready_decisions(data, loaded)
+        first = data["decisions"][0]["id"]
+        reconcile_ready_decisions(data, loaded)
+        self.assertEqual(data["decisions"][0]["id"], first)
+        write(cache / "prs.json", {"prs": [{**pr, "checks": "failure"}]})
+        reconcile_ready_decisions(data, loaded)
+        self.assertEqual(data["decisions"], [])
+        write(cache / "prs.json", {"prs": [{**pr, "draft": True}]})
+        reconcile_ready_decisions(data, loaded)
+        self.assertEqual(data["decisions"][0]["src"], "ready-draft")
+        write(cache / "prs.json", {"prs": [pr]})
+        reconcile_ready_decisions(data, loaded)
+        self.assertNotEqual(data["decisions"][0]["id"], first)
+        apply_responses(data, [{"id": first, "type": "decision", "value": "accepted"}], set(), NOW)
+        self.assertEqual(data["decisions"][0]["state"], "open")
+
     def test_ready_decisions_open_accept_for_green_drafts(self):
-        loaded = cfg(self.tmp, public_repos=[])
+        loaded = cfg(self.tmp, owner="acme", public_repos=[])
         write(Path(loaded["cache_dir"]) / "repos.json", {"complete": True, "repos": [
             {"name": "app", "full_name": "acme/app", "private": False, "pushed_at": "2026-10-25T10:00:00Z",
              "created_at": "2020-01-01T00:00:00Z", "url": "https://github.com/acme/app"},
@@ -310,7 +348,7 @@ class PaneTests(unittest.TestCase):
 
     def test_architecture_reviews_do_not_open_chat_merge_or_undraft_asks(self):
         """Why: architecture reviews belong to the reviewer's GitHub merge path, not chat Accept."""
-        loaded = cfg(self.tmp)
+        loaded = cfg(self.tmp, owner="acme")
         cache = Path(loaded["cache_dir"])
         write(cache / "repos.json", {"repos": [
             {"name": name, "full_name": f"acme/{name}", "private": False}
@@ -318,6 +356,8 @@ class PaneTests(unittest.TestCase):
         ]})
         write(cache / "prs.json", {"prs": [
             {"number": 6, "repo": "acme/FlightDeck", "draft": True, "checks": "success"},
+            *({"number": n, "repo": f"acme/{repo}", "draft": False, "merge_state": "CLEAN", "checks": "success"}
+              for repo, n in (("flock-master", 7), ("FlightDeck", 8), ("app", 9))),
         ]})
         data = {"merges": [
             {"title": "Architecture diagrams", "repo": "acme/FlightDeck", "state": "Draft, checks green", "number": 6,
@@ -338,7 +378,8 @@ class PaneTests(unittest.TestCase):
 
     def test_existing_architecture_only_chat_ask_is_removed(self):
         """Why: a previous automatic chat ask must not linger after the new routing rule."""
-        loaded = cfg(self.tmp)
+        loaded = cfg(self.tmp, owner="acme")
+        write(Path(loaded["cache_dir"]) / "prs.json", {"prs": []})
         write(Path(loaded["cache_dir"]) / "repos.json", {"repos": [
             {"name": "FlightDeck", "full_name": "acme/FlightDeck", "private": False},
         ]})
@@ -563,6 +604,9 @@ class PaneTests(unittest.TestCase):
 
     def test_comment_does_not_act_as_ready_merge_accept(self):
         loaded = cfg(self.tmp, public_repos=[])
+        loaded["owner"] = "acme"
+        write(Path(loaded["cache_dir"]) / "prs.json", {"prs": [
+            {"repo": "acme/app", "number": 7, "merge_state": "CLEAN", "checks": "success"}]})
         write(Path(loaded["cache_dir"]) / "repos.json", {"complete": True, "repos": [
             {"name": "app", "full_name": "acme/app", "private": False, "pushed_at": "2026-10-25T10:00:00Z",
              "created_at": "2020-01-01T00:00:00Z", "url": "https://github.com/acme/app"},
@@ -595,6 +639,31 @@ class PaneTests(unittest.TestCase):
         opened = [row for row in data["decisions"] if row.get("state") == "open"]
         self.assertEqual(len(opened), 1)
         self.assertIn("acme/app#7", opened[0]["text"])
+
+    def test_step_receipt_waits_for_canonical_save(self):
+        """Why: a failed save must not mark an unsaved Step handled forever."""
+        from flightdeck.sync import cli_data, read_json
+        loaded = cfg(self.tmp)
+        cache = Path(loaded["cache_dir"])
+        path = Path(self.tmp) / "instance.json"
+        write(path, {"steps": [{"id": "step-1", "done": False, "text": "Check"}]})
+        write(cache / "responses.json", {"responses": [
+            {"id": "step-1", "type": "step", "value": "done", "timestamp": "2026-10-25T12:00:00Z"}]})
+        with mock.patch("flightdeck.sync.load_config", return_value=loaded), mock.patch("flightdeck.sync.save", side_effect=OSError("disk full")):
+            with self.assertRaises(OSError):
+                cli_data(reconcile_responses, ["--data", str(path)])
+        self.assertFalse((cache / "responses-handled.json").exists())
+        write(cache / "responses-handled.json", {"ids": ["step-1"]})
+        self.assertEqual(cli_data(reconcile_responses, ["--data", str(path), "--config", "config/sync.example.json"]), 0)
+        self.assertTrue(read_json(path)["steps"][0]["done"])
+
+    def test_undo_suppresses_older_chat_answer(self):
+        """Why: cached chat answers cannot resurrect a later Undo."""
+        data = {"decisions": [{"id": "dec-1", "state": "open", "title": "Ship?"}], "settled": []}
+        rows = [{"id": "dec-1", "type": "decision", "value": "accepted", "timestamp": "2026-10-25T12:00:00Z"},
+                {"id": "dec-1", "type": "decision", "value": "undone", "timestamp": "2026-10-25T12:01:00Z"}]
+        self.assertEqual(apply_responses(data, rows, set(), NOW), [])
+        self.assertEqual(data["decisions"][0]["state"], "open")
 
     def test_responses_skip_without_cache(self):
         data = {"decisions": [{"id": "dec-1", "state": "open", "title": "A", "text": "- A"}]}
