@@ -119,8 +119,10 @@ def render(ctx):
         repos = " ".join(ext_link(f"https://github.com/{r}", r) for r in dg["meta"].get("repos", []))
         toggle = "".join(f'<button type="button" class="vt" data-view="{v}" aria-pressed="{str(j == 0).lower()}">{l}</button>'
                          for j, (v, l) in enumerate(VIEWS.items()))
+        source_note = ('<p class="note" role="status">Source check unavailable. Showing the last verified diagram.</p>'
+                       if t.get("source_status") == "stale" else "")
         panels.append(f'<div role="tabpanel" id="arch-{pid}" aria-labelledby="tab-{pid}" class="tabpanel"{"" if i == 0 else " hidden"}>'
-                      f'<p class="arch-sum">{e(dg["meta"].get("subtitle", ""))}</p>'
+                      f'<p class="arch-sum">{e(dg["meta"].get("subtitle", ""))}</p>{source_note}'
                       f'<div class="arch-bar"><p class="arch-meta">{counts} · {repos}</p>'
                       f'<div class="views" role="group" aria-label="{e(name)} view">{toggle}</div></div>'
                       f'<div class="bb-frame" data-p="{pid}" data-name="{e(name)}">'

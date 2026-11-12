@@ -388,6 +388,10 @@ class WidgetPortTests(Base):
         self.assertIn('id="bb-font"', out)
         self.assertNotIn('fonts.example', out)
         self.assertIn('flightdeck-fonts', out)
+        d['projects']['tabs'][0]['source_status'] = 'stale'
+        stale = render_slot('architecture.diagrams', self.ctx(d))
+        self.assertIn('last verified diagram', stale)
+        self.assertIn('id="bb-demo-iso"', stale)
 
 
 if __name__ == '__main__':
