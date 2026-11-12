@@ -59,6 +59,11 @@ class DemoRenderTests(unittest.TestCase):
         self.assertNotIn('FlightDeck demo', self.doc)
         self.assertIn('alt="ADHD Neuromancer"', self.doc)
 
+    def test_demo_shows_example_freshness_warning(self):
+        """Why: the offline demo must exercise the per-pane freshness indicator."""
+        self.assertIn('class="freshness-badge"', self.doc)
+        self.assertIn('stale: Example report is older than the latest activity.', self.doc)
+
     def test_no_private_strings(self):
         for bad in FORBIDDEN:
             self.assertNotIn(bad, self.doc, bad)

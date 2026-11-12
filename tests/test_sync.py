@@ -405,19 +405,19 @@ class PaneTests(unittest.TestCase):
             {"text": "Install the app", "done": False},
             {"text": "Merge acme/app#8", "src": "ready", "pr": "acme/app#8", "done": False},
         ]}
-        self.assertEqual(reconcile_steps_evidence(data, loaded), 0)
+        self.assertEqual(reconcile_steps_evidence(data, loaded, now=NOW), 0)
         texts = [step["text"] for step in data["steps"]]
         self.assertIn("Merge acme/app#7", texts)
         self.assertNotIn("Merge acme/app#8", texts)
         release = next(step for step in data["steps"] if "first release" in step["text"])
         self.assertFalse(release["done"])
         write(Path(loaded["cache_dir"]) / "omb-releases.json", {"releases": [{"tag": "v0", "draft": True}]})
-        reconcile_steps_evidence(data, loaded)
+        reconcile_steps_evidence(data, loaded, now=NOW)
         release = next(step for step in data["steps"] if "first release" in step["text"])
         self.assertFalse(release["done"])
         write(Path(loaded["cache_dir"]) / "omb-releases.json", {"releases": [{"tag": "v1", "draft": False}]})
         write(Path(loaded["cache_dir"]) / "omb-install.json", {"app": "Demo", "version": "1.2", "checked_at": "2026-10-25T00:00:00Z"})
-        reconcile_steps_evidence(data, loaded)
+        reconcile_steps_evidence(data, loaded, now=NOW)
         release = next(step for step in data["steps"] if "first release" in step["text"])
         install = next(step for step in data["steps"] if step["text"] == "Install the app")
         self.assertTrue(release["done"])

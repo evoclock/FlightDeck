@@ -8,6 +8,11 @@ responses ids in sync config are set. Never edits data.json. Run ./publish.sh af
 
 Usage: record_chat_accept.py --id dec-... [--value accepted|rejected|comment] [--comment '...']
        [--at 2026-10-26T14:18:00Z] [--ref 'chat <message id>'] [--email ...] [--no-kv]
+       --ingest-pending [--data DATA] [--config CONFIG]
+
+Hook 03 ingests a trusted structured chat capture before reconciling responses.
+Missing capture warns and writes advisory status; malformed or stale capture fails.
+The capture producer authenticates the human, not a self-reported author field.
 
 Worker path (no bot memory): POST /api/chat-accept with an Access JWT merges one
 {id, value?, comment?, timestamp?, ref?} into the FLIGHTDECK_RESPONSES KV value.

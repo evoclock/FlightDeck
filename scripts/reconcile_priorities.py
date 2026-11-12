@@ -2,6 +2,7 @@
 """One priorities block per stream. Rebuild items with src "stream". Keep the rest.
 
 Done ladder items stay. Streams that disappeared keep their block.
+Derived items carry the stream's stale marker; Nothing is never a next action.
 """
 import sys
 from pathlib import Path

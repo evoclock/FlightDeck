@@ -371,6 +371,8 @@ def repo_listed(repo, names):
 
 # Settled hard ceiling: Settled rows and settled Decision cards keep at most one day.
 SETTLED_KEEP = datetime.timedelta(hours=24)
+FRESHNESS_WINDOW = datetime.timedelta(hours=1)
+STALE_PREFIX = re.compile(r"^Stale since \d{4}-\d{2}-\d{2}: ")
 
 
 def iso_z(moment):
@@ -968,11 +970,86 @@ def record_chat_accept(cfg, rid, value="accepted", comment="", at=None, ref="cha
     return entry, status
 
 
+def ingest_pending(cfg, data, now=None, kv=True):
+    """Read a trusted, owner-authenticated structured chat feed, never infer answers.
+
+    The producer verifies authorship; a self-reported author field is not authentication.
+    Missing capture is advisory unless strict mode is set. Present invalid evidence fails.
+    """
+    now = aware(now)
+    path = Path(os.environ.get("CREW_CHAT_ANSWERS") or cache_path(cfg, "pending-chat-answers.json"))
+    try:
+        if path.stat().st_size > 1_000_000:
+            raise ValueError("chat answer feed is too large")
+        raw = json.loads(path.read_text(encoding="utf-8"))
+    except FileNotFoundError:
+        print("record_chat_accept: WARNING pending chat answer capture missing; ingestion unavailable", file=sys.stderr)
+        write_json(cache_path(cfg, "chat-capture-status.json"),
+                   {"status": "missing", "checked_at": iso_z(now)})
+        if os.environ.get("CREW_CHAT_STRICT") == "1":
+            raise
+        return -1
+    if not isinstance(raw, dict) or not isinstance(raw.get("answers"), list) or len(raw["answers"]) > 1000:
+        raise ValueError("chat answer feed must contain an answers list of at most 1000 rows")
+    captured = raw.get("captured_at")
+    try:
+        captured_time = datetime.datetime.fromisoformat(captured.replace("Z", "+00:00")) if isinstance(captured, str) else None
+    except ValueError:
+        captured_time = None
+    if (captured_time is None or captured_time.tzinfo is None
+            or not -datetime.timedelta(minutes=1) <= now - captured_time <= datetime.timedelta(minutes=30)):
+        raise ValueError("chat answer capture is missing or stale")
+    key = (cfg.get("responses") or {}).get("key") or ""
+    email = key.split("/", 1)[1] if key.startswith("responses/") else ""
+    known = {d.get("id") or item_id("dec", d) for d in data.get("decisions") or [] if isinstance(d, dict)}
+    rows, seen = [], {}
+    for row in raw["answers"]:
+        if not isinstance(row, dict):
+            raise ValueError("invalid chat answer")
+        rid, at, ref = row.get("id"), row.get("timestamp"), row.get("ref")
+        value, comment = row.get("value"), row.get("comment", "")
+        try:
+            zoned = isinstance(at, str) and datetime.datetime.fromisoformat(at.replace("Z", "+00:00")).tzinfo is not None
+        except ValueError:
+            zoned = False
+        if (not email or row.get("author") != email or not isinstance(rid, str)
+                or not rid.startswith("dec-") or len(rid) > 128 or rid not in known
+                or value not in CHAT_VALUES or not zoned or not isinstance(ref, str)
+                or not ref.strip() or len(ref) > 200 or not isinstance(comment, str)
+                or len(comment) > 4000 or (value == "comment" and not comment.strip())):
+            raise ValueError("chat answer lacks verified author, known decision, explicit answer, time or reference")
+        entry = {"id": rid, "type": "decision", "value": value,
+                 "comment": comment.strip() or f"{value.capitalize()} in {ref}.",
+                 "timestamp": at, "channel": "chat", "ref": ref}
+        mark = (rid, at)
+        if mark in seen and seen[mark] != entry:
+            raise ValueError("conflicting chat answers at the same time")
+        seen[mark] = entry
+        rows.append(entry)
+    write_json(cache_path(cfg, "chat-capture-status.json"),
+               {"status": "present", "checked_at": iso_z(now), "captured_at": captured})
+    existing = {r["id"]: r for r in chat_responses(cfg)}
+    count = 0
+    for entry in sorted(rows, key=lambda row: parse_time(row["timestamp"])):
+        previous = existing.get(entry["id"])
+        if previous and parse_time(previous.get("timestamp")) and parse_time(previous["timestamp"]) >= parse_time(entry["timestamp"]):
+            continue
+        _, status = record_chat_accept(cfg, entry["id"], entry["value"], entry["comment"],
+                                       entry["timestamp"], entry["ref"], email, kv=kv, now=now)
+        if status == "failed":
+            raise DiscoveryError("chat answer KV write failed; publish stopped")
+        existing[entry["id"]] = entry
+        count += 1
+    return count
+
+
 def main_record_chat_accept(argv=None):
     import argparse
     parser = argparse.ArgumentParser(
         description="Record a chat Accept, Reject, or alternative in the responses store. Then run ./publish.sh.")
-    parser.add_argument("--id", required=True, help="tracker Decision id (dec-...)")
+    parser.add_argument("--id", help="tracker Decision id (dec-...)")
+    parser.add_argument("--ingest-pending", action="store_true", help="ingest trusted chat-answer feed before responses")
+    parser.add_argument("--data", help="tracker data file for known Decision ids")
     parser.add_argument("--value", default="accepted", choices=CHAT_VALUES)
     parser.add_argument("--comment", default="", help="the human's words, verbatim")
     parser.add_argument("--at", help="when the human answered, ISO 8601 with a zone (default: now)")
@@ -982,6 +1059,19 @@ def main_record_chat_accept(argv=None):
     parser.add_argument("--config", help="sync config JSON (default $FLIGHTDECK_SYNC_CONFIG or config/sync.json)")
     args = parser.parse_args(argv)
     cfg = load_config(args.config)
+    if args.ingest_pending:
+        path = resolve_data(args.data)
+        if path is None:
+            print("record_chat_accept: no data file, skipping", file=sys.stderr)
+            return 0
+        if refuse_demo_write(path):
+            return 2
+        count = ingest_pending(cfg, read_json(path, {}), kv=not args.no_kv)
+        if count >= 0:
+            print(f"record_chat_accept: ingested {count} new chat answers")
+        return 0
+    if not args.id:
+        parser.error("--id is required unless --ingest-pending is set")
     try:
         entry, status = record_chat_accept(cfg, args.id, args.value, args.comment, args.at, args.ref,
                                            args.email, kv=not args.no_kv)
@@ -1051,6 +1141,7 @@ def apply_responses(data, responses, handled, now):
             if not step or value != "done" or step.get("done"):
                 continue
             step["done"] = True
+            step["done_at"] = iso_z(parse_time(resp.get("timestamp")) or now)
             applied.append(rid)
             continue
         decision = _find_by_id(data.get("decisions"), rid, "dec")
@@ -1150,7 +1241,7 @@ def reconcile_inflight(data, cfg, now=None):
     data["merges"] = merges
     _upsert_primary_stream(data, cfg, len(open_prs), synthetic, ready)
     _upsert_new_repo_decisions(data, new_repos)
-    _upsert_architecture(data, cfg, merges, norm_repos(repos or []))
+    _upsert_architecture(data, cfg, merges, norm_repos(repos or []), now=now)
     print(f"reconcile_inflight: prs={len(open_prs)} active={synthetic}")
     return 0
 
@@ -1540,7 +1631,7 @@ def import_product_bowers(entries, assets, owner=""):
     return imported
 
 
-def _upsert_architecture(data, cfg, merges, repos=()):
+def _upsert_architecture(data, cfg, merges, repos=(), now=None):
     """Select rendered product imports for stream and registry entries."""
     assets = _safe_assets(cfg)
     entries = stream_architecture_entries(data, assets, repos)
@@ -1556,6 +1647,12 @@ def _upsert_architecture(data, cfg, merges, repos=()):
         name = entry["id"]
         key = _slug(entry["label"])
         record = imported.get(name)
+        source = record["source"] if record else entry["source"]
+        prior = next((r for r in old.get("repos") or []
+                      if r.get("repo") == name and r.get("source") == source), {})
+        pending_times = [r["pending_since"] for r in old.get("repos") or []
+                         if r.get("repo") == name and parse_time(r.get("pending_since"))]
+        since = min(pending_times, key=parse_time, default=iso_z(aware(now)))
         if record is None:
             owner = cfg.get("owner") or ""
             url = next((p.get("url") for p in pending_prs if name and p.get("repo") == name
@@ -1563,16 +1660,24 @@ def _upsert_architecture(data, cfg, merges, repos=()):
                             rf"https://github\.com/{re.escape(owner)}/{re.escape(name)}/pull/\d+",
                             p.get("url") or "")), None)
             evidence.append({"repo": name, "stream": entry.get("stream"), "source": entry["source"],
+                             "tab_id": key, "pending_since": since,
                              "source_repo_sha": None, "bower_hash": None, "node_count": 0,
                              "edge_count": 0, "status": "pending diagram PR", "pr_url": url, "overlay": {}})
-            wanted.append({"id": key, "status": "pending", "repo": name, "label": entry["label"],
-                           "stream": entry.get("stream"), "pr_url": url})
+            wanted.append({"id": key, "status": "pending", "repo": name,
+                           "label": f"{name or entry['label']} · pending since {since[:10]}",
+                           "stream": entry.get("stream"), "pr_url": url, "pending_since": since,
+                           "text": f"pending since {since[:10]}"})
             print(f"architecture: pending diagram for {name or entry.get('stream')}", file=sys.stderr)
             continue
+        unchanged = (prior.get("source_repo_sha") == record["source_repo_sha"]
+                     and prior.get("bower_hash") == record["bower_hash"])
+        imported_at = (prior["imported_at"] if unchanged and parse_time(prior.get("imported_at"))
+                       else iso_z(aware(now)))
         meta = by_name.get(name) or {}
         if entry["done"] and _complete_at_head(old, name, record["source_repo_sha"]):
             prior = next((r for r in old.get("repos") or [] if r.get("repo") == name), {})
             evidence.append({"repo": name, "stream": entry.get("stream"), "status": "complete",
+                             "tab_id": key, "source": source, "diagram": record["diagram"], "imported_at": imported_at,
                              "source_repo_sha": record["source_repo_sha"], "bower_hash": record["bower_hash"],
                              "node_count": record["node_count"], "edge_count": record["edge_count"],
                              "overlay": prior.get("overlay") or {}})
@@ -1585,12 +1690,15 @@ def _upsert_architecture(data, cfg, merges, repos=()):
                 overlay[node["id"]] = {"repo": name, "pushed_at": meta.get("pushed_at"),
                                        "ci": meta.get("ci") or "unknown"}
         evidence.append({"repo": name, "stream": entry.get("stream"), "status": "imported", "overlay": overlay,
-                         **{k: v for k, v in record.items() if k != "diagram"}})
+                         "tab_id": key, "imported_at": imported_at, **record})
         if _rendered(assets, record["diagram"]):
             wanted.append({"id": key, "diagram": record["diagram"], "stream": entry.get("stream")})
         else:
-            wanted.append({"id": key, "status": "pending", "repo": name, "label": entry["label"],
-                           "stream": entry.get("stream")})
+            evidence[-1]["pending_since"] = since
+            wanted.append({"id": key, "status": "pending", "repo": name,
+                           "label": f"{name or entry['label']} · pending since {since[:10]}",
+                           "stream": entry.get("stream"), "pending_since": since,
+                           "text": f"pending since {since[:10]}"})
             print(f"architecture: render required for {name}: {record['diagram']}", file=sys.stderr)
     prior_tabs = projects.get("tabs") or []
     # Never blank Architecture: an empty upsert must not erase tips that still load.
@@ -1658,6 +1766,7 @@ def reconcile_merges_lifecycle(data, cfg, now=None):
         for step in data.get("steps") or []:
             if isinstance(step, dict) and _step_matches_pr(step, pr):
                 step["done"] = True
+                step["done_at"] = pr.get("merged_at") or pr.get("closed_at") or at
         for decision in data.get("decisions") or []:
             if not isinstance(decision, dict) or decision.get("state") != "open":
                 continue
@@ -1782,7 +1891,7 @@ def _open_mentions(decisions, pr):
 
 
 def reconcile_steps_evidence(data, cfg, now=None):
-    del now
+    now = aware(now)
     prs = read_cache_rows(cfg, "prs.json", "prs")
     if prs is not None:
         ready = [p for p in prs if pr_is_ready(p)]
@@ -1802,16 +1911,28 @@ def reconcile_steps_evidence(data, cfg, now=None):
                 "url": pr.get("url") or "",
                 "meta": "ready",
                 "done": False,
+                "opened_at": iso_z(now),
                 "src": "ready",
                 "pr": key,
             })
         data["steps"] = steps
-    _apply_install(data, cfg)
-    _apply_guards(data, cfg)
+    _apply_install(data, cfg, now)
+    _apply_guards(data, cfg, now)
+    cutoff = now - SETTLED_KEEP
+    steps = data.get("steps") or []
+    kept = [step for step in steps if not (isinstance(step, dict) and step.get("done")
+            and not any(guard.get("needs") == "nondraft_release"
+                        and guard.get("step_contains")
+                        and guard["step_contains"] in (step.get("text") or "")
+                        for guard in cfg.get("guards") or [])
+            and parse_time(step.get("done_at")) and parse_time(step["done_at"]) < cutoff)]
+    if len(kept) != len(steps):
+        data["steps"] = kept
+        print(f"reconcile_steps_evidence: pruned {len(steps) - len(kept)} done steps older than 1 day")
     return 0
 
 
-def _apply_install(data, cfg):
+def _apply_install(data, cfg, now=None):
     needle = ((cfg.get("omb") or {}).get("install_step_contains") or "").strip()
     if not needle:
         return
@@ -1819,11 +1940,12 @@ def _apply_install(data, cfg):
     if not isinstance(doc, dict) or not doc.get("version"):
         return
     for step in data.get("steps") or []:
-        if isinstance(step, dict) and needle in (step.get("text") or ""):
+        if isinstance(step, dict) and needle in (step.get("text") or "") and not step.get("done"):
             step["done"] = True
+            step["done_at"] = doc.get("checked_at") or iso_z(aware(now))
 
 
-def _apply_guards(data, cfg):
+def _apply_guards(data, cfg, now=None):
     releases = read_cache_rows(cfg, "omb-releases.json", "releases")
     live = []
     if releases:
@@ -1835,35 +1957,55 @@ def _apply_guards(data, cfg):
         for step in data.get("steps") or []:
             if not isinstance(step, dict) or needle not in (step.get("text") or ""):
                 continue
+            if live and not step.get("done"):
+                release = min(live, key=lambda r: r.get("published_at") or "")
+                step["done_at"] = release.get("published_at") or iso_z(aware(now))
+            elif not live:
+                step.pop("done_at", None)
             step["done"] = bool(live)
 
 
 def apply_bot_reports(data, cfg, now=None):
-    del now
+    now = aware(now)
     path = cache_path(cfg, "bot-reports.json")
     if not path.is_file():
-        print("apply_bot_reports: no cache, skipping", file=sys.stderr)
-        return 0
+        print("apply_bot_reports: no cache; other streams unchanged", file=sys.stderr)
     doc = read_json(path, [])
     reports = doc if isinstance(doc, list) else (doc.get("reports") or [])
+    reports = sorted((r for r in reports if isinstance(r, dict)),
+                     key=lambda r: parse_time(r.get("at")) or datetime.datetime.min.replace(tzinfo=datetime.timezone.utc))
     streams = data.setdefault("streams", [])
     for report in reports:
-        if not isinstance(report, dict):
-            continue
         agent = report.get("agent") or ""
-        if not agent:
+        if not isinstance(agent, str) or not agent.strip():
             continue
-        area = report.get("area") if report.get("area") is not None else ""
-        current = report.get("current") if report.get("current") is not None else ""
-        nxt = report.get("next") if report.get("next") is not None else ""
+        area = report.get("area") if isinstance(report.get("area"), str) else ""
+        current = report.get("current") if isinstance(report.get("current"), str) else ""
+        nxt = report.get("next") if isinstance(report.get("next"), str) else ""
+        current, nxt = STALE_PREFIX.sub("", current), STALE_PREFIX.sub("", nxt)
+        at = parse_time(report.get("at"))
+        if at and now - at > FRESHNESS_WINDOW:
+            prefix = f"Stale since {at.date()}: "
+            current = prefix + current if current else ""
+            nxt = prefix + nxt if nxt else ""
         replaced = False
         for index, row in enumerate(streams):
             if as_stream(row)["bot"] == agent:
                 streams[index] = write_stream(row, agent, area, current, nxt)
+                if isinstance(streams[index], dict):
+                    streams[index]["at"] = report.get("at")
                 replaced = True
                 break
         if not replaced:
-            streams.append({"bot": agent, "project": area, "now": current, "waiting": nxt})
+            streams.append({"bot": agent, "project": area, "now": current, "waiting": nxt,
+                            "at": report.get("at")})
+    names = {}
+    for row in streams:
+        name = as_stream(row)["bot"]
+        names.setdefault(name.split(" · ", 1)[0].strip().casefold(), []).append(name)
+    for group in names.values():
+        if len(group) > 1:
+            print("apply_bot_reports: WARNING duplicate stream names: " + ", ".join(group), file=sys.stderr)
     print(f"apply_bot_reports: {len(reports)}")
     return 0
 
@@ -1876,6 +2018,11 @@ def reconcile_priorities(data, cfg, now=None):
     seen = set()
     for row in data.get("streams") or []:
         stream = as_stream(row)
+        marker = STALE_PREFIX.match(stream["now"] or "") or STALE_PREFIX.match(stream["waiting"] or "")
+        if marker:
+            for field in ("now", "waiting"):
+                if stream[field]:
+                    stream[field] = marker.group() + STALE_PREFIX.sub("", stream[field])
         name = stream["bot"]
         if not name or name in seen:
             continue
@@ -1887,7 +2034,7 @@ def reconcile_priorities(data, cfg, now=None):
             kept.insert(0, {"text": stream["now"], "state": "current", "src": "stream"})
             texts.add(stream["now"])
         waiting = stream["waiting"]
-        if waiting and not str(waiting).lower().startswith("nothing") and waiting not in texts:
+        if waiting and not STALE_PREFIX.sub("", str(waiting)).lower().startswith("nothing") and waiting not in texts:
             kept.append({"text": waiting, "state": "next", "src": "stream"})
         out.append({"stream": name, "area": stream["project"] or block.get("area") or "", "items": kept})
     for block in existing:

@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+# Advisory only: freshness diagnostics must never stop publish.
+if cd "$(dirname "$0")/../.."; then
+  python3 scripts/freshness.py || echo 'freshness: WARNING checker unavailable' >&2
+fi
+exit 0

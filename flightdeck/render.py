@@ -56,6 +56,13 @@ def render_html(config, data, assets_dir, now=None):
             label = slot.capitalize()
             slots[slot] = (f'<section class="pane" id="{slot}"><h2>{label}</h2>'
                            f'<p role="alert">{label} unavailable.</p></section>')
+    # Keep freshness visible in the pane heading, including when the body is collapsed.
+    for slot in PANE_SLOTS:
+        freshness = ((data.get('freshness') or {}).get('panes') or {}).get(slot) or {}
+        if slots[slot] and freshness.get('stale'):
+            reason = freshness.get('reason') or 'No recent evidence'
+            badge = f'<span class="freshness-badge">stale: {e(reason)}</span>'
+            slots[slot] = slots[slot].replace('</button>', badge + '</button>', 1)
     top_mods = [TOP_EMPTY_CLASS[s] for s in TOP_SLOTS if not slots[s]]
     top = ''
     if len(top_mods) < len(TOP_SLOTS):

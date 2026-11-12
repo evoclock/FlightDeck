@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Copy .cache/bot-reports.json onto stream rows. Missing file: leave streams alone.
 
-Each report is {agent, area, current, next, at}. Fields are copied as written.
+Each report is {agent, area, current, next, at}. The newest report wins.
+Old reports get a dated stale prefix; duplicate display names warn without removing rows.
 """
 import sys
 from pathlib import Path

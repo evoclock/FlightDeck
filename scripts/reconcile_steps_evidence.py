@@ -3,6 +3,8 @@
 
 Also ticks an install step when .cache/omb-install.json has a version, and
 holds a configured guard until .cache/omb-releases.json has a non-draft release.
+Stamps new and completed steps, then prunes dated done steps older than one day.
+Open steps, undated legacy steps and configured release guards remain.
 """
 import sys
 from pathlib import Path
