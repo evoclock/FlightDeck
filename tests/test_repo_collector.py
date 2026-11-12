@@ -1,5 +1,6 @@
 """Complete offline collector round trips with required checks and cached branch tips."""
 import json
+import subprocess
 from pathlib import Path
 import tempfile
 import unittest
@@ -11,6 +12,26 @@ from tests.test_repo_evidence import NOW, OLD, ROOT
 
 
 class RepoCollectorTests(unittest.TestCase):
+    def test_conditional_read_reuses_only_confirmed_unchanged_response(self):
+        """ETag reuse saves quota without turning failed reads into fresh evidence."""
+        with tempfile.TemporaryDirectory(dir=ROOT) as tmp:
+            path = '/repos/acme/product/branches?per_page=100&page=1'
+            ok = b'HTTP/2.0 200 OK\nETag: "one"\r\n\r\n[{"name":"main"}]'
+            unchanged = b'HTTP/2.0 304 Not Modified\nETag: "one"\r\n\r\n'
+            with patch.object(C.subprocess, 'run', side_effect=[
+                    subprocess.CompletedProcess([], 0, ok, b''),
+                    subprocess.CompletedProcess([], 1, unchanged, b'gh: HTTP 304'),
+                    subprocess.CompletedProcess([], 1, b'', b'API rate limit exceeded')]) as runner:
+                client = C.GitHub(cache_dir=Path(tmp) / 'gh-conditional')
+                self.assertEqual(client.get(path), [{"name": "main"}])
+                self.assertEqual(client.get(path), [{"name": "main"}])
+                self.assertIn('If-None-Match: "one"', runner.call_args_list[1].args[0])
+                with self.assertRaises(C.Unavailable):
+                    client.get(path)
+                with self.assertRaises(C.Unavailable):
+                    client.get(path)
+                self.assertEqual(runner.call_count, 3)
+
     def test_collects_required_checks_and_reuses_immutable_branch_tips(self):
         """Why: normalized PRs need all required contexts and unchanged branch tips must not be refetched."""
         with tempfile.TemporaryDirectory(dir=ROOT) as tmp:
