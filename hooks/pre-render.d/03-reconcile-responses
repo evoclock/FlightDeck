@@ -2,4 +2,5 @@
 set -euo pipefail
 ROOT=$(cd "$(dirname "$0")/../.." && pwd)
 cd "$ROOT"
+python3 "$ROOT/scripts/record_chat_accept.py" --ingest-pending
 exec python3 "$ROOT/scripts/reconcile_responses.py"

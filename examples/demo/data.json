@@ -326,6 +326,27 @@
     "at": "2026-10-25T23:40:00+00:00",
     "note": "Public evoclock repos. Not a live GitHub total."
   },
+  "freshness": {
+    "checked_at": "2026-10-25T23:40:00Z",
+    "activity_at": "2026-10-25T23:40:00Z",
+    "panes": {
+      "streams": {
+        "stale": true,
+        "newest": "2026-10-25T20:00:00Z",
+        "age_h": 3.67,
+        "reason": "Example report is older than the latest activity."
+      },
+      "priorities": {
+        "stale": true,
+        "newest": "2026-10-25T20:00:00Z",
+        "age_h": 3.67,
+        "reason": "Example report is older than the latest activity."
+      },
+      "decisions": {"stale": false, "newest": "2026-10-25T23:40:00Z", "age_h": 0, "reason": "within 1 h of activity"},
+      "steps": {"stale": false, "newest": "2026-10-25T23:40:00Z", "age_h": 0, "reason": "within 1 h of activity"},
+      "architecture": {"stale": false, "newest": "2026-10-25T23:40:00Z", "age_h": 0, "reason": "within 1 h of activity"}
+    }
+  },
   "activity_weekly": {
     "window": "week",
     "since": "2026-10-23T17:00:00+01:00",

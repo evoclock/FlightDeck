@@ -93,6 +93,32 @@ class RenderTests(Base):
         self.assertIn('Alpha', doc)
         self.assertIn('.banner img{display:block;width:100%;height:auto;object-fit:unset;', doc)
 
+    def test_stale_badges_show_escaped_reasons_on_each_affected_pane(self):
+        """Why: recent page builds must not make old pane evidence look current."""
+        data = fake_data()
+        panes = ('streams', 'decisions', 'steps', 'priorities', 'architecture')
+        reason = 'Evidence <old> & missing "capture"'
+        data['freshness'] = {'panes': {pane: {'stale': True, 'reason': reason} for pane in panes}}
+        cfg, dp = self.write(data=data)
+        doc = R.render(cfg, dp, self.root / 'o.html')
+        self.assertEqual(doc.count('class="freshness-badge"'), len(panes))
+        for pane in panes:
+            heading = re.search(rf'<section class="pane" id="{pane}".*?</button>', doc, re.S).group(0)
+            self.assertIn('stale: Evidence &lt;old&gt; &amp; missing &quot;capture&quot;', heading)
+            self.assertNotIn(reason, heading)
+
+    def test_absent_fresh_and_hidden_panes_have_no_stale_badge(self):
+        """Why: old instances and intentionally hidden slots keep their existing layout."""
+        data = fake_data()
+        cfg, dp = self.write(data=data)
+        self.assertNotIn('class="freshness-badge"', R.render(cfg, dp, self.root / 'o.html'))
+        data['freshness'] = {'panes': {'streams': {'stale': False, 'reason': 'Recent report'},
+                                       'architecture': {'stale': True, 'reason': 'No diagram evidence'}}}
+        cfg, dp = self.write(slots=dict(FULL, architecture='empty'), data=data)
+        doc = R.render(cfg, dp, self.root / 'o.html')
+        self.assertNotIn('class="freshness-badge"', doc)
+        self.assertNotIn('No diagram evidence', doc)
+
     def test_public_template_uses_flightdeck_storage_keys_and_no_private_copy(self):
         cfg, dp = self.write()
         doc = R.render(cfg, dp, self.root / 'o.html')

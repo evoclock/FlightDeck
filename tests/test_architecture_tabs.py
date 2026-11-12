@@ -92,6 +92,8 @@ class ArchitectureTabs(unittest.TestCase):
                if r.get("repo") == "product"]
         self.assertEqual((e["status"], e["node_count"], e["edge_count"]), ("imported", 3, 1))
         self.assertEqual(e["bower_hash"], hashlib.sha256(source.read_bytes()).hexdigest())
+        self.assertEqual(e.get("tab_id"), "product")
+        self.assertEqual(e["imported_at"], "2026-10-25T12:00:00.000Z")
         self.assertFalse((self.arch / "unlisted.bower.json").exists())
 
     def test_missing_source_clears_old_tab(self):
@@ -144,6 +146,53 @@ class ArchitectureTabs(unittest.TestCase):
         data = self.run_inflight(rows, repo)
         self.assertTrue(any(t.get("id") == "product" and t.get("pr_url") ==
                             "https://github.com/acme/product/pull/7" for t in data["projects"]["tabs"]))
+
+    def test_pending_since_persists_across_builds_and_is_visible(self):
+        """Why: repeated builds must not reset the clock for a missing diagram."""
+        data = self.run_inflight()
+        tab = next(t for t in data["projects"]["tabs"] if t["id"] == "product")
+        since = tab.get("pending_since")
+        self.assertEqual(since, "2026-10-25T12:00:00.000Z")
+        self.assertIn("pending since 2026-10-25", tab["label"])
+        self.assertIn("pending since 2026-10-25", tab["text"])
+        _upsert_architecture(data, self.loaded, [], [], now=NOW + datetime.timedelta(days=2))
+        tab = next(t for t in data["projects"]["tabs"] if t["id"] == "product")
+        self.assertEqual(tab["pending_since"], since)
+        record = next(r for r in json.loads((self.cache / "architecture-sync.json").read_text())["repos"]
+                      if r.get("repo") == "product")
+        self.assertEqual(record["pending_since"], since)
+        self.assertEqual(record["tab_id"], "product")
+
+    def test_import_clock_changes_only_with_source_and_pending_survives_worker_change(self):
+        """Why: repeated syncs must neither renew old imports nor reset a pending clock."""
+        self.product()
+        data = self.run_inflight()
+        self.render("product")
+        data = self.run_inflight(data)
+        original = json.loads((self.cache / "architecture-sync.json").read_text())
+        prior = next(r for r in original["repos"] if r.get("repo") == "product")
+        self.assertIsNotNone(prior.get("imported_at"))
+        record = {key: prior[key] for key in
+                  ("source", "source_repo_sha", "bower_hash", "node_count", "edge_count")}
+        record.update({"diagram": "architecture/product.bower.json", "nodes": []})
+        later = NOW + datetime.timedelta(days=2)
+        for change, expected in (({}, prior["imported_at"]),
+                                 ({"bower_hash": "new"}, "2026-10-27T12:00:00.000Z"),
+                                 ({"source_repo_sha": "c" * 40}, "2026-10-27T12:00:00.000Z")):
+            write(self.cache / "architecture-sync.json", original)
+            with mock.patch("flightdeck.sync.import_product_bowers", return_value={"product": {**record, **change}}):
+                _upsert_architecture(data, self.loaded, [], [], now=later)
+            current = next(r for r in json.loads((self.cache / "architecture-sync.json").read_text())["repos"]
+                           if r.get("repo") == "product")
+            self.assertEqual(current["imported_at"], expected)
+            self.assertEqual(current.get("diagram"), record["diagram"])
+        write(self.cache / "architecture-sync.json", {"repos": [
+            {"repo": "product", "stream": "Old worker", "source": "docs/diagrams/old.bower.json",
+             "pending_since": "2026-10-20T12:00:00Z"}]})
+        with mock.patch("flightdeck.sync.import_product_bowers", return_value={}):
+            _upsert_architecture(data, self.loaded, [], [], now=later)
+        tab = next(t for t in data["projects"]["tabs"] if t["id"] == "product")
+        self.assertEqual(tab["pending_since"], "2026-10-20T12:00:00Z")
 
     def test_done_requires_complete_overlay_at_current_head(self):
         """Why: done with incomplete evidence stays; a later product commit restores a dropped tab."""

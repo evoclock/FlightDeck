@@ -86,6 +86,7 @@ button:focus-visible,a:focus-visible{outline:3px solid var(--focus);outline-offs
 .pane.closed .chev{transform:rotate(-45deg);margin-bottom:0}
 .badge{margin-left:auto;font-size:15.5px;font-weight:500;color:var(--sub);border:1px solid var(--line);border-radius:999px;padding:2px 12px;white-space:nowrap}
 .badge.hot{color:var(--clay);border-color:color-mix(in srgb,var(--rust) 50%,transparent)}
+.freshness-badge{font-size:13px;line-height:1.4;color:var(--clay);border:1px solid var(--rust);border-radius:3px;padding:2px 8px;max-width:100%;overflow-wrap:anywhere}
 .pb{padding:10px 30px 24px;overflow-y:auto;overscroll-behavior:contain;flex:1;min-height:0}
 .pane.closed .pb{display:none}
 .pane.closed .ph{border-bottom:0}
