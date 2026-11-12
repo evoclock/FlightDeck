@@ -71,6 +71,30 @@ class RepoEvidenceTests(unittest.TestCase):
         self.assertTrue(all(d['src'] == 'ready-draft' for d in data['decisions']))
         self.assertFalse((data.get('projects') or {}).get('tabs'))
 
+    def test_duplicate_repository_and_branch_evidence_does_not_multiply_rows(self):
+        mod = self.module('reconcile_repo_panes')
+        row = record()
+        row['branches'].append(dict(row['branches'][0]))
+        self.snapshot([row, copy.deepcopy(row)])
+        data = {}
+        mod.reconcile(data, self.cfg, now=S.parse_time(NOW))
+        self.assertEqual(len(data['streams']), 1)
+        self.assertEqual(len(data['priorities']), 1)
+        self.assertEqual(sum('branch ' in i['text'] for i in data['priorities'][0]['items']), 1)
+        self.assertEqual(len(data['steps']), 1)
+
+    def test_finished_and_orphaned_steps_do_not_return(self):
+        mod = self.module('reconcile_repo_panes')
+        self.snapshot()
+        data = {'streams': [['Old bot', 'old app', 'Old work', 'Old next']],
+                'steps': [{'text': 'Merged old PR', 'done': True},
+                          {'text': 'Old bot request', 'done': False},
+                          {'text': 'At your desk', 'done': False, 'terminal': True}]}
+        mod.reconcile(data, self.cfg, now=S.parse_time(NOW))
+        self.assertEqual([s['bot'] for s in data['streams']], ['acme/product'])
+        self.assertFalse(any(s['text'] in {'Merged old PR', 'Old bot request'} for s in data['steps']))
+        self.assertTrue(any(s.get('terminal') for s in data['steps']))
+
     def test_green_draft_lifecycle_and_head_identity(self):
         """Why: red, closed, or changed-head PRs must not keep stale actionable asks."""
         mod = self.module('reconcile_repo_panes')
@@ -151,7 +175,7 @@ class RepoEvidenceTests(unittest.TestCase):
         freshness.check(data, self.cfg, now=S.parse_time(NOW))
         self.assertTrue(data['freshness']['panes']['streams']['stale'])
         self.assertTrue(all(s.get('done') for s in data['steps']))
-        self.assertTrue(S.as_stream(data['streams'][-1])['now'].startswith('Stale since'))
+        self.assertFalse(any(S.as_stream(s)['bot'] == 'Worker' for s in data['streams']))
 
     def test_architecture_keeps_diagram_clock_and_does_not_invent_tabs(self):
         """Why: recent repository checks do not prove that an old diagram matches the current source."""
