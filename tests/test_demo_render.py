@@ -68,6 +68,7 @@ class DemoRenderTests(unittest.TestCase):
         """Why: the static demo must show repository coverage and the green-draft human action."""
         data = json.loads((DEMO / 'data.json').read_text())
         self.assertTrue(all(row.get('repo') and row.get('src') == 'repo-evidence' for row in data['streams']))
+        self.assertTrue(all(row['project'] == row['repo'] for row in data['streams']))
         self.assertTrue(any(step.get('src') == 'repo-evidence' and not step.get('done')
                             and 'Undraft and merge' in step['text']
                             and 'Example' in step.get('meta', '') for step in data['steps']))

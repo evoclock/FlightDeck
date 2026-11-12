@@ -20,7 +20,7 @@
       "bot": "FlightDeck",
       "repo": "evoclock/FlightDeck",
       "src": "repo-evidence",
-      "project": "Template",
+      "project": "evoclock/FlightDeck",
       "now": "Sync hooks are in the template. This demo is a static page.",
       "waiting": "Nothing"
     },
@@ -28,7 +28,7 @@
       "bot": "OpenMausBot",
       "repo": "evoclock/OpenMausBot",
       "src": "repo-evidence",
-      "project": "App",
+      "project": "evoclock/OpenMausBot",
       "now": "Two draft pull requests are open on the public repo.",
       "waiting": "Read the drafts."
     },
@@ -36,7 +36,7 @@
       "bot": "pi-agentic-driver",
       "repo": "evoclock/pi-agentic-driver",
       "src": "repo-evidence",
-      "project": "Driver",
+      "project": "evoclock/pi-agentic-driver",
       "now": "3.0.0 is marked released in the public README.",
       "waiting": "Nothing"
     },
@@ -44,7 +44,7 @@
       "bot": "pi-bowerbird",
       "repo": "evoclock/pi-bowerbird",
       "src": "repo-evidence",
-      "project": "Diagrams",
+      "project": "evoclock/pi-bowerbird",
       "now": "Two pull requests are open on the public repo.",
       "waiting": "Review both open pull requests."
     },
@@ -52,7 +52,7 @@
       "bot": "Demeter",
       "repo": "evoclock/fieldnotes",
       "src": "repo-evidence",
-      "project": "Populations",
+      "project": "evoclock/fieldnotes",
       "now": "The public fieldnotes describe multilevel selection for populations of agents.",
       "waiting": "Nothing"
     }
