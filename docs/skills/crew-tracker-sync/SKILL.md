@@ -10,7 +10,7 @@ description: >-
 Keep a human's tracker current from structured evidence, not chat prose. Every run reconciles the tracker's data file against live sources. Completeness is the product: if the human has to ask whether an open PR, draft, new repo, or unblock is on the tracker, the last run failed.
 
 
-**Sync-only panes (Julen HARD t1669–t1671):** no hard-coded keep/allow lists. Architecture tabs = in-flight only. Ready public Decisions = `repos.json` `private=false` evidence (not a frozen `public_repos` name set).
+**Sync-only panes:** discover active repositories from GitHub, without requiring a bot. The repository evidence snapshot supplies visibility and readiness. Without that snapshot, legacy public Decisions still require explicit `private=false` evidence in `repos.json`.
 
 ## Chat Accept must still be recorded (hard — Julen, 26 Oct 2026)
 - A chat Accept and a tracker Accept both count as authority. Do not wait for the second one.
@@ -65,10 +65,11 @@ Copy `config/sync.example.json` to `config/sync.json` (gitignored). Environment 
 - `primary_stream`: `label` (else `agent`) is the stream row name. `FLIGHTDECK_STREAM_LABEL`, `FLIGHTDECK_PRIMARY_AGENT`, `FLIGHTDECK_PRIMARY_AREA`. Empty label: inflight does not write a stream row.
 - `responses`: `account_id`, `kv_namespace_id`, `key`, or `FLIGHTDECK_ACCOUNT_ID` / `CLOUDFLARE_ACCOUNT_ID`, `FLIGHTDECK_RESPONSES_KV_ID`, `FLIGHTDECK_RESPONSES_KEY`. Token: `CLOUDFLARE_API_TOKEN`.
 - `agents`: `.cache/bot-reports.json`, fields copied from each bot's own report. Optional `CREW_TRACKER_SIDECAR_DIRS` is a colon-separated list of read-only directories holding `bot-reports.json` and/or `responses.json`; hook 02b merges them into the local evidence caches before reconciliation. Unset or missing directories skip cleanly.
+- `repo_evidence`: `days` sets the active window; optional `include` and `exclude` filter repository names. `local.enabled` defaults to false. Local evidence only reads configured `local.workspaces` and `local.checkouts`; `local.exclude_workspaces` always wins. Keep real identifiers and paths in ignored instance config.
 - `publish_cmd`: `./publish.sh --build` or `./publish.sh --deploy`.
 
 ## Data shape (tracker_data)
-- `streams`: one row per agent: `[agent, area, current work (with time), next for the human]`. **Streams are agent work, not a repo inventory.** Never paste a comma-separated list of every loose GitHub repo into a stream area or current line.
+- `streams`: one row per active repository, with current facts, collection time, and the next human action. Fresh bot notes can supplement repository facts. Unmapped bot-only rows remain visibly stale. Without a repository snapshot, legacy agent rows remain unchanged.
 - `merges`: `[title, repo, owner agent, state]`. Open PRs plus one synthetic `{name} · active on main` row per in-flight repo with no open PR.
 - `decisions`, `steps`, `settled`, `priorities`, `projects.tabs` (architecture), `activity` / `activity_weekly` — all reconciled every run from live evidence.
 
@@ -85,14 +86,16 @@ Hooks, in order. The hook file name is what `hooks/run-pre-render.sh` runs:
 |---|---|---|---|
 | `00-collect-activity` | `collectors/activity.py` | `activity`, `activity_weekly` | `GITHUB_TOKEN` / `GH_TOKEN` / `GITHUB_PAT`, else `gh auth token`. No owner: skip |
 | `01-refresh-pr-cache` | `scripts/refresh_pr_cache.py` | `.cache/prs.json`, `prs-closed.json`, `repos.json`, and `omb-releases.json` when `omb.repo` is set | `gh`, else a GitHub token, else unauthenticated REST for `public_repos` only. No owner: skip |
+| `01b-collect-repo-evidence` | `scripts/collect_repo_evidence.py` | `.cache/repo-evidence.json` | All repositories pushed within configured `repo_evidence.days` (14 by default), including repositories without bots. GitHub GETs only; local evidence requires explicit configuration. Failures retain prior success dates |
 | `02-collect-cluster` | `collectors/metrics_generic.py` or `collectors/spark.py` | `metrics` or `spark` | `FLIGHTDECK_CLUSTER=metrics` or `spark`. Unset: skip. Spark reads `FLIGHTDECK_SPARK_FILE` or `.cache/spark.json` and does not open SSH |
 | `02b-merge-sidecars` | `scripts/merge_sidecars.py` | `.cache/bot-reports.json`, `.cache/responses.json` only | `CREW_TRACKER_SIDECAR_DIRS`; newest report per agent and response per id, with Undo tombstones retained. Invalid input warns and skips; sidecars stay untouched |
 | `03-reconcile-responses` | `scripts/record_chat_accept.py --ingest-pending`, then `scripts/reconcile_responses.py` | Decisions → settled, Settled entries, step ticks | KV when `CLOUDFLARE_API_TOKEN` and the responses ids in sync config are set, else `.cache/responses.json`; plus chat answers in `.cache/responses-chat.json` (`scripts/record_chat_accept.py`) |
 | `05-reconcile-inflight` | `scripts/reconcile_inflight.py` | Merges (open PRs + synthetic rows), primary stream, new-repo Decisions | `.cache/repos.json`, `.cache/prs.json` |
 | `07-reconcile-merges-lifecycle` | `scripts/reconcile_merges_lifecycle.py` | Drops open rows for merged/closed PRs, ticks steps, settles Decisions, Settled entries | `.cache/prs-closed.json` |
-| `10-reconcile-ready-decisions` | `scripts/reconcile_ready_decisions.py` | Ready-merge Decisions | matching PRs with current CLEAN and successful checks; owner `full_name` and explicit `private=false` on `repos.json` |
+| `10-reconcile-ready-decisions` | `scripts/reconcile_ready_decisions.py` | Ready-merge and green-draft Decisions | Repository snapshot widens coverage to public and private repositories. Current head and checks identify each ask. Legacy fallback uses explicit public visibility |
 | `30-reconcile-steps-evidence` | `scripts/reconcile_steps_evidence.py` | Steps for ready+green PRs, install tick, release guard | prs cache, `.cache/omb-install.json`, `.cache/omb-releases.json`, `guards` in sync config |
 | `40-apply-bot-reports` | `scripts/apply_bot_reports.py` | Other bots' stream rows, verbatim | `.cache/bot-reports.json` |
+| `45-reconcile-repo-panes` | `scripts/reconcile_repo_panes.py` | Repository streams, priorities, green-draft steps, architecture evidence labels | Repository snapshot, optional bot notes, existing diagram imports. Does not fabricate diagrams or answers |
 | `50-reconcile-priorities` | `scripts/reconcile_priorities.py` | One priorities block per stream; `src:"stream"` items rebuilt; ladder items kept | streams |
 | `90-pin-ids` | `scripts/pin_ids.py` | Explicit unique `id` on every decision and step | — |
 | `92-freshness` | `scripts/freshness.py` | Per-pane `freshness` and one generated summary warning | Evidence timestamps compared with Activity; advisory, never blocks publish |
@@ -116,10 +119,10 @@ The hooks above enforce these. A gap means a script or cache writer is missing; 
 1. **Every open PR** has exactly one `merges` row (drafts count).
 2. **Recently merged/closed** (last day) update their row; matching merge steps tick done.
 3. **Every in-flight repo** (open PR, or pushed in 48h, or created in 7d) is discovered from the owner's full GitHub list — never typed from chat. No-PR in-flight repos get one synthetic merges row. New repos (created ≤48h) appear in an open Decision (or are named by an existing open Decision).
-4. **Streams stay readable.** Each agent row is short current work + next for the human. In-flight repos that no bot owns stay on **Merges** (and Architecture / Decisions), **not** dumped into the primary stream as a link salad. The primary stream's label comes from sync config. Empty label: do not write that row.
+4. **Streams stay readable.** Each active repository gets its own current facts and next human action. A bot is optional. Do not combine unrelated repositories in one row.
 5. **Decisions-only OK.** Ready merges, new-repo cutovers, spend, scope — open Decision with PR links before any chat ask.
-   - Ready public Decisions come from `repos.json` `private=false` (not a frozen `public_repos` name set). Missing public evidence = no Decision.
-6. **Your steps** list ready+green phone actions; drafts never appear there.
+   - Repository evidence supplies public or private visibility. Unknown visibility creates no automatic ask. Without a snapshot, public Decisions require `repos.json` `private=false`.
+6. **Your steps** include ready PRs and green drafts. Draft actions say Undraft and merge; pending, failing, and closed PRs are not actionable.
 7. **Priorities** blocks match each active stream's current/next from evidence; do not wipe done items.
 8. **Settled today** only from the human's recorded responses and merged-PR evidence (hook 07), never invented. Recorded responses are tracker taps (KV) and chat answers written by `scripts/record_chat_accept.py`; hook 03 applies both as first-class answers.
 9. **Architecture:** crew streams and optional registry entries select products. Import only rich product-owned `docs/diagrams/*.bower.json` diagrams; never invent a stub or rewrite product nodes. Record source commit, content hash and node status in `.cache/architecture-sync.json`. A diagram becomes visible only when its source hash matches and both flat and iso views are rendered. Missing or unrendered sources stay pending, with a verified draft PR link when available; `projects.pending` is emptied. Retire a product only on explicit completion evidence for every overlay node at the current product head. Retain the last tab by policy (Never blank Architecture); retention does not bypass source or view guards.

@@ -1190,8 +1190,9 @@ def _inflight_repo(repo, open_full, now, windows):
 
 
 def reconcile_inflight(data, cfg, now=None):
+    from scripts.reconcile_repo_panes import open_prs as repo_prs
     now = aware(now)
-    prs = read_cache_rows(cfg, "prs.json", "prs")
+    prs = repo_prs(cfg)
     repos = read_cache_rows(cfg, "repos.json", "repos")
     if prs is None and repos is None and not cfg.get("owner"):
         print("reconcile_inflight: no caches, skipping", file=sys.stderr)
@@ -1634,7 +1635,8 @@ def import_product_bowers(entries, assets, owner=""):
 def _upsert_architecture(data, cfg, merges, repos=(), now=None):
     """Select rendered product imports for stream and registry entries."""
     assets = _safe_assets(cfg)
-    entries = stream_architecture_entries(data, assets, repos)
+    from scripts.reconcile_repo_panes import architecture_candidates
+    entries = architecture_candidates(stream_architecture_entries(data, assets, repos), cfg)
     imported = import_product_bowers(list({e["id"]: e for e in entries if e["id"]}.values()), assets, cfg.get("owner") or "")
     old = read_json(cache_path(cfg, "architecture-sync.json"), {}) or {}
     pending_prs = read_json(cache_path(cfg, "architecture-diagram-prs.json"), []) or []
@@ -1743,8 +1745,9 @@ def _is_thin_stub(doc):
 
 
 def reconcile_merges_lifecycle(data, cfg, now=None):
+    from scripts.reconcile_repo_panes import closed_prs
     now = aware(now)
-    closed = read_cache_rows(cfg, "prs-closed.json", "prs")
+    closed = closed_prs(cfg)
     if closed is None:
         print("reconcile_merges_lifecycle: no closed cache, skipping", file=sys.stderr)
         return 0
@@ -1817,6 +1820,10 @@ def _green_draft_pr(pr):
 
 
 def reconcile_ready_decisions(data, cfg, now=None):
+    from scripts.reconcile_repo_panes import reconcile_decisions
+    result = reconcile_decisions(data, cfg, now)
+    if result is not None:
+        return result
     del now
     names = public_repo_names(cfg)
     live_prs = read_cache_rows(cfg, "prs.json", "prs")
@@ -1891,8 +1898,9 @@ def _open_mentions(decisions, pr):
 
 
 def reconcile_steps_evidence(data, cfg, now=None):
+    from scripts.reconcile_repo_panes import open_prs as repo_prs
     now = aware(now)
-    prs = read_cache_rows(cfg, "prs.json", "prs")
+    prs = repo_prs(cfg)
     if prs is not None:
         ready = [p for p in prs if pr_is_ready(p)]
         ready_keys = {pr_key(p) for p in ready}
@@ -2011,6 +2019,9 @@ def apply_bot_reports(data, cfg, now=None):
 
 
 def reconcile_priorities(data, cfg, now=None):
+    from scripts.reconcile_repo_panes import evidence, reconcile
+    if evidence(cfg) is not None:
+        return reconcile(data, cfg, now, selected=('priorities',))
     del cfg, now
     existing = list(data.get("priorities") or [])
     by_name = {block.get("stream"): block for block in existing if isinstance(block, dict)}

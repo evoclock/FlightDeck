@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+# Advisory collection: retain prior evidence if a source is unavailable.
+cd "$(dirname "$0")/../.." || exit 1
+python3 scripts/collect_repo_evidence.py || echo 'warning: repository evidence unavailable; retaining cache' >&2
+exit 0
