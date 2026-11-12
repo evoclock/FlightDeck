@@ -183,6 +183,8 @@ def check(data, cfg, now=None):
              'priorities': pane(priority_rows, activity, unit='stream-derived blocks'),
              'architecture': architecture_pane((data.get('projects') or {}).get('tabs') or [], sync, cache, activity,
                                                 cfg.get('owner') or '')}
+    from scripts.reconcile_repo_panes import apply_freshness
+    apply_freshness(data, cfg, panes, activity)
     data['freshness'] = {'checked_at': S.iso_z(now), 'activity_at': S.iso_z(activity), 'panes': panes}
     summary = '\n'.join(line for line in (data.get('summary') or '').splitlines()
                         if not line.startswith('- Stale:'))

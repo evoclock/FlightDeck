@@ -17,6 +17,17 @@
     "created_within_days": 7,
     "new_repo_within_hours": 48
   },
+  "repo_evidence": {
+    "days": 14,
+    "include": [],
+    "exclude": [],
+    "local": {
+      "enabled": false,
+      "workspaces": [],
+      "exclude_workspaces": [],
+      "checkouts": {}
+    }
+  },
   "closed_within_hours": 24,
   "guards": [],
   "omb": {

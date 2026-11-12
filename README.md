@@ -84,6 +84,20 @@ python3 -m collectors.metrics_generic --data data.json
 
 Copy `config/sync.example.json` to `config/sync.json` (gitignored). Set the GitHub owner, the public repos you merge, the primary stream label, and the responses KV ids there, or set the same values in the environment (`FLIGHTDECK_GH_OWNER`, `FLIGHTDECK_PUBLIC_REPOS`, `FLIGHTDECK_STREAM_LABEL`, `FLIGHTDECK_RESPONSES_KV_ID`, `CLOUDFLARE_API_TOKEN`). The field list is in the sync skill at `docs/skills/`.
 
+Repository evidence covers every repository pushed within `repo_evidence.days` (14 by default), not only repositories with a bot. Streams and priorities use repository facts. Green drafts get an explicit Undraft and merge step. Decisions use current checks and head identity, including private repositories in your own tracker. The static demo shows an example green-draft step, not live readiness.
+
+Existing sync helpers handle PR normalization and response history. Separate repository scripts add commits and branch coverage because bot reports cannot cover repositories without bots.
+
+The new collector uses read-only GitHub requests and retains a failed repository's last successful collection date. Local Herdr and Treehouse evidence is off by default. To enable it, set `repo_evidence.local.enabled` and explicitly list workspaces or repository checkout paths in your ignored sync config. Excluded workspaces are never inspected. Do not publish private tracker data.
+
+Preview changes without writing data or caches:
+
+```bash
+python3 scripts/reconcile_repo_panes.py --data data.json --dry-run --diff
+```
+
+Use `--panes streams,priorities` to limit reconciliation. The collector accepts `--owner`, `--days`, `--since`, `--include`, `--exclude`, `--out`, `--offline`, and `--no-mac`. Offline fixtures use generic repository metadata and REST responses in `repo-evidence-fixtures.json` within the configured cache directory. Without fixtures, offline replay never renews evidence dates. Architecture retains its original diagram age and pending state even when repository collection succeeds.
+
 With `FLIGHTDECK_GH_OWNER` unset and no `data.json` in the repo root, every hook skips. `examples/demo/data.json` stays as it is in git, and the render still works offline.
 
 `FLIGHTDECK_CLUSTER=metrics` collects CPU, memory, and disk. `FLIGHTDECK_CLUSTER=spark` copies `.cache/spark.json` into `data.json` `spark`. It does not open SSH. Unset, the cluster hook skips. The demo keeps the readings already in the demo data file.

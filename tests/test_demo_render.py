@@ -64,6 +64,17 @@ class DemoRenderTests(unittest.TestCase):
         self.assertIn('class="freshness-badge"', self.doc)
         self.assertIn('stale: Example report is older than the latest activity.', self.doc)
 
+    def test_demo_has_repo_streams_and_example_green_draft_step(self):
+        """Why: the static demo must show repository coverage and the green-draft human action."""
+        data = json.loads((DEMO / 'data.json').read_text())
+        self.assertTrue(all(row.get('repo') and row.get('src') == 'repo-evidence' for row in data['streams']))
+        self.assertTrue(all(row['project'] == row['repo'] for row in data['streams']))
+        self.assertTrue(any(step.get('src') == 'repo-evidence' and not step.get('done')
+                            and 'Undraft and merge' in step['text']
+                            and 'Example' in step.get('meta', '') for step in data['steps']))
+        self.assertIn('Undraft and merge', self.doc)
+        self.assertIn('Example green draft', self.doc)
+
     def test_no_private_strings(self):
         for bad in FORBIDDEN:
             self.assertNotIn(bad, self.doc, bad)
