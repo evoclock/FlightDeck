@@ -83,6 +83,15 @@ class RepoEvidenceTests(unittest.TestCase):
         self.assertEqual(sum('branch ' in i['text'] for i in data['priorities'][0]['items']), 1)
         self.assertEqual(len(data['steps']), 1)
 
+    def test_non_draft_pr_does_not_create_a_draft_merge_step(self):
+        mod = self.module('reconcile_repo_panes')
+        row = record()
+        row['open_prs'][0]['draft'] = False
+        self.snapshot([row])
+        data = {}
+        mod.reconcile(data, self.cfg, now=S.parse_time(NOW))
+        self.assertFalse(any(s.get('src') == 'repo-evidence' for s in data.get('steps', [])))
+
     def test_finished_and_orphaned_steps_do_not_return(self):
         mod = self.module('reconcile_repo_panes')
         self.snapshot()

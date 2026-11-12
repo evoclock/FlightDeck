@@ -233,7 +233,7 @@ def steps(data, rows, now):
     active = {r['repo'] for r in rows}
     eligible = {S.pr_key(p): dict(p, repo=r['repo']) for r in rows
                 if not r.get('error') and r.get('visibility') in {'public', 'private'}
-                for p in r.get('open_prs', []) if actionable(p)}
+                for p in r.get('open_prs', []) if p.get('draft') and actionable(p)}
     old = data.get('steps') or []
     open_decisions = {d.get('id') for d in data.get('decisions', []) if d.get('state') == 'open'}
     kept = []
