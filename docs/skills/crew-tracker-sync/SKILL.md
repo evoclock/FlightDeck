@@ -64,7 +64,7 @@ Copy `config/sync.example.json` to `config/sync.json` (gitignored). Environment 
 - `public_repos`: `FLIGHTDECK_PUBLIC_REPOS` (comma-separated) or `public_repos`. Optional fallback for unauthenticated REST when hook 01 has no `gh`/token. Ready-merge Decisions use live `repos.json` `private=false` evidence, not this list.
 - `primary_stream`: `label` (else `agent`) is the stream row name. `FLIGHTDECK_STREAM_LABEL`, `FLIGHTDECK_PRIMARY_AGENT`, `FLIGHTDECK_PRIMARY_AREA`. Empty label: inflight does not write a stream row.
 - `responses`: `account_id`, `kv_namespace_id`, `key`, or `FLIGHTDECK_ACCOUNT_ID` / `CLOUDFLARE_ACCOUNT_ID`, `FLIGHTDECK_RESPONSES_KV_ID`, `FLIGHTDECK_RESPONSES_KEY`. Token: `CLOUDFLARE_API_TOKEN`.
-- `agents`: `.cache/bot-reports.json`, fields copied from each bot's own report.
+- `agents`: `.cache/bot-reports.json`, fields copied from each bot's own report. Optional `CREW_TRACKER_SIDECAR_DIRS` is a colon-separated list of read-only directories holding `bot-reports.json` and/or `responses.json`; hook 02b merges them into the local evidence caches before reconciliation. Unset or missing directories skip cleanly.
 - `publish_cmd`: `./publish.sh --build` or `./publish.sh --deploy`.
 
 ## Data shape (tracker_data)
@@ -86,6 +86,7 @@ Hooks, in order. The hook file name is what `hooks/run-pre-render.sh` runs:
 | `00-collect-activity` | `collectors/activity.py` | `activity`, `activity_weekly` | `GITHUB_TOKEN` / `GH_TOKEN` / `GITHUB_PAT`, else `gh auth token`. No owner: skip |
 | `01-refresh-pr-cache` | `scripts/refresh_pr_cache.py` | `.cache/prs.json`, `prs-closed.json`, `repos.json`, and `omb-releases.json` when `omb.repo` is set | `gh`, else a GitHub token, else unauthenticated REST for `public_repos` only. No owner: skip |
 | `02-collect-cluster` | `collectors/metrics_generic.py` or `collectors/spark.py` | `metrics` or `spark` | `FLIGHTDECK_CLUSTER=metrics` or `spark`. Unset: skip. Spark reads `FLIGHTDECK_SPARK_FILE` or `.cache/spark.json` and does not open SSH |
+| `02b-merge-sidecars` | `scripts/merge_sidecars.py` | `.cache/bot-reports.json`, `.cache/responses.json` only | `CREW_TRACKER_SIDECAR_DIRS`; newest report per agent and response per id, with Undo tombstones retained. Invalid input warns and skips; sidecars stay untouched |
 | `03-reconcile-responses` | `scripts/reconcile_responses.py` | Decisions → settled, Settled entries, step ticks | KV when `CLOUDFLARE_API_TOKEN` and the responses ids in sync config are set, else `.cache/responses.json`; plus chat answers in `.cache/responses-chat.json` (`scripts/record_chat_accept.py`) |
 | `05-reconcile-inflight` | `scripts/reconcile_inflight.py` | Merges (open PRs + synthetic rows), primary stream, new-repo Decisions | `.cache/repos.json`, `.cache/prs.json` |
 | `07-reconcile-merges-lifecycle` | `scripts/reconcile_merges_lifecycle.py` | Drops open rows for merged/closed PRs, ticks steps, settles Decisions, Settled entries | `.cache/prs-closed.json` |

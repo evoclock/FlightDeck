@@ -732,11 +732,11 @@ class PublishTests(unittest.TestCase):
     def test_hook_table_matches_files(self):
         text = (ROOT / "docs" / "skills" / "crew-tracker-sync" / "SKILL.md").read_text()
         import re
-        names = re.findall(r"^\| `(\d\d-[^`]+)`", text, re.M)
+        names = re.findall(r"^\| `(\d\d[a-z]?-[^`]+)`", text, re.M)
         on_disk = sorted(p.name for p in (ROOT / "hooks" / "pre-render.d").iterdir() if p.is_file())
         self.assertEqual(names, on_disk)
         for script in (
-            "refresh_pr_cache.py", "reconcile_responses.py", "reconcile_inflight.py",
+            "refresh_pr_cache.py", "merge_sidecars.py", "reconcile_responses.py", "reconcile_inflight.py",
             "reconcile_merges_lifecycle.py", "reconcile_ready_decisions.py",
             "reconcile_steps_evidence.py", "apply_bot_reports.py", "reconcile_priorities.py",
             "pin_ids.py", "tracker_evidence.py", "record_chat_accept.py",

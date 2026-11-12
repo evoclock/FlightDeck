@@ -80,7 +80,7 @@ python3 -m collectors.metrics_generic --data data.json
 
 ## Sync hooks
 
-`./publish.sh` and `scripts/publish_local.sh` run `hooks/pre-render.d` before they render. Each hook calls a collector or a script in `scripts/`. The scripts reconcile `data.json` from files in `.cache/`. They do not invent counts, ready state, or activity.
+`./publish.sh` and `scripts/publish_local.sh` run `hooks/pre-render.d` before they render. Each hook calls a collector or a script in `scripts/`. The scripts reconcile `data.json` from files in `.cache/`. They do not invent counts, ready state, or activity. Hook `02b-merge-sidecars` reads optional `CREW_TRACKER_SIDECAR_DIRS` (colon-separated directories) and merges their `bot-reports.json` and `responses.json` into the evidence caches before hooks `03-reconcile-responses` and `40-apply-bot-reports`. Sidecar files remain read-only; missing directories skip.
 
 Copy `config/sync.example.json` to `config/sync.json` (gitignored). Set the GitHub owner, the public repos you merge, the primary stream label, and the responses KV ids there, or set the same values in the environment (`FLIGHTDECK_GH_OWNER`, `FLIGHTDECK_PUBLIC_REPOS`, `FLIGHTDECK_STREAM_LABEL`, `FLIGHTDECK_RESPONSES_KV_ID`, `CLOUDFLARE_API_TOKEN`). The field list is in the sync skill at `docs/skills/`.
 
