@@ -102,6 +102,62 @@ class PublishTests(unittest.TestCase):
                 self.assertNotIn(bad, low, bad)
 
 
+class TokenFileTests(unittest.TestCase):
+    def test_token_file_fallback_is_scoped_and_env_wins(self):
+        """Why: a deploy must prefer the caller token and never disclose either token in logs."""
+        import os
+        import shutil
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            for name in ('scripts', 'site', 'bin'):
+                (root / name).mkdir()
+            shutil.copy2(ROOT / 'publish.sh', root / 'publish.sh')
+            shutil.copy2(ROOT / 'scripts' / 'publish_cloudflare.sh', root / 'scripts' / 'publish_cloudflare.sh')
+            (root / 'scripts' / 'publish_local.sh').write_text('#!/bin/bash\nprintf "local:%s\\n" "${CLOUDFLARE_API_TOKEN:-}" >> "$CAPTURE"\n')
+            (root / 'scripts' / 'publish_local.sh').chmod(0o755)
+            cfg = json.loads(_text(SITE / 'site.example.json'))
+            cfg.update(account_id='test-account', zone_id='test-zone', access_aud='test-aud',
+                       hostname='test.invalid', access_team_domain='team.test.invalid',
+                       allowed_emails=['test@test.invalid'], architecture_kv_id='', responses_kv_id='', spark_kv_id='')
+            (root / 'site' / 'site.json').write_text(json.dumps(cfg))
+            (root / 'site' / 'build.py').write_text(
+                'import os\nwith open(os.environ["CAPTURE"], "a") as f: f.write("build:" + os.environ.get("CLOUDFLARE_API_TOKEN", "") + "\\n")\n')
+            (root / 'scripts' / 'upload_architecture_kv.py').write_text(
+                'import os\nwith open(os.environ["CAPTURE"], "a") as f: f.write("upload:" + os.environ.get("CLOUDFLARE_API_TOKEN", "") + "\\n")\n')
+            npx = root / 'bin' / 'npx'
+            npx.write_text('#!/bin/bash\nprintf "wrangler:%s\\n" "${CLOUDFLARE_API_TOKEN:-}" >> "$CAPTURE"\n')
+            npx.chmod(0o755)
+            token_file = root / 'token'
+            token_file.write_text('file-secret\n')
+            token_file.chmod(0o644)
+            capture = root / 'capture'
+            env = dict(os.environ, CAPTURE=str(capture), CREW_TRACKER_CF_TOKEN_FILE=str(token_file),
+                       PATH=str(root / 'bin') + os.pathsep + os.environ['PATH'])
+            for explicit, expected in (('env-secret', 'env-secret'), (None, 'file-secret')):
+                capture.write_text('')
+                env.pop('CLOUDFLARE_API_TOKEN', None)
+                if explicit is not None:
+                    env['CLOUDFLARE_API_TOKEN'] = explicit
+                result = subprocess.run(['bash', str(root / 'publish.sh'), '--deploy'],
+                                        cwd=root, env=env, capture_output=True, text=True)
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertEqual(capture.read_text().splitlines(),
+                                 [f'local:{explicit or ""}', f'build:{explicit or ""}',
+                                  f'upload:{expected}', f'wrangler:{expected}'])
+                self.assertNotIn('file-secret', result.stdout + result.stderr)
+                self.assertNotIn('env-secret', result.stdout + result.stderr)
+                if explicit is None:
+                    self.assertIn('mode 600', result.stderr)
+                else:
+                    self.assertNotIn('mode 600', result.stderr)
+            env['CREW_TRACKER_CF_TOKEN_FILE'] = str(root / 'absent-token')
+            capture.write_text('')
+            result = subprocess.run(['bash', str(root / 'publish.sh'), '--deploy'],
+                                    cwd=root, env=env, capture_output=True, text=True)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertEqual(capture.read_text().splitlines(), ['local:', 'build:', 'upload:', 'wrangler:'])
+
+
 class ArchitectureBindingTests(unittest.TestCase):
     def test_worker_read_requires_declared_binding(self):
         """Why: an architecture read without a declared KV binding silently leaves frames blank."""
