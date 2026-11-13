@@ -214,6 +214,50 @@ class WidgetPortTests(Base):
         self.assertIn('2 bots · 1 need you', out)
         self.assertIn('class="st none">Waiting on you: Nothing', out)
 
+    def test_streams_now_field_renders_markdown_bullets(self):
+        ctx = self.ctx({'streams': [[
+            'Alpha', 'example/app',
+            '- 1 draft PRs green, 0 ready, 0 failing, 0 pending/unknown\n- 0 commits on main since unknown\n- Checked 01:33 GMT.',
+            '- Undraft and merge 1 green draft PRs.',
+        ]]})
+        out = render_slot('streams.table', ctx)
+        self.assertIn('<div class="now"><ul class="prose-list"><li>', out)
+        self.assertIn('1 draft PRs green', out)
+        self.assertIn('<div class="st you">Waiting on you: <ul class="prose-list"><li>', out)
+        self.assertNotIn('; 0 commits', out)
+
+    def test_streams_splits_semicolon_joined_facts_into_bullets(self):
+        """Why: live data from before as_bullets is one '- a; b; c.' line."""
+        blob = (
+            "- 10 draft PRs green, 0 ready, 11 failing, 1 pending/unknown; "
+            "0 commits on main since 13 Nov 01:31 GMT; main tip 21:39 GMT; "
+            "22 Treehouse leases. Checked 01:33 GMT."
+        )
+        ctx = self.ctx({'streams': [['Alpha', 'example/app', blob, 'Nothing right now.']]})
+        out = render_slot('streams.table', ctx)
+        self.assertIn('<ul class="prose-list"><li>10 draft PRs green', out)
+        self.assertIn('<li>0 commits on main since 13 Nov 01:31 GMT</li>', out)
+        self.assertIn('<li>main tip 21:39 GMT</li>', out)
+        self.assertIn('<li>22 Treehouse leases. Checked 01:33 GMT.</li>', out)
+        self.assertNotIn('; 0 commits', out)
+        from flightdeck.layout_css import CSS
+        self.assertIn('ul.prose-list{', CSS)
+        self.assertIn('list-style:disc', CSS)
+
+    def test_streams_splits_two_action_waiting_line_into_bullets(self):
+        """Why: a waiting line with one semicolon is two actions, not one sentence."""
+        ctx = self.ctx({'streams': [[
+            'Alpha', 'example/app',
+            'Working on the tracker.',
+            'Undraft flock-master #71; then merge FlightDeck #51.',
+        ]]})
+        out = render_slot('streams.table', ctx)
+        self.assertIn('<div class="st you">Waiting on you: <ul class="prose-list">', out)
+        self.assertIn('<li>Undraft flock-master #71</li>', out)
+        self.assertIn('<li>then merge FlightDeck #51.</li>', out)
+        self.assertNotIn('71; then merge', out)
+
+
     def test_decisions_open_first_with_respond_controls(self):
         out = render_slot('decisions.cards', self.ctx())
         self.assertLess(out.index('data-id="dec-1"'), out.index('Settled'))
@@ -368,6 +412,17 @@ class WidgetPortTests(Base):
         self.assertIn('Diagram unavailable', out)
         self.assertIn('changed since it was rendered', out)
 
+    def test_missing_diagram_file_does_not_blank_architecture(self):
+        """Why: a quiet tab whose source file is gone must not hide the other diagrams."""
+        d = {'projects': {'tabs': [
+            {'id': 'missing', 'diagram': 'architecture/op-llm.bower.json'},
+            {'id': 'ok', 'diagram': 'architecture/ok.bower.json'},
+        ]}}
+        out = render_slot('architecture.diagrams', self.ctx(d))
+        self.assertIn('Architecture', out)
+        self.assertIn('id="tab-missing"', out)
+        self.assertIn('Diagram unavailable', out)
+
     def test_architecture_node_without_status_stays_available(self):
         """Why: CES diagrams that omit node status must not blank Architecture."""
         from flightdeck.widgets.architecture import tracker_status
@@ -375,7 +430,7 @@ class WidgetPortTests(Base):
         self.assertEqual(tracker_status({"id": "x", "status": "implemented"}), "built")
 
 
-    def test_architecture_inlines_self_contained_pages(self):
+    def test_architecture_points_at_self_contained_asset_pages(self):
         import hashlib
         arch = self.assets / 'architecture'
         for v in ('iso', 'flat'):
@@ -393,14 +448,14 @@ class WidgetPortTests(Base):
         out = render_slot('architecture.diagrams', self.ctx(d))
         self.assertIn('1 projects · 2 parts', out)
         self.assertIn('1 built · 1 unverified', out)
-        self.assertIn('id="bb-demo-iso"', out)
-        self.assertIn('id="bb-font"', out)
+        self.assertIn('data-iso-src="/architecture/demo/iso.html"', out)
+        self.assertIn('data-flat-src="/architecture/demo/flat.html"', out)
+        self.assertNotIn('id="bb-demo-iso"', out)
         self.assertNotIn('fonts.example', out)
-        self.assertIn('flightdeck-fonts', out)
         d['projects']['tabs'][0]['source_status'] = 'stale'
         stale = render_slot('architecture.diagrams', self.ctx(d))
         self.assertIn('last verified diagram', stale)
-        self.assertIn('id="bb-demo-iso"', stale)
+        self.assertIn('data-iso-src="/architecture/demo/iso.html"', stale)
 
 
 if __name__ == '__main__':
