@@ -271,18 +271,39 @@ def diagram_from_planned_work(owner, name, sha, sources=None):
         accept(card["title"], _node(ident, card["title"], status, typ, "teal", str(hint)[:28],
                                     card["title"], where, 0, 0))
 
+    if sources.get("include_readme_overview") and sources.get("readme"):
+        heading, blurb = _readme_title_and_blurb(sources["readme"])
+        if heading:
+            accept(heading, _node(_slug(heading, used), heading, "implemented", "main", "sage", "README",
+                                  blurb or heading, f"- [{repo_url}/blob/{default_branch}/README.md]"
+                                  f"({repo_url}/blob/{default_branch}/README.md)", 0, 0))
+        paths = set(sources.get("paths") or [])
+        for raw in sources["readme"].splitlines():
+            match = re.match(r"^-\s+`([^`]+)`:\s*(.+)$", raw)
+            if not match or match.group(1) not in paths:
+                continue
+            file_path, summary = match.groups()
+            if not file_path.startswith("src/"):
+                continue  # only README-named implementation components, never a tree inventory
+            title = file_path.rsplit("/", 1)[-1].removesuffix(".py").replace("_", " ")
+            where = f"- [{repo_url}/blob/{default_branch}/{file_path}]({repo_url}/blob/{default_branch}/{file_path})"
+            accept(file_path, _node(_slug(file_path, used), title, "implemented", "main", "sage",
+                                    file_path.rsplit("/", 1)[-1], summary, where, 0, 0))
+
     for doc in list(sources.get("docs") or [])[:MAX_DOCS]:
         if not isinstance(doc, dict):
             continue
         path = str(doc.get("path") or "")
         if not path or not SPEC_PATH_RE.search("/" + path):
             # still accept an explicit spec/plan path the collector already chose
-            if not re.search(r"(spec|plan|contract|decision)", path, re.I):
+            if not re.search(r"(spec|plan|contract|decision|approach|operating-notes)", path, re.I):
                 continue
         title = _clean_title(doc.get("title") or path.rsplit("/", 1)[-1], 60)
+        if path.endswith("-operating-notes.md"):
+            title = re.sub(r"^\d{4}[ -]\d{2}[ -]\d{2}[ -]", "", title)
         where = f"- {name} · {path}\n- [{repo_url}/blob/{default_branch}/{path}]({repo_url}/blob/{default_branch}/{path})"
         ident = _slug(path, used)
-        accept(title, _node(ident, title, "planned", "spec", "teal", path.split("/")[-1][:28],
+        accept(title, _node(ident, title, "planned", "spec", "teal", path.split("/")[-1][:18],
                             str(doc.get("summary") or title), where, 0, 0))
 
     for pr in list(sources.get("open_prs") or [])[:MAX_PRS]:

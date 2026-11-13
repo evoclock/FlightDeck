@@ -68,6 +68,23 @@ class PlannedSources(unittest.TestCase):
         # file-tree blobs that are not specs must not become docs
         self.assertEqual([doc["path"] for doc in sources["docs"]], ["specs/plan.md"])
 
+    def test_opt_in_collects_named_research_plan_and_verified_paths(self):
+        """Why: refresh can use documented work without turning an arbitrary tree into components."""
+        fake = FakeGH({
+            "repos/example/tool": {"default_branch": "main"},
+            "repos/example/tool/git/trees/main?recursive=1": {"tree": [
+                {"type": "blob", "path": "README.md"},
+                {"type": "blob", "path": "approach.md"},
+                {"type": "blob", "path": "src/analyze_demand_did.py"},
+                {"type": "blob", "path": "unrelated.txt"},
+            ]},
+        })
+        sources = collect_planned_sources("example", "tool", runner=fake, offline=False,
+                                          include_readme_overview=True)
+        self.assertEqual([doc["path"] for doc in sources["docs"]], ["approach.md"])
+        self.assertIn("src/analyze_demand_did.py", sources["paths"])
+        self.assertNotIn("unrelated.txt", [doc["path"] for doc in sources["docs"]])
+
     def test_decode_ignores_non_files(self):
         self.assertIsNone(_decode_contents({"type": "dir"}))
 
