@@ -7,19 +7,19 @@ KEYS = ('bot', 'project', 'now', 'waiting')
 def expand_semicolon_facts(text):
     """Turn a single semicolon-joined fact line into one markdown bullet per fact.
 
-    Pre-as_bullets data looks like "- a; b; c." or "a; b; c." — one blob, no
-    visible list. Leave real multi-bullet text and ordinary one-clause sentences
-    alone.
+    Pre-as_bullets data looks like "- a; b; c." or a two-action waiting line
+    "Review the draft; then merge it." Leave real multi-bullet text and
+    ordinary one-clause sentences alone.
     """
     text = text if isinstance(text, str) else ""
     lines = [ln for ln in text.splitlines() if ln.strip()]
-    if len(lines) != 1 or lines[0].count("; ") < 2:
+    if len(lines) != 1 or lines[0].count("; ") < 1:
         return text
     raw = lines[0]
     prefixed = raw.lstrip().startswith("- ")
     body = raw.lstrip()[2:].strip() if prefixed else raw.strip()
     parts = [part.strip() for part in body.split("; ") if part.strip()]
-    if len(parts) < 3:
+    if len(parts) < 2:
         return text
     return "\n".join(f"- {part}" for part in parts)
 

@@ -244,6 +244,19 @@ class WidgetPortTests(Base):
         self.assertIn('ul.prose-list{', CSS)
         self.assertIn('list-style:disc', CSS)
 
+    def test_streams_splits_two_action_waiting_line_into_bullets(self):
+        """Why: a waiting line with one semicolon is two actions, not one sentence."""
+        ctx = self.ctx({'streams': [[
+            'Alpha', 'example/app',
+            'Working on the tracker.',
+            'Undraft flock-master #71; then merge FlightDeck #51.',
+        ]]})
+        out = render_slot('streams.table', ctx)
+        self.assertIn('<div class="st you">Waiting on you: <ul class="prose-list">', out)
+        self.assertIn('<li>Undraft flock-master #71</li>', out)
+        self.assertIn('<li>then merge FlightDeck #51.</li>', out)
+        self.assertNotIn('71; then merge', out)
+
 
     def test_decisions_open_first_with_respond_controls(self):
         out = render_slot('decisions.cards', self.ctx())
