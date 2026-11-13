@@ -84,7 +84,7 @@ def render(ctx):
             loaded.append((t, *load_diagram(base, t["diagram"])))
         except (DiagramError, OSError):
             continue
-    tabs, panels, pages = [], [], []
+    tabs, panels = [], []
     for i, t in enumerate(entries):
         if t.get("status") == "pending" and not t.get("diagram"):
             pid = e(t["id"])
@@ -125,16 +125,17 @@ def render(ctx):
                       f'<p class="arch-sum">{e(dg["meta"].get("subtitle", ""))}</p>{source_note}'
                       f'<div class="arch-bar"><p class="arch-meta">{counts} · {repos}</p>'
                       f'<div class="views" role="group" aria-label="{e(name)} view">{toggle}</div></div>'
-                      f'<div class="bb-frame" data-p="{pid}" data-name="{e(name)}">'
+                      f'<div class="bb-frame" data-p="{pid}" data-name="{e(name)}"'
+                      f' data-iso-src="/architecture/{pid}/iso.html"'
+                      f' data-flat-src="/architecture/{pid}/flat.html">'
                       f'<noscript><p class="muted">The diagram needs JavaScript.</p></noscript></div>'
                       f'<p class="note">Source: {e(t["diagram"])}, rendered by pi-bowerbird.</p></div>')
-        pages += [embed(f"bb-{pid}-{v}", html_[v]) for v in VIEWS]
     legend = "".join(f'<span class="lg"><b>{v}</b> = {BB_LEGEND[k]}</span>' for k, v in STATUS.items())
     checked = f' Checked {e(P["verified"])}.' if P.get("verified") else ""
     note = f'<p class="note">{e(P.get("rule", ""))}{checked}</p>' if (P.get("rule") or checked) else ""
     if entries:
         body = (f'<div class="arch-head"><div class="tabs" role="tablist" aria-label="Projects">{"".join(tabs)}</div>'
-                f'<div class="legend">{legend}</div></div>{"".join(panels)}{note}{"".join(pages)}{embed("bb-font", bb_font(base)) if loaded else ""}')
+                f'<div class="legend">{legend}</div></div>{"".join(panels)}{note}')
     else:
         body = f'<p class="muted">No diagrams yet.</p>{note}'
     n_comp = sum(len(dg["nodes"]) for _, dg, _ in loaded)

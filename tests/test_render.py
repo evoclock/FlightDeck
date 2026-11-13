@@ -390,7 +390,7 @@ class WidgetPortTests(Base):
         self.assertEqual(tracker_status({"id": "x", "status": "implemented"}), "built")
 
 
-    def test_architecture_inlines_self_contained_pages(self):
+    def test_architecture_points_at_self_contained_asset_pages(self):
         import hashlib
         arch = self.assets / 'architecture'
         for v in ('iso', 'flat'):
@@ -408,14 +408,14 @@ class WidgetPortTests(Base):
         out = render_slot('architecture.diagrams', self.ctx(d))
         self.assertIn('1 projects · 2 parts', out)
         self.assertIn('1 built · 1 unverified', out)
-        self.assertIn('id="bb-demo-iso"', out)
-        self.assertIn('id="bb-font"', out)
+        self.assertIn('data-iso-src="/architecture/demo/iso.html"', out)
+        self.assertIn('data-flat-src="/architecture/demo/flat.html"', out)
+        self.assertNotIn('id="bb-demo-iso"', out)
         self.assertNotIn('fonts.example', out)
-        self.assertIn('flightdeck-fonts', out)
         d['projects']['tabs'][0]['source_status'] = 'stale'
         stale = render_slot('architecture.diagrams', self.ctx(d))
         self.assertIn('last verified diagram', stale)
-        self.assertIn('id="bb-demo-iso"', stale)
+        self.assertIn('data-iso-src="/architecture/demo/iso.html"', stale)
 
 
 if __name__ == '__main__':

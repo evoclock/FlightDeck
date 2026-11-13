@@ -17,9 +17,9 @@ var bf=document.getElementById('bb-font'),fonts=bf?JSON.parse(bf.textContent):''
 // Each view is bowerbird's own page in a sandboxed frame (scripts, popups and downloads only), built on first use.
 function frame(pid,v){var box=document.querySelector('.bb-frame[data-p="'+pid+'"]');if(!box)return;
 var f=box.querySelector('iframe[data-view="'+v+'"]');
-if(!f){var src=document.getElementById('bb-'+pid+'-'+v);if(!src)return;f=document.createElement('iframe');f.dataset.view=v;f.title=box.dataset.name+' architecture, '+LBL[v]+' view';
+if(!f){var url=box.getAttribute('data-'+v+'-src');var src=document.getElementById('bb-'+pid+'-'+v);if(!url&&!src)return;f=document.createElement('iframe');f.dataset.view=v;f.title=box.dataset.name+' architecture, '+LBL[v]+' view';
 f.setAttribute('sandbox','allow-scripts allow-popups allow-popups-to-escape-sandbox allow-downloads');f.setAttribute('allow','fullscreen');
-f.srcdoc=JSON.parse(src.textContent).replace('<!--flightdeck-fonts-->','<style>'+fonts+'</style>');box.appendChild(f)}
+if(url){f.src=url}else{f.srcdoc=JSON.parse(src.textContent).replace('<!--flightdeck-fonts-->','<style>'+fonts+'</style>')}box.appendChild(f)}
 [].forEach.call(box.querySelectorAll('iframe'),function(x){x.hidden=x!==f})}
 function view(pid,v,save){if(!LBL[v])v='iso';var p=document.getElementById('arch-'+pid);
 [].forEach.call(p.querySelectorAll('.vt'),function(b){b.setAttribute('aria-pressed',String(b.dataset.view===v))});frame(pid,v);
