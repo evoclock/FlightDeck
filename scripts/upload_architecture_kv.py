@@ -5,9 +5,13 @@ import hashlib
 import json
 import os
 import re
+import sys
 from pathlib import Path
 from urllib.parse import quote
 from urllib.request import Request, urlopen
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from flightdeck.architecture_provenance import publishable
 
 
 def upload(source, dist, config, data, dry_run=False):
@@ -42,6 +46,8 @@ def upload(source, dist, config, data, dry_run=False):
             path = source / 'rendered' / view / (stem + '.html')
             if not path.is_file():
                 raise SystemExit(f'Missing architecture view: {path}')
+            if not publishable(path):
+                continue
             key = f'architecture/{diagram_id}/{view}.html'
             content = path.read_bytes()
             digest = hashlib.sha256(content).hexdigest()
