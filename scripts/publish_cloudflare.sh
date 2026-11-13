@@ -34,7 +34,7 @@ bad = [key for key in ("account_id", "zone_id", "access_aud", "hostname", "acces
 emails = cfg.get("allowed_emails") or []
 if not emails or any(placeholder(item) for item in emails):
     bad.append("allowed_emails")
-for key in ("responses_kv_id", "spark_kv_id"):
+for key in ("responses_kv_id", "spark_kv_id", "architecture_kv_id"):
     if key in cfg and cfg[key] and placeholder(cfg[key]):
         bad.append(key)
 if bad:
@@ -50,11 +50,34 @@ python3 "$ROOT/site/build.py" \
   --out "$ROOT/site/dist"
 
 if [[ "$DEPLOY" == 1 ]]; then
+  # A token file is an optional fallback. Keep its value out of the environment
+  # except for the two commands that need it. An explicit env token always wins.
+  fallback_token=
+  if [[ ${CLOUDFLARE_API_TOKEN+x} != x ]]; then
+    token_file=${CREW_TRACKER_CF_TOKEN_FILE:-$HOME/.cloudflare_token}
+    if [[ -f "$token_file" ]]; then
+      mode=$(python3 -c 'import os, stat, sys; print(format(stat.S_IMODE(os.stat(sys.argv[1]).st_mode), "o"))' "$token_file")
+      if [[ "$mode" != 600 ]]; then
+        echo "Warning: Cloudflare token file should be mode 600." >&2
+      fi
+      fallback_token=$(<"$token_file")
+    fi
+  fi
+  with_cf_token() {
+    if [[ -n "$fallback_token" ]]; then
+      CLOUDFLARE_API_TOKEN="$fallback_token" "$@"
+    else
+      "$@"
+    fi
+  }
+  with_cf_token python3 "$ROOT/scripts/upload_architecture_kv.py" \
+    --source "$ROOT/dist/local/assets/architecture" --dist "$ROOT/site/dist" --site "$SITE" \
+    --data "$ROOT/examples/demo/data.json"
   if ! command -v npx >/dev/null 2>&1; then
     echo "npx is required to deploy. The Worker bundle is at $ROOT/site/dist." >&2
     exit 1
   fi
-  npx --yes wrangler@4 deploy --config "$ROOT/site/dist/wrangler.json"
+  with_cf_token npx --yes wrangler@4 deploy --config "$ROOT/site/dist/wrangler.json"
 fi
 
 echo "Cloudflare bundle at $ROOT/site/dist"

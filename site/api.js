@@ -120,6 +120,6 @@ async function api(req, env, path) {
 export default {
   async fetch(req, env) {
     const path = new URL(req.url).pathname;
-    return path.startsWith("/api/") ? api(req, env, path) : page.fetch(req);
+    return path.startsWith("/api/") ? api(req, env, path) : page.fetch(req, env);
   },
 };

@@ -22,7 +22,7 @@ The dry-run reads `site/site.example.json`. Every id in that file is a placehold
 
 1. Copy `site/site.example.json` to `site/site.json`.
 2. Replace `ACCOUNT_ID`, `ZONE_ID`, `ACCESS_AUD`, the hostname, the Access team domain, `allowed_emails`, and the KV ids.
-3. Leave a KV id out of the file if you do not want that binding. `FLIGHTDECK_RESPONSES` stores `POST /api/responses` and `POST /api/chat-accept` (one chat answer merged in). `FLIGHTDECK_SPARK` stores `GET` and `POST /api/spark` under the key `spark/latest`.
+3. Leave a KV id out of the file if you do not want that binding. `FLIGHTDECK_RESPONSES` stores `POST /api/responses` and `POST /api/chat-accept` (one chat answer merged in). `FLIGHTDECK_SPARK` stores `GET` and `POST /api/spark` under the key `spark/latest`. Optional `architecture_kv_id` binds `CREW_ARCHITECTURE` for `/architecture/{id}/{view}.html`. Deploy stages rendered views in `site/dist/assets/architecture/` and uploads changed keys under `architecture/{id}/{view}.html` before deploying the Worker. It does not delete KV keys. Without that id, uploads are skipped. Preview with `python3 scripts/upload_architecture_kv.py --source dist/local/assets/architecture --dist site/dist --site site/site.json --data examples/demo/data.json --dry-run`.
 4. `site/site.json` is gitignored. Do not commit it.
 
 `scripts/publish_cloudflare.sh --deploy` refuses to upload while those placeholders are still in `site/site.json`. When they are filled in, it builds from that file and runs `npx wrangler@4 deploy` with `site/dist/wrangler.json`. Put a Cloudflare API token in the environment the way Wrangler expects. Do not write the token into the repo.

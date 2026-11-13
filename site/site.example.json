@@ -10,5 +10,6 @@
     "you@example.com"
   ],
   "responses_kv_id": "RESPONSES_KV_ID",
-  "spark_kv_id": "SPARK_KV_ID"
+  "spark_kv_id": "SPARK_KV_ID",
+  "architecture_kv_id": "ARCHITECTURE_KV_ID"
 }
