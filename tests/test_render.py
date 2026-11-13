@@ -214,6 +214,19 @@ class WidgetPortTests(Base):
         self.assertIn('2 bots · 1 need you', out)
         self.assertIn('class="st none">Waiting on you: Nothing', out)
 
+    def test_streams_now_field_renders_markdown_bullets(self):
+        ctx = self.ctx({'streams': [[
+            'Alpha', 'example/app',
+            '- 1 draft PRs green, 0 ready, 0 failing, 0 pending/unknown\n- 0 commits on main since unknown\n- Checked 01:33 GMT.',
+            '- Undraft and merge 1 green draft PRs.',
+        ]]})
+        out = render_slot('streams.table', ctx)
+        self.assertIn('<div class="now"><ul class="prose-list"><li>', out)
+        self.assertIn('1 draft PRs green', out)
+        self.assertIn('<div class="st you">Waiting on you: <ul class="prose-list"><li>', out)
+        self.assertNotIn('; 0 commits', out)
+
+
     def test_decisions_open_first_with_respond_controls(self):
         out = render_slot('decisions.cards', self.ctx())
         self.assertLess(out.index('data-id="dec-1"'), out.index('Settled'))

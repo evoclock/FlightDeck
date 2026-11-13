@@ -139,6 +139,14 @@ def reports_and_mapping(rows, cfg):
     return reports, mapping
 
 
+def as_bullets(bits, checked=None):
+    """One markdown bullet per fact so Streams can render a real list."""
+    lines = [bit if str(bit).lstrip().startswith("- ") else f"- {bit}" for bit in bits]
+    if checked:
+        lines.append(f"- Checked {checked}.")
+    return "\n".join(lines)
+
+
 def next_action(row):
     if row.get('error'):
         return 'Check evidence collection; readiness unknown.'
@@ -148,13 +156,13 @@ def next_action(row):
                         (sum(not p.get('draft') and actionable(p) for p in prs), 'Merge {} ready PRs'),
                         (sum(p.get('checks') == 'failure' for p in prs), 'Fix failing checks on {} PRs')):
         if count:
-            actions.append(text.format(count))
-    return '; '.join(actions) + '.' if actions else 'Nothing right now.'
+            actions.append(text.format(count) + '.')
+    return as_bullets(actions) if actions else 'Nothing right now.'
 
 
 def current_facts(row):
     if row.get('error'):
-        return f"- Evidence unavailable ({row['error']}); last checked {row.get('collected_at') or 'unknown'}."
+        return as_bullets([f"Evidence unavailable ({row['error']})", f"last checked {row.get('collected_at') or 'unknown'}."])
     prs = row.get('open_prs', [])
     drafts = sum(bool(p.get('draft')) and actionable(p) for p in prs)
     ready = sum(not p.get('draft') and actionable(p) for p in prs)
@@ -172,7 +180,7 @@ def current_facts(row):
         bits.append(f"{len(row['panes'])} configured local panes")
     if row.get('leases'):
         bits.append(f"{len(row['leases'])} Treehouse leases")
-    return '- ' + '; '.join(bits) + f". Checked {row.get('collected_at') or 'unknown'}."
+    return as_bullets(bits, row.get('collected_at') or 'unknown')
 
 
 def streams(data, rows, cfg, now):
