@@ -121,12 +121,16 @@ def meta_flags(doc):
 def _slug(text, used):
     base = "-".join(WORD_RE.findall(str(text).lower())[:6]) or "component"
     ident = "component" if base in {"inventory", "file-inventory"} else base
+    ident = ident[:40].rstrip("-") or "component"
     n = 2
     while ident in used or ident in {"inventory", "file-inventory"}:
-        ident = f"{ident}-{n}" if ident not in {"inventory", "file-inventory"} else f"component-{n}"
+        suffix = f"-{n}"
+        ident = (ident[:40 - len(suffix)].rstrip("-") + suffix)
+        if ident in {"inventory", "file-inventory"}:
+            ident = f"component-{n}"
         n += 1
     used.add(ident)
-    return ident[:40]
+    return ident
 
 
 def _clean_title(text, limit=42):

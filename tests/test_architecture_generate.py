@@ -99,6 +99,16 @@ class PlannedArchitecture(unittest.TestCase):
         self.assertNotIn("Installation & Setup", titles)
         self.assertNotIn("License", titles)
 
+    def test_long_spec_paths_keep_unique_ids(self):
+        sources = {"docs": [
+            {"path": "build-proofs/billing-handlers/docs/plans/checkout-split.md", "title": "checkout split"},
+            {"path": "build-proofs/billing-handlers/docs/plans/search-v2.md", "title": "search v2"},
+        ]}
+        result = diagram_from_planned_work("example", "bench", "d" * 40, sources)
+        ids = [node["id"] for node in result["nodes"]]
+        self.assertEqual(len(ids), len(set(ids)))
+        self.assertFalse(any(a["from"] == a["to"] for a in result["edges"]))
+
     def test_tree_helper_is_removed(self):
         with self.assertRaises(RuntimeError):
             diagram_from_tree("example", "service", "a" * 40, ["src/main.py"])
