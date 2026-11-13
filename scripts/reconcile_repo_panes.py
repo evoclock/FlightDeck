@@ -187,18 +187,7 @@ def streams(data, rows, cfg, now):
             current += f"\n- {bot} note ({note['at']}): " + ' '.join(note['current'].split())
         result.append({'bot': name, 'repo': name, 'project': bot or row.get('visibility', 'unknown'),
                        'now': current, 'waiting': next_action(row), 'src': 'repo-evidence', 'at': row.get('collected_at')})
-    replaced = {r['repo'].casefold() for r in rows} | {str(v).casefold() for v in mapping.values() if v}
-    for old in data.get('streams') or []:
-        info = S.as_stream(old)
-        if str(info.get('bot', '')).casefold() in replaced or (isinstance(old, dict) and old.get('src') == 'repo-evidence'):
-            continue
-        report = next((r for r in reports if r.get('agent') == info.get('bot')), {})
-        when = S.parse_time(report.get('at'))
-        prefix = f'Stale since {when.date()}: ' if when else 'Stale since unknown: '
-        for key in ('now', 'waiting'):
-            info[key] = prefix + re.sub(r'^Stale since [^:]+: ', '', info.get(key) or '')
-        if not any(r['bot'] == info.get('bot') for r in result):
-            result.append(info)
+    # Only repository-backed streams survive; bot notes are annotations above.
     data['streams'] = result
     return mapping
 
@@ -244,23 +233,18 @@ def steps(data, rows, now):
     active = {r['repo'] for r in rows}
     eligible = {S.pr_key(p): dict(p, repo=r['repo']) for r in rows
                 if not r.get('error') and r.get('visibility') in {'public', 'private'}
-                for p in r.get('open_prs', []) if actionable(p)}
-    closed = {S.pr_key(dict(p, repo=r['repo'])): p for r in rows for p in r.get('closed_prs', [])}
+                for p in r.get('open_prs', []) if p.get('draft') and actionable(p)}
     old = data.get('steps') or []
+    open_decisions = {d.get('id') for d in data.get('decisions', []) if d.get('state') == 'open'}
     kept = []
     for step in old:
-        if not isinstance(step, dict):
-            kept.append(step)
+        if not isinstance(step, dict) or step.get('done'):
             continue
         key = step.get('pr') or ''
         if step.get('src') in {'ready', 'repo-evidence'} and key.rsplit('#', 1)[0] in active:
-            if key in closed:
-                when = closed[key].get('merged_at') or closed[key].get('closed_at')
-                done_at = S.parse_time(when)
-                if done_at and now - done_at <= S.SETTLED_KEEP:
-                    kept.append(dict(step, done=True, done_at=when))
             continue
-        if step.get('src') != 'repo-evidence':
+        if (step.get('decision_id') in open_decisions and step.get('decision_id')
+                or step.get('terminal') is True):
             kept.append(step)
     for key, pr in eligible.items():
         if any(isinstance(s, dict) and not s.get('done') and s.get('pr') == key for s in kept):
@@ -303,7 +287,13 @@ def reconcile(data, cfg, now=None, selected=PANES):
     if payload is None:
         return 0
     now = S.aware(now)
-    rows = sorted(repo_rows(cfg), key=lambda r: (next_action(r).startswith('Nothing'),
+    unique = {}
+    for row in repo_rows(cfg):
+        name = row['repo'].casefold()
+        if name not in unique or (row.get('error') and not unique[name].get('error')):
+            unique[name] = row
+    rows = sorted((dict(row, branches=list({b['name'].casefold(): b for b in row.get('branches', [])}.values()))
+                   for row in unique.values()), key=lambda r: (next_action(r).startswith('Nothing'),
                   -max([S.parse_time(r.get('pushed_at')) or S.parse_time('1970-01-01')] +
                        [S.parse_time(p.get('updated_at')) or S.parse_time('1970-01-01')
                         for p in r.get('open_prs', [])]).timestamp()))
