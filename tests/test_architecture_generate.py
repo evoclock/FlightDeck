@@ -79,6 +79,15 @@ class PlannedArchitecture(unittest.TestCase):
                          ["implemented", "implemented", "planned"])
         self.assertFalse(any("missing" in node["title"] for node in result["nodes"]))
 
+    def test_dated_operating_note_title_uses_its_source_name_without_date_prefix(self):
+        """Why: a dated document heading must fit on a generated diagram card."""
+        result = diagram_from_planned_work("example", "notes", "a" * 40, {
+            "include_readme_overview": True, "readme": "# Notes\n\nOperating notes.\n",
+            "docs": [{"path": "team/2026-11-09-operating-notes.md",
+                      "title": "2026 11 09 operating notes"}],
+        })
+        self.assertIn("operating notes", [node["title"] for node in result["nodes"]])
+
     def test_empty_sources_make_a_minimal_component_not_an_inventory(self):
         result = diagram_from_planned_work("example", "empty", None, {})
         self.assertEqual([node["title"] for node in result["nodes"]], ["empty"])

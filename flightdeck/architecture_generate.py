@@ -299,6 +299,8 @@ def diagram_from_planned_work(owner, name, sha, sources=None):
             if not re.search(r"(spec|plan|contract|decision|approach|operating-notes)", path, re.I):
                 continue
         title = _clean_title(doc.get("title") or path.rsplit("/", 1)[-1], 60)
+        if path.endswith("-operating-notes.md"):
+            title = re.sub(r"^\d{4}[ -]\d{2}[ -]\d{2}[ -]", "", title)
         where = f"- {name} · {path}\n- [{repo_url}/blob/{default_branch}/{path}]({repo_url}/blob/{default_branch}/{path})"
         ident = _slug(path, used)
         accept(title, _node(ident, title, "planned", "spec", "teal", path.split("/")[-1][:18],
