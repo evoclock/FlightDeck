@@ -301,7 +301,7 @@ def diagram_from_planned_work(owner, name, sha, sources=None):
         title = _clean_title(doc.get("title") or path.rsplit("/", 1)[-1], 60)
         where = f"- {name} · {path}\n- [{repo_url}/blob/{default_branch}/{path}]({repo_url}/blob/{default_branch}/{path})"
         ident = _slug(path, used)
-        accept(title, _node(ident, title, "planned", "spec", "teal", path.split("/")[-1][:22],
+        accept(title, _node(ident, title, "planned", "spec", "teal", path.split("/")[-1][:18],
                             str(doc.get("summary") or title), where, 0, 0))
 
     for pr in list(sources.get("open_prs") or [])[:MAX_PRS]:
