@@ -30,7 +30,7 @@ def diagram_from_tree(owner, name, sha, paths):
         row = len(nodes)
         nodes.append({"id": key, "zone": "structure", "at": [1, row - 1],
                       "type": "service", "title": title, "lines": [f"{len(found)} observed paths"],
-                      "category": "sage", "status": "implemented", "hint": found[0],
+                      "category": "sage", "status": "implemented",
                       "details": "Observed files at the pinned head:\n" +
                                  "\n".join(f"- `{p}`" for p in found)})
         edges.append({"from": "repo", "to": key, "kind": "data", "label": "contains"})

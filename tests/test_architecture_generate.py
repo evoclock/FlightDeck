@@ -12,6 +12,7 @@ class GeneratedArchitecture(unittest.TestCase):
         self.assertTrue(result["meta"]["generated"])
         self.assertEqual({n["id"] for n in result["nodes"]}, {"repo", "packages", "entry", "ci", "tests"})
         self.assertEqual({e["to"] for e in result["edges"]}, {"packages", "entry", "ci", "tests"})
+        self.assertTrue(all("hint" not in n for n in result["nodes"]))
 
     def test_unavailable_tree_is_not_reported_as_empty(self):
         result = diagram_from_tree("example", "private", None, None)
