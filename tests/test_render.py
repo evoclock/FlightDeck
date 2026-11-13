@@ -226,6 +226,24 @@ class WidgetPortTests(Base):
         self.assertIn('<div class="st you">Waiting on you: <ul class="prose-list"><li>', out)
         self.assertNotIn('; 0 commits', out)
 
+    def test_streams_splits_semicolon_joined_facts_into_bullets(self):
+        """Why: live data from before as_bullets is one '- a; b; c.' line."""
+        blob = (
+            "- 10 draft PRs green, 0 ready, 11 failing, 1 pending/unknown; "
+            "0 commits on main since 13 Nov 01:31 GMT; main tip 21:39 GMT; "
+            "22 Treehouse leases. Checked 01:33 GMT."
+        )
+        ctx = self.ctx({'streams': [['Alpha', 'example/app', blob, 'Nothing right now.']]})
+        out = render_slot('streams.table', ctx)
+        self.assertIn('<ul class="prose-list"><li>10 draft PRs green', out)
+        self.assertIn('<li>0 commits on main since 13 Nov 01:31 GMT</li>', out)
+        self.assertIn('<li>main tip 21:39 GMT</li>', out)
+        self.assertIn('<li>22 Treehouse leases. Checked 01:33 GMT.</li>', out)
+        self.assertNotIn('; 0 commits', out)
+        from flightdeck.layout_css import CSS
+        self.assertIn('ul.prose-list{', CSS)
+        self.assertIn('list-style:disc', CSS)
+
 
     def test_decisions_open_first_with_respond_controls(self):
         out = render_slot('decisions.cards', self.ctx())

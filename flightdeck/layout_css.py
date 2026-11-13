@@ -159,7 +159,7 @@ ul{list-style:none;margin:0;padding:0}
 .st.none::before{background:#c9d2c5}
 .note{font-size:15.5px;color:var(--sub);margin:12px 0 0}
 .settled .muted{/* prose_html handles lists */}
-.prose-list{margin:0;padding:0 0 0 1.15em;list-style:disc}
+ul.prose-list{margin:0;padding:0 0 0 1.35em;list-style:disc outside}
 .prose-list li{margin:0.15em 0;padding:0;line-height:1.35}
 .dec-head{display:grid;gap:4px;margin-bottom:10px}
 .dec-title{font-size:1.05rem}
