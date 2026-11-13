@@ -82,7 +82,7 @@ def render(ctx):
             continue
         try:
             loaded.append((t, *load_diagram(base, t["diagram"])))
-        except DiagramError:
+        except (DiagramError, OSError):
             continue
     tabs, panels, pages = [], [], []
     for i, t in enumerate(entries):
@@ -102,7 +102,7 @@ def render(ctx):
         try:
             dg, html_ = load_diagram(base, t["diagram"])
             pid, name, st = e(t["id"]), dg["meta"]["title"], [tracker_status(n) for n in dg["nodes"]]
-        except (DiagramError, KeyError, TypeError) as err:
+        except (DiagramError, OSError, KeyError, TypeError) as err:
             pid = e(t["id"])
             label = t.get("label") or Path(t.get("diagram") or pid).stem
             tabs.append(f'<button role="tab" id="tab-{pid}" aria-selected="{str(i == 0).lower()}" '

@@ -372,6 +372,17 @@ class WidgetPortTests(Base):
         self.assertIn('Diagram unavailable', out)
         self.assertIn('changed since it was rendered', out)
 
+    def test_missing_diagram_file_does_not_blank_architecture(self):
+        """Why: a quiet tab whose source file is gone must not hide the other diagrams."""
+        d = {'projects': {'tabs': [
+            {'id': 'missing', 'diagram': 'architecture/op-llm.bower.json'},
+            {'id': 'ok', 'diagram': 'architecture/ok.bower.json'},
+        ]}}
+        out = render_slot('architecture.diagrams', self.ctx(d))
+        self.assertIn('Architecture', out)
+        self.assertIn('id="tab-missing"', out)
+        self.assertIn('Diagram unavailable', out)
+
     def test_architecture_node_without_status_stays_available(self):
         """Why: CES diagrams that omit node status must not blank Architecture."""
         from flightdeck.widgets.architecture import tracker_status
