@@ -6,9 +6,12 @@ Offline fixtures contain {repos: [...], api: {REST_path: response}}; replaying
 without fixtures preserves the previous snapshot and its evidence dates.
 """
 from concurrent.futures import ThreadPoolExecutor
+from threading import Event
 import argparse
+import hashlib
 import datetime
 import json
+import os
 from pathlib import Path
 import re
 import subprocess
@@ -25,18 +28,66 @@ class Unavailable(Exception):
 
 
 class GitHub:
-    def __init__(self, offline=False, fixtures=None):
+    def __init__(self, offline=False, fixtures=None, cache_dir=None):
         self.offline = offline
         self.fixtures = fixtures or {}
+        self.cache_dir = Path(cache_dir or '.cache/gh-conditional')
+        self.quota_exhausted = Event()
 
     def get(self, path):
         if self.offline:
             if path not in self.fixtures.get('api', {}):
                 raise Unavailable('fixture missing')
             return self.fixtures['api'][path]
-        value = S.gh_runner(['api', '--method', 'GET', path]) if S.gh_available() else None
-        if value is None:
+        if self.quota_exhausted.is_set():
+            raise Unavailable('GitHub quota unavailable')
+        self.cache_dir.mkdir(mode=0o700, parents=True, exist_ok=True)
+        self.cache_dir.chmod(0o700)
+        cache_file = self.cache_dir / (hashlib.sha256(path.encode()).hexdigest() + '.json')
+        previous = S.read_json(cache_file, {}) or {}
+        etag = previous.get('etag') if previous.get('path') == path else None
+        if not isinstance(etag, str) or not re.fullmatch(r'(?:W/)?"[A-Za-z0-9._:-]{1,128}"', etag):
+            etag = None
+        args = ['gh', 'api', '--include', '--method', 'GET', path]
+        if etag:
+            args += ['-H', 'If-None-Match: ' + etag]
+        try:
+            result = subprocess.run(args, capture_output=True, timeout=30)
+        except OSError:
             value = S.http_json(S.API + path, S.github_token())
+            if value is None:
+                raise Unavailable('GitHub GET unavailable')
+            return value
+        except subprocess.TimeoutExpired:
+            raise Unavailable('GitHub GET timed out')
+        headers, separator, body = result.stdout.partition(b'\r\n\r\n')
+        status = headers.splitlines()[0] if headers else b''
+        if b' 304 ' in status and etag and 'value' in previous:
+            return previous['value']
+        if result.returncode == 0:
+            if b' 200 ' in status and separator:
+                try:
+                    value = json.loads(body)
+                except ValueError:
+                    raise Unavailable('GitHub response invalid')
+                for line in headers.splitlines()[1:]:
+                    if line.lower().startswith(b'etag:'):
+                        new_etag = line.partition(b':')[2].strip().decode('ascii', errors='ignore')
+                        if re.fullmatch(r'(?:W/)?"[A-Za-z0-9._:-]{1,128}"', new_etag):
+                            temp = cache_file.with_name(cache_file.name + f'.{os.getpid()}.tmp')
+                            try:
+                                fd = os.open(temp, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o600)
+                                with os.fdopen(fd, 'w') as handle:
+                                    json.dump({'path': path, 'etag': new_etag, 'value': value}, handle)
+                                os.replace(temp, cache_file)
+                            except FileExistsError:
+                                pass
+                        break
+                return value
+        if b'rate limit' in result.stderr.lower() or b' 403 ' in result.stdout[:80] or b' 429 ' in result.stdout[:80]:
+            self.quota_exhausted.set()
+            raise Unavailable('GitHub quota or permission unavailable')
+        value = S.http_json(S.API + path, S.github_token())
         if value is None:
             raise Unavailable('GitHub GET unavailable')
         return value
@@ -253,7 +304,7 @@ def main(argv=None):
         if not S.parse_time(since) or S.parse_time(since) > now:
             raise ValueError('invalid since')
         fixtures = S.read_json(S.cache_path(cfg, 'repo-evidence-fixtures.json')) if args.offline else None
-        client = GitHub(args.offline, fixtures)
+        client = GitHub(args.offline, fixtures, S.cache_path(cfg, 'gh-conditional'))
         include = set(args.include.split(',')) if args.include else set(config.get('include') or [])
         exclude = set(args.exclude.split(',')) if args.exclude else set(config.get('exclude') or [])
         if client.offline and fixtures is None:
@@ -295,7 +346,11 @@ def main(argv=None):
                           'since': since, 'days': days, 'repos': rows, 'local_errors': local_errors})
         print(f"collect_repo_evidence: {len(rows)} active repos, {sum('error' in r for r in rows)} errors")
     except Exception as exc:
-        print(f'collect_repo_evidence: WARNING {type(exc).__name__}; keeping previous snapshot', file=sys.stderr)
+        if isinstance(locals().get('old'), dict) and old.get('repos'):
+            S.write_json(out, {**old, 'repos': [
+                {**row, 'error': type(exc).__name__, 'attempted_at': S.iso_z(S.aware(None))}
+                for row in old['repos']]})
+        print(f'collect_repo_evidence: WARNING {type(exc).__name__}; keeping previous evidence dates', file=sys.stderr)
     return 0
 
 
