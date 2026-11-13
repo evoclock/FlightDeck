@@ -24,8 +24,12 @@ DONE_SECTIONS = frozenset({"done", "complete", "completed", "finished", "shipped
 TASK_PRIORITY = {"in progress": 0, "review": 1, "doing": 0, "backlog": 2, "todo": 2, "later": 3}
 README_SKIP = frozenset({
     "installation", "install", "setup", "getting started", "quick start",
+    "installation & setup", "clone repository", "install hillstar",
     "usage", "license", "contributing", "contributors", "changelog",
-    "table of contents", "toc", "badges", "security",
+    "table of contents", "toc", "contents", "badges", "security",
+    "disclaimer", "documentation", "acknowledgements", "screenshots",
+    "what this is", "why it exists", "what it does", "build", "run",
+    "themes", "status", "layout", "layout and maintenance",
 })
 DOC_PATH_RE = re.compile(
     r"(^|/)(TASKS\.md|specs?|plans?|contracts|docs/plans?|docs/specs?|decisions)/",
@@ -116,10 +120,10 @@ def meta_flags(doc):
 
 def _slug(text, used):
     base = "-".join(WORD_RE.findall(str(text).lower())[:6]) or "component"
-    ident = base
+    ident = "component" if base in {"inventory", "file-inventory"} else base
     n = 2
-    while ident in used:
-        ident = f"{base}-{n}"
+    while ident in used or ident in {"inventory", "file-inventory"}:
+        ident = f"{ident}-{n}" if ident not in {"inventory", "file-inventory"} else f"component-{n}"
         n += 1
     used.add(ident)
     return ident[:40]
@@ -198,6 +202,10 @@ def parse_readme_components(text):
         if re.fullmatch(r"[a-z0-9._-]+", key) and key in {"readme", "overview", "about"}:
             continue
         if len(title.split()) == 1 and key in {"description", "intro", "introduction"}:
+            continue
+        if re.fullmatch(r"\d{4}-\d{2}-\d{2}", key) or re.fullmatch(r"\d+\.", key):
+            continue
+        if key in README_SKIP or any(key.startswith(prefix) for prefix in ("install", "clone ")):
             continue
         components.append({"title": title, "summary": f"README section: {title}."})
     return components
@@ -298,14 +306,15 @@ def diagram_from_planned_work(owner, name, sha, sources=None):
         accept(f"merged-{number}-{title}", _node(ident, title, "implemented", typ, "sage", typ,
                                                  title, where, 0, 0))
 
-    for part in parse_readme_components(sources.get("readme") or "")[:MAX_README]:
-            title = part["title"]
-            if title.lower() in {name.lower(), "overview", "about", "readme"}:
-                continue
-            ident = _slug(title, used)
-            where = f"- {name} · README · {title}\n- [{repo_url}]({repo_url})"
-            accept(title, _node(ident, title, "implemented", "main", "sage", "README",
-                                part.get("summary") or title, where, 0, 0))
+    if len(nodes) < 6:
+        for part in parse_readme_components(sources.get("readme") or "")[:MAX_README]:
+                title = part["title"]
+                if title.lower() in {name.lower(), "overview", "about", "readme"}:
+                    continue
+                ident = _slug(title, used)
+                where = f"- {name} · README · {title}\n- [{repo_url}]({repo_url})"
+                accept(title, _node(ident, title, "implemented", "main", "sage", "README",
+                                    part.get("summary") or title, where, 0, 0))
 
     flags = []
     if not nodes:

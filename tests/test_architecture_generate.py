@@ -55,7 +55,8 @@ class PlannedArchitecture(unittest.TestCase):
         self.assertTrue(any("2a rerun" in title.lower() for title in titles))
         self.assertTrue(any("Stream facts" in title for title in titles))
         self.assertTrue(any("architecture maps" in title for title in titles))
-        self.assertTrue(any("Slot widgets" in title for title in titles))
+        # README sections are reserved for thin maps; this source set is already full.
+        self.assertFalse(any("Slot widgets" in title for title in titles))
         statuses = {node["title"]: node["status"] for node in result["nodes"]}
         self.assertEqual(statuses[[t for t in titles if "collector rewrite" in t.lower()][0]], "implemented")
         self.assertEqual(statuses[[t for t in titles if "Stream facts" in t][0]], "partial")
@@ -86,6 +87,17 @@ class PlannedArchitecture(unittest.TestCase):
         self.assertNotIn("License", titles)
         self.assertFalse(is_inventory_diagram(result))
         self.assertNotIn("File inventory", " ".join(titles))
+
+    def test_readme_fills_a_thin_map_and_skips_install_headings(self):
+        result = diagram_from_planned_work("example", "tool", "c" * 40, {
+            "merges": [{"number": 1, "title": "Land the parser", "url": "https://x/1"}],
+            "readme": "# Tool\n\n## Parser core\n\nDoes work.\n\n## Installation & Setup\n\nClone repository.\n\n## License\n\nMIT.\n",
+        })
+        titles = [node["title"] for node in result["nodes"]]
+        self.assertIn("Land the parser", titles)
+        self.assertIn("Parser core", titles)
+        self.assertNotIn("Installation & Setup", titles)
+        self.assertNotIn("License", titles)
 
     def test_tree_helper_is_removed(self):
         with self.assertRaises(RuntimeError):
