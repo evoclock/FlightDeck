@@ -55,7 +55,7 @@ Never claim AI;DR or `/bro` ran unless that tool or skill was actually invoked.
 ## Repo home
 This skill lives in FlightDeck at `docs/skills/crew-tracker-sync/`. FlightDeck owns the hooks, the scripts, and the collectors. A private instance stays a thin overlay: its config, `data.json`, assets, and `site/` Worker. It does not keep a second copy of the hooks.
 
-Publish from the git checkout. `./publish.sh` (or `scripts/publish_local.sh`) runs `hooks/pre-render.d` before render. `./publish.sh --build` refreshes the tracker and writes local HTML. `./publish.sh --deploy` also uploads a Worker, and only from a machine that has `site/site.json`. Never publish from a box-only tree.
+Publish from the git checkout. `./publish.sh` (or `scripts/publish_local.sh`) runs `hooks/pre-render.d` before render. `./publish.sh --build` refreshes the tracker and writes local HTML. `./publish.sh --deploy` also uploads a Worker, and only from a machine that has `site/site.json`. Never publish from a box-only tree. Optional `architecture_kv_id` in the gitignored `site/site.json` binds `CREW_ARCHITECTURE`; deploy stages and uploads only changed architecture HTML views before the Worker deploy. When unset, the upload is skipped. Check planned writes with `python3 scripts/upload_architecture_kv.py --source dist/local/assets/architecture --dist site/dist --site site/site.json --data examples/demo/data.json --dry-run`; this never writes KV.
 
 ## Inputs (set by the routine or repo config, not here)
 Copy `config/sync.example.json` to `config/sync.json` (gitignored). Environment variables override the file.

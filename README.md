@@ -108,7 +108,7 @@ With `FLIGHTDECK_GH_OWNER` unset and no `data.json` in the repo root, every hook
 
 Local folder: [docs/deploy-local.md](docs/deploy-local.md). `scripts/publish_local.sh` writes `dist/local/index.html`.
 
-Cloudflare Workers: [docs/deploy-cloudflare.md](docs/deploy-cloudflare.md). `scripts/publish_cloudflare.sh` is a dry-run that embeds that HTML into a `flightdeck-demo` Worker. Real account ids, zone ids, Access emails, and KV ids stay in `site/site.json` on your machine. The repo only has placeholders in `site/site.example.json`.
+Cloudflare Workers: [docs/deploy-cloudflare.md](docs/deploy-cloudflare.md). `scripts/publish_cloudflare.sh` is a dry-run that embeds that HTML into a `flightdeck-demo` Worker. Real account ids, zone ids, Access emails, and KV ids stay in `site/site.json` on your machine. The repo only has placeholders in `site/site.example.json`. The optional `architecture_kv_id` binds `CREW_ARCHITECTURE`; deploy uploads changed architecture HTML views to that namespace. Leave it unset to skip uploads.
 
 ## License
 MIT

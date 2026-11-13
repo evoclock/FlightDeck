@@ -34,7 +34,7 @@ bad = [key for key in ("account_id", "zone_id", "access_aud", "hostname", "acces
 emails = cfg.get("allowed_emails") or []
 if not emails or any(placeholder(item) for item in emails):
     bad.append("allowed_emails")
-for key in ("responses_kv_id", "spark_kv_id"):
+for key in ("responses_kv_id", "spark_kv_id", "architecture_kv_id"):
     if key in cfg and cfg[key] and placeholder(cfg[key]):
         bad.append(key)
 if bad:
@@ -50,6 +50,9 @@ python3 "$ROOT/site/build.py" \
   --out "$ROOT/site/dist"
 
 if [[ "$DEPLOY" == 1 ]]; then
+  python3 "$ROOT/scripts/upload_architecture_kv.py" \
+    --source "$ROOT/dist/local/assets/architecture" --dist "$ROOT/site/dist" --site "$SITE" \
+    --data "$ROOT/examples/demo/data.json"
   if ! command -v npx >/dev/null 2>&1; then
     echo "npx is required to deploy. The Worker bundle is at $ROOT/site/dist." >&2
     exit 1

@@ -39,7 +39,7 @@ async function verify(token) {
 const deny = (msg) => new Response(msg, { status: 403, headers: { ...HDRS, "content-type": "text/plain; charset=utf-8" } });
 
 export default {
-  async fetch(req) {
+  async fetch(req, env) {
     if (!CFG.team || !CFG.aud) return deny("Not available.");
     const tok = req.headers.get("cf-access-jwt-assertion");
     let claims = null;
@@ -47,7 +47,13 @@ export default {
     if (!claims) return deny("Forbidden.");
     const path = new URL(req.url).pathname;
     const body = PAGES[path] ?? (path === "/index.html" ? PAGES["/"] : undefined);
-    if (body === undefined) return new Response("Not found", { status: 404, headers: HDRS });
+    if (body === undefined) {
+      const match = /^\/architecture\/([a-zA-Z0-9_-]+)\/(iso|flat)\.html$/.exec(path);
+      if (!match || !env?.CREW_ARCHITECTURE) return new Response("Not found", { status: 404, headers: HDRS });
+      const diagram = await env.CREW_ARCHITECTURE.get(`architecture/${match[1]}/${match[2]}.html`);
+      if (diagram === null) return new Response("Not found", { status: 404, headers: HDRS });
+      return new Response(diagram, { headers: { ...HDRS, "content-type": "text/html; charset=utf-8" } });
+    }
     return new Response(body, { headers: { ...HDRS, "content-type": "text/html; charset=utf-8" } });
   },
 };

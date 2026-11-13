@@ -12,6 +12,7 @@ only on a machine where that file is filled in. site.json is gitignored.
 """
 import argparse
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -20,6 +21,7 @@ HERE = Path(__file__).resolve().parent
 KV_BINDINGS = (
     ('FLIGHTDECK_RESPONSES', 'responses_kv_id'),
     ('FLIGHTDECK_SPARK', 'spark_kv_id'),
+    ('CREW_ARCHITECTURE', 'architecture_kv_id'),
 )
 
 
@@ -61,6 +63,19 @@ def kv_bindings(cfg):
         if value:
             found.append((binding, value))
     return found
+
+
+def check_worker_bindings(src, kv, cfg):
+    """Catch a Worker KV read that lacks a configured namespace in the deploy payload."""
+    declared = {binding for binding, _ in KV_BINDINGS}
+    reads = set(re.findall(r'\benv\.(CREW_ARCHITECTURE|FLIGHTDECK_[A-Z_]+)\b', src))
+    missing = reads - declared
+    if missing:
+        raise SystemExit('Worker reads undeclared KV binding: ' + ', '.join(sorted(missing)))
+    configured = {binding for binding, _ in kv}
+    required = {binding for binding, key in KV_BINDINGS if cfg.get(key) and binding in reads}
+    if required - configured:
+        raise SystemExit('Worker reads unbound KV: ' + ', '.join(sorted(required - configured)))
 
 
 def wrangler_config(cfg, kv):
@@ -113,6 +128,7 @@ def main(argv=None):
     cfg = load_config(args.site)
     src = build_worker(html_path.read_text(encoding='utf-8'), cfg)
     kv = kv_bindings(cfg)
+    check_worker_bindings(src, kv, cfg)
     meta = {'main_module': 'worker.js', 'compatibility_date': cfg['compatibility_date']}
     if kv:
         meta['bindings'] = [
