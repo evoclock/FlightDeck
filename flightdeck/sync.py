@@ -408,7 +408,7 @@ def _entry_when(entry, closed_by_src=None):
 
 
 def prune_settled(data, closed=None, now=None):
-    """Drop Settled rows and settled Decision cards older than SETTLED_KEEP (one day).
+    """Prune one-day Settled events without deleting persistent Decision cards.
 
     A row without `at` resolves through the closed-PR cache (src_id merged:<key> or
     merged-dec:<key>). A row that still has no time is dropped. Returns notes.
@@ -431,26 +431,6 @@ def prune_settled(data, closed=None, now=None):
         if len(keep) != len(rows):
             data["settled"] = keep
             notes.append(f"pruned {len(rows) - len(keep)} Settled rows older than 1 day (kept {len(keep)})")
-    else:
-        keep = []
-    if "decisions" in data:
-        decs = list(data.get("decisions") or [])
-        keep_d = []
-        for x in decs:
-            if not isinstance(x, dict) or x.get("state") != "settled":
-                keep_d.append(x)
-                continue
-            when = _entry_when(x, closed_by_src)
-            if when is None and x.get("id"):
-                for row in keep:
-                    if isinstance(row, dict) and row.get("src_id") == x.get("id"):
-                        when = _entry_when(row, closed_by_src)
-                        break
-            if when is not None and when >= cutoff:
-                keep_d.append(x)
-        if len(keep_d) != len(decs):
-            data["decisions"] = keep_d
-            notes.append(f"pruned {len(decs) - len(keep_d)} settled Decision cards older than 1 day (kept {len(keep_d)})")
     return notes
 
 

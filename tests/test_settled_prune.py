@@ -1,4 +1,4 @@
-"""Settled rows and settled Decision cards keep at most one day."""
+"""Settled events keep one day while settled Decision cards remain visible."""
 import datetime
 import io
 import json
@@ -26,7 +26,7 @@ class SettledPrune(unittest.TestCase):
         add_settled(data, "T", "- x", NOW, "dec-1")
         self.assertEqual(data["settled"][0]["at"], "2026-10-26T22:55:00.000Z")
 
-    def test_prune_drops_old_settled_and_cards(self):
+    def test_prune_drops_old_settled_events_but_preserves_cards(self):
         data = {
             "settled": [
                 {"meta": "old", "title": "Old", "detail": "- o", "src_id": "dec-old", "at": "2026-10-20T12:00:00Z"},
@@ -44,7 +44,7 @@ class SettledPrune(unittest.TestCase):
                                 "at": "2026-10-26T21:00:00Z"})
         notes = prune_settled(data, [], NOW)
         self.assertEqual([s["title"] for s in data["settled"]], ["New", "Row"])
-        self.assertEqual({x["id"] for x in data["decisions"]}, {"dec-new", "dec-row", "dec-open"})
+        self.assertEqual({x["id"] for x in data["decisions"]}, {"dec-old", "dec-new", "dec-row", "dec-open"})
         self.assertTrue(any("pruned" in n for n in notes))
 
     def test_prune_resolves_undated_merge_row_from_closed_cache(self):
@@ -136,7 +136,8 @@ class HooksPrune(unittest.TestCase):
         self.assertEqual(prune_settled(data, None, later), [])
         self.assertEqual(len(data["decisions"]), 1)
         prune_settled(data, None, NOW + datetime.timedelta(hours=25))
-        self.assertEqual(data["decisions"], [])
+        self.assertEqual(len(data["decisions"]), 1)
+        self.assertEqual(data["settled"], [])
 
 
 if __name__ == "__main__":
