@@ -16,6 +16,7 @@ DOC_NAMES = ("TASKS.md", "README.md", "README")
 README_NAMES = frozenset({"readme.md", "readme"})
 MAX_REMOTE_DOCS = 6
 MAX_PULLS = 20
+RESEARCH_PLAN_RE = re.compile(r"^(?:approach\.md|[^/]+/\d{4}-\d{2}-\d{2}-operating-notes\.md)$", re.I)
 
 
 def _run_gh(argv, timeout=20):
@@ -61,7 +62,7 @@ def _read_local(root):
         rel = path.relative_to(root).as_posix()
         if rel in {"TASKS.md", "README.md", "README"}:
             continue
-        if not SPEC_PATH_RE.search("/" + rel):
+        if not SPEC_PATH_RE.search("/" + rel) and not RESEARCH_PLAN_RE.fullmatch(rel):
             continue
         if len(sources["docs"]) >= MAX_REMOTE_DOCS:
             break
@@ -122,19 +123,23 @@ def _gh_pulls(runner, owner, name, state):
     return rows
 
 
-def collect_planned_sources(owner, name, sha=None, root=None, runner=None, offline=None):
+def collect_planned_sources(owner, name, sha=None, root=None, runner=None, offline=None,
+                            include_readme_overview=False):
     """Return a sources dict for diagram_from_planned_work.
 
     `root` is an optional local checkout. When offline, network collection is skipped.
     """
     if offline is None:
         offline = os.environ.get("CREW_TRACKER_OFFLINE") == "1"
-    sources = {"docs": [], "open_prs": [], "merges": [], "default_branch": "main"}
+    sources = {"docs": [], "open_prs": [], "merges": [], "default_branch": "main",
+               "include_readme_overview": include_readme_overview}
     if root and Path(root).is_dir():
         sources.update({k: v for k, v in _read_local(root).items() if v})
         sources.setdefault("docs", [])
         sources.setdefault("open_prs", [])
         sources.setdefault("merges", [])
+        if include_readme_overview:
+            sources["paths"] = [p.relative_to(root).as_posix() for p in Path(root).rglob("*") if p.is_file()]
     if offline:
         return sources
     runner = runner or _run_gh
@@ -154,7 +159,7 @@ def collect_planned_sources(owner, name, sha=None, root=None, runner=None, offli
             if text:
                 sources["readme"] = text
                 break
-    if not sources.get("docs"):
+    if not sources.get("docs") or sources.get("include_readme_overview"):
         status, stdout, _ = _invoke(runner, f"repos/{owner}/{name}/git/trees/{ref}?recursive=1", 30)
         tree = None
         if status == 0 and stdout.strip():
@@ -163,11 +168,14 @@ def collect_planned_sources(owner, name, sha=None, root=None, runner=None, offli
             except ValueError:
                 tree = None
         paths = []
+        if sources.get("include_readme_overview") and not (tree or {}).get("truncated"):
+            sources["paths"] = [item["path"] for item in (tree or {}).get("tree") or []
+                                if item.get("type") == "blob"]
         for item in (tree or {}).get("tree") or []:
             if item.get("type") != "blob":
                 continue
             path = item.get("path") or ""
-            if SPEC_PATH_RE.search("/" + path):
+            if SPEC_PATH_RE.search("/" + path) or RESEARCH_PLAN_RE.fullmatch(path):
                 paths.append(path)
             if len(paths) >= MAX_REMOTE_DOCS:
                 break
@@ -178,7 +186,7 @@ def collect_planned_sources(owner, name, sha=None, root=None, runner=None, offli
                 "title": Path(path).stem.replace("-", " ").replace("_", " "),
                 "summary": f"Planning doc at {path}.",
             })
-        if docs:
+        if docs and not sources.get("docs"):
             sources["docs"] = docs
     if not sources.get("open_prs"):
         sources["open_prs"] = [row for row in _gh_pulls(runner, owner, name, "open") if not row.get("merged_at")]
