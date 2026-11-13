@@ -38,6 +38,9 @@ def tracker_status(n):
 def bb_page(src):
     """Bowerbird's standalone page made self-contained: no web-font links, links open outside the frame."""
     out = re.sub(r'<link rel="(?:preconnect|stylesheet)" href="https://fonts\.[^"]*"[^>]*>\n?', "", src)
+    # The parent page injects Geist once through FONT_MARK; keeping Bowerbird's
+    # embedded copy in every view multiplies the font across all tabs.
+    out = re.sub(r'@font-face\{font-family:Geist;[^{}]*src:url\(data:font/[^)]*\)[^{}]*\}', '', out)
     out = out.replace("<head>", '<head><base target="_blank">', 1).replace("</head>", FONT_MARK + "</head>", 1)
     ext = [m for m in re.findall(r'<(\w+)\s[^>]*?\b(?:src|href)="https?://', out) if m != "a"]
     if ext or FONT_MARK not in out:

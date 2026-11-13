@@ -266,6 +266,15 @@ class WidgetPortTests(Base):
         from flightdeck.layout_css import CSS
         self.assertIn('.pane.closed{min-height:0;', CSS)
 
+    def test_bowerbird_page_reuses_parent_font_without_external_fetch(self):
+        from flightdeck.widgets.architecture import bb_page, FONT_MARK
+        face = '@font-face{font-family:Geist;src:url(data:font/ttf;base64,AAAA)}'
+        src = '<html><head><style>' + face + '</style></head><body>map</body></html>'
+        out = bb_page(src)
+        self.assertNotIn('base64,AAAA', out)
+        self.assertIn(FONT_MARK, out)
+        self.assertIn('<body>map</body>', out)
+
     def test_pending_tab_does_not_open_a_missing_diagram_frame(self):
         """Why: selecting a pending tab must not abort diagram initialization."""
         from flightdeck.page_js import JS
