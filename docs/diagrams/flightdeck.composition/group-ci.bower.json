@@ -1,0 +1,173 @@
+{
+  "schema": "bowerbird/v1",
+  "categories": {
+    "sage": {
+      "label": "Publish entry points"
+    },
+    "teal": {
+      "label": "Ordered pre-render hooks"
+    },
+    "mustard": {
+      "label": "Collectors and reconciliation"
+    },
+    "mauve": {
+      "label": "Dashboard rendering"
+    },
+    "olive": {
+      "label": "Optional Worker bundle"
+    },
+    "slate": {
+      "label": "Continuous integration"
+    }
+  },
+  "traces": [],
+  "meta": {
+    "title": "Continuous integration",
+    "subtitle": "Live repository composition at origin/main 69bf757",
+    "repository": {
+      "url": "https://github.com/evoclock/FlightDeck",
+      "ref": "main"
+    },
+    "lightFlatFill": "filled",
+    "inputSha": "69bf75736e1bf516ddd0df72e2b76d333e352a20"
+  },
+  "zones": [
+    {
+      "id": "ci",
+      "title": "Continuous integration",
+      "category": "slate"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "tip-ci",
+      "zone": "ci",
+      "at": [
+        25,
+        0
+      ],
+      "type": "workflow",
+      "title": "Tip CI",
+      "category": "slate",
+      "status": "implemented",
+      "lines": [
+        "Run unit tests and "
+      ],
+      "details": "Run unit tests and demo render on main pushes and pull requests.\n\nSource: [`.github/workflows/tip-ci.yml`](.github/workflows/tip-ci.yml)\n\n[Back to overview](../../.treehouse/flightdeck-de31a8/1/flightdeck/docs/diagrams/flightdeck.composition/overview.iso.html)"
+    },
+    {
+      "id": "ci-tests",
+      "zone": "ci",
+      "at": [
+        26,
+        0
+      ],
+      "type": "playbook",
+      "title": "Unit test gate",
+      "category": "slate",
+      "status": "implemented",
+      "lines": [
+        "Discover and execut"
+      ],
+      "details": "Discover and execute the Python test suite.\n\nSource: [`.github/workflows/tip-ci.yml`](.github/workflows/tip-ci.yml)\n\n[Back to overview](../../.treehouse/flightdeck-de31a8/1/flightdeck/docs/diagrams/flightdeck.composition/overview.iso.html)"
+    },
+    {
+      "id": "ci-demo",
+      "zone": "ci",
+      "at": [
+        27,
+        0
+      ],
+      "type": "playbook",
+      "title": "Demo render gate",
+      "category": "slate",
+      "status": "implemented",
+      "lines": [
+        "Render the demo HTM"
+      ],
+      "details": "Render the demo HTML in CI after tests.\n\nSource: [`.github/workflows/tip-ci.yml`](.github/workflows/tip-ci.yml)\n\n[Back to overview](../../.treehouse/flightdeck-de31a8/1/flightdeck/docs/diagrams/flightdeck.composition/overview.iso.html) · [Open Dashboard rendering](../../.treehouse/flightdeck-de31a8/1/flightdeck/docs/diagrams/flightdeck.composition/group-page.iso.html)"
+    },
+    {
+      "id": "pr-ci",
+      "zone": "ci",
+      "at": [
+        28,
+        0
+      ],
+      "type": "workflow",
+      "title": "PR wording CI",
+      "category": "slate",
+      "status": "implemented",
+      "lines": [
+        "Lint draft and read"
+      ],
+      "details": "Lint draft and ready PR wording against the trusted base.\n\nSource: [`.github/workflows/pr-wording.yml`](.github/workflows/pr-wording.yml)\n\n[Back to overview](../../.treehouse/flightdeck-de31a8/1/flightdeck/docs/diagrams/flightdeck.composition/overview.iso.html)"
+    },
+    {
+      "id": "pr-gate",
+      "zone": "ci",
+      "at": [
+        25,
+        1
+      ],
+      "type": "playbook",
+      "title": "Wording gate",
+      "category": "slate",
+      "status": "implemented",
+      "lines": [
+        "Check PR title and "
+      ],
+      "details": "Check PR title and body against the wording policy.\n\nSource: [`.github/workflows/pr-wording.yml`](.github/workflows/pr-wording.yml)\n\n[Back to overview](../../.treehouse/flightdeck-de31a8/1/flightdeck/docs/diagrams/flightdeck.composition/overview.iso.html)"
+    },
+    {
+      "id": "pr-lint",
+      "zone": "ci",
+      "at": [
+        26,
+        1
+      ],
+      "type": "skill",
+      "title": "PR wording linter",
+      "category": "slate",
+      "status": "implemented",
+      "lines": [
+        "Validate first-pers"
+      ],
+      "details": "Validate first-person PR sections and concise language.\n\nSource: [`.github/tools/pr-wording/pr_wording_lint.py`](.github/tools/pr-wording/pr_wording_lint.py)\n\n[Back to overview](../../.treehouse/flightdeck-de31a8/1/flightdeck/docs/diagrams/flightdeck.composition/overview.iso.html)"
+    },
+    {
+      "id": "legacy-ci",
+      "zone": "ci",
+      "at": [
+        27,
+        1
+      ],
+      "type": "skill",
+      "title": "Legacy CI",
+      "category": "slate",
+      "status": "partial",
+      "lines": [
+        "Retain a deprecated"
+      ],
+      "details": "Retain a deprecated no-op pipeline that points to Tip CI.\n\nSource: [`.buildkite/pipeline.yml`](.buildkite/pipeline.yml)\n\n[Back to overview](../../.treehouse/flightdeck-de31a8/1/flightdeck/docs/diagrams/flightdeck.composition/overview.iso.html)"
+    }
+  ],
+  "edges": [
+    {
+      "from": "tip-ci",
+      "to": "ci-tests"
+    },
+    {
+      "from": "tip-ci",
+      "to": "ci-demo"
+    },
+    {
+      "from": "pr-ci",
+      "to": "pr-gate"
+    },
+    {
+      "from": "pr-gate",
+      "to": "pr-lint"
+    }
+  ]
+}

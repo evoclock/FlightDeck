@@ -1,0 +1,158 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 7876 406" width="7876" height="406" role="img" aria-labelledby="bb-t bb-d">
+<title id="bb-t">FlightDeck composition</title><desc id="bb-d">Live repository composition at origin/main 69bf757</desc>
+<style>
+text{font-family:Geist,"Geist Sans",ui-sans-serif,system-ui,-apple-system,"Segoe UI",Helvetica,Arial,sans-serif;font-variant-numeric:tabular-nums}
+.bb-title{font-size:36px;font-weight:300;letter-spacing:-.015em}
+.bb-subtitle{font-size:14px;font-weight:400}
+.bb-kicker-top{font-size:10.5px;font-weight:500;letter-spacing:2.6px}
+.bb-meta{font-size:11px;font-weight:400;letter-spacing:.03em}
+.bb-meter-big{font-size:42px;font-weight:300;letter-spacing:-.02em}
+.bb-meter-unit{font-size:17px;font-weight:300}
+.bb-meter-track{stroke-width:1;fill:none}
+.bb-meter-solid,.bb-meter-part{stroke-width:3;fill:none}
+.bb-meter-part{stroke-dasharray:2 3}
+.bb-rule{stroke-width:1;fill:none}
+.bb-zone{stroke-width:1}
+.bb-zone-kicker{font-size:10.5px;font-weight:500;letter-spacing:2.6px}
+.bb-zone-title{font-size:21px;font-weight:400;letter-spacing:-.005em}
+.bb-zone-sub{font-size:11.5px}
+.bb-node-box{stroke-width:1}
+.bb-node.status-planned .bb-node-box{stroke-dasharray:4 4}
+.bb-kicker{font-size:10.5px;font-weight:500;letter-spacing:2.4px}
+.bb-node-title{font-size:17px;font-weight:500;letter-spacing:-.005em}
+.bb-copy{font-size:13.5px;font-weight:400}
+.bb-hint{font-size:11.5px;font-weight:400;letter-spacing:.02em}
+.bb-status-text{font-size:9.5px;font-weight:600;letter-spacing:1.9px}
+.bb-dot{stroke-width:1.1;fill:none}
+.bb-edge{fill:none;stroke-width:1.25;stroke-linejoin:round;stroke-linecap:round}
+.bb-edge.control{stroke-dasharray:3 4}
+.bb-edge.failure{stroke-dasharray:.1 4.5;stroke-width:1.8}
+.bb-edge.is-planned{opacity:.4}
+.bb-label{font-size:11.5px;font-weight:500;letter-spacing:.02em;paint-order:stroke;stroke-width:6px;stroke-linejoin:round}
+.bb-legend-text{font-size:12px;font-weight:400}
+.bb-finding-text{font-size:9px;font-weight:600;letter-spacing:1.6px}
+.iso-face{stroke-width:.8;stroke-linejoin:round}
+.bb-node.status-planned .iso-face{fill:none;stroke-dasharray:4 4;stroke-width:1}
+.iso-hatch line{stroke-width:.8;opacity:.45}
+.iso-label-knockout{paint-order:stroke;stroke-width:6px;stroke-linejoin:round}
+.bb-canvas{fill:#fbf9f6}
+.bb-title,.bb-zone-title,.bb-node-title,.bb-meter-big,.bb-meter-unit{fill:#2f2a27}
+.bb-subtitle,.bb-copy,.bb-hint,.bb-legend-text,.bb-meta,.bb-kicker,.bb-zone-kicker,.bb-kicker-top,.bb-zone-sub{fill:#716961}
+.bb-rule,.bb-meter-track{stroke:#dcdad7}
+.bb-meter-solid{stroke:#2f2a27}
+.bb-meter-part{stroke:#716961}
+.bb-zone{fill:#f5f3f0;stroke:#dcdad7}
+.bb-node-box{fill:#fffdfa;stroke:#dcdad7}
+.bb-node.status-planned .bb-node-box{fill:none;stroke:#c2bfbc}
+.bb-node.status-planned .bb-node-title{fill:#716961}
+.bb-status-text{fill:#716961}
+.bb-status.is-implemented .bb-status-text{fill:#716961}
+.bb-dot{stroke:#716961}
+.bb-dot-fill{fill:#716961}
+.bb-status.is-implemented .bb-dot{stroke:#2f2a27}
+.bb-status.is-implemented .bb-dot-fill{fill:#2f2a27}
+.bb-edge.data{stroke:#888079}
+.bb-edge.control{stroke:#747c86}
+.bb-edge.failure{stroke:#9b4a36}
+.bb-arrow.data{fill:#888079}
+.bb-arrow.control{fill:#747c86}
+.bb-arrow.failure{fill:#9b4a36}
+.bb-label,.iso-label-knockout{stroke:#fbf9f6}
+.bb-label.data{fill:#716961}
+.bb-label.control{fill:#4c535c}
+.bb-label.failure{fill:#9b4a36}
+.bb-flow{stroke:#2f2a27;stroke-opacity:.55}
+.bb-finding-text,.bb-finding-inline{fill:#9b4a36}
+.bb-node.has-finding .bb-node-box{stroke:#9b4a36}
+.bb-pseudo-fill{fill:#2f2a27}
+.bb-pseudo-ring{fill:#fbf9f6;stroke:#2f2a27;stroke-width:1.3}
+.bb-pseudo-choice{fill:#fffdfa}
+.bb-node.is-selected .bb-node-box,.bb-node[tabindex]:focus .bb-node-box{stroke:#2f2a27}
+.cat-sage .bb-mark,.bb-mark.cat-sage{fill:#427f61}
+.cat-sage .bb-kicker,.cat-sage .bb-zone-kicker{fill:#477d61}
+.cat-sage .bb-node-box{fill:#afd5c2;stroke:#93afa0}
+.cat-sage.status-planned .bb-node-box{fill:none;stroke:#9fbcac}
+.bb-zone.cat-sage{fill:#f0f2ed;stroke:#c0d2c6}
+.cat-teal .bb-mark,.bb-mark.cat-teal{fill:#3b7273}
+.cat-teal .bb-kicker,.cat-teal .bb-zone-kicker{fill:#407171}
+.cat-teal .bb-node-box{fill:#aed5d6;stroke:#92afb0}
+.cat-teal.status-planned .bb-node-box{fill:none;stroke:#9bb6b5}
+.bb-zone.cat-teal{fill:#eff1ee;stroke:#bececc}
+.cat-mustard .bb-mark,.bb-mark.cat-mustard{fill:#7d6a33}
+.cat-mustard .bb-kicker,.cat-mustard .bb-zone-kicker{fill:#7c6a38}
+.cat-mustard .bb-node-box{fill:#d6cbae;stroke:#b1a890}
+.cat-mustard.status-planned .bb-node-box{fill:none;stroke:#bcb295}
+.bb-zone.cat-mustard{fill:#f3f0ea;stroke:#d3cbb8}
+.cat-mauve .bb-mark,.bb-mark.cat-mauve{fill:#7b4e6d}
+.cat-mauve .bb-kicker,.cat-mauve .bb-zone-kicker{fill:#7a516c}
+.cat-mauve .bb-node-box{fill:#cfb5c7;stroke:#ac96a4}
+.cat-mauve.status-planned .bb-node-box{fill:none;stroke:#bba4b2}
+.bb-zone.cat-mauve{fill:#f3efee;stroke:#d2c2ca}
+.cat-olive .bb-mark,.bb-mark.cat-olive{fill:#696e40}
+.cat-olive .bb-kicker,.cat-olive .bb-zone-kicker{fill:#6a6e43}
+.cat-olive .bb-node-box{fill:#cfd2b2;stroke:#acad93}
+.cat-olive.status-planned .bb-node-box{fill:none;stroke:#b2b49b}
+.bb-zone.cat-olive{fill:#f2f1eb;stroke:#cccdbc}
+.cat-slate .bb-mark,.bb-mark.cat-slate{fill:#4a5c73}
+.cat-slate .bb-kicker,.cat-slate .bb-zone-kicker{fill:#4e5d71}
+.cat-slate .bb-node-box{fill:#b5c1cf;stroke:#98a0aa}
+.cat-slate.status-planned .bb-node-box{fill:none;stroke:#a3abb5}
+.bb-zone.cat-slate{fill:#f0f0ee;stroke:#c2c7cc}
+.bb-flow{fill:none;stroke-width:2.4;stroke-linecap:round;stroke-dasharray:.1 28;animation:bb-flow 2.6s linear infinite}
+@keyframes bb-flow{to{stroke-dashoffset:-28.1}}
+@media (prefers-reduced-motion:reduce){.bb-flow{animation:none;opacity:0}}
+</style>
+<defs><marker id="bb-arrow-data" viewBox="0 0 10 10" refX="8.6" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path class="bb-arrow data" d="M 0 1 L 10 5 L 0 9 z"/></marker><marker id="bb-arrow-control" viewBox="0 0 10 10" refX="8.6" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path class="bb-arrow control" d="M 0 1 L 10 5 L 0 9 z"/></marker><marker id="bb-arrow-failure" viewBox="0 0 10 10" refX="8.6" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path class="bb-arrow failure" d="M 0 1 L 10 5 L 0 9 z"/></marker></defs>
+<rect class="bb-canvas" x="0" y="0" width="7876" height="406"/>
+<text class="bb-title" x="40" y="100">FlightDeck composition</text>
+<text class="bb-subtitle" x="40" y="130">Live repository composition at origin/main 69bf757</text>
+<g class="bb-edges">
+<path class="bb-edge data map-item" d="M 336 218.8 L 952 218.8 Q 958 218.8 958 212.8 L 958 164 Q 958 158 964 158 L 6058 158 Q 6064 158 6064 164 L 6064 244 Q 6064 250 6070 250 L 6080 250" marker-end="url(#bb-arrow-data)" data-from="entry" data-to="deploy"/>
+<path class="bb-flow map-item" d="M 336 218.8 L 952 218.8 Q 958 218.8 958 212.8 L 958 164 Q 958 158 964 158 L 6058 158 Q 6064 158 6064 164 L 6064 244 Q 6064 250 6070 250 L 6080 250"/>
+<path class="bb-edge data map-item" d="M 336 250 L 1580 250" marker-end="url(#bb-arrow-data)" data-from="entry" data-to="hooks"/>
+<path class="bb-flow map-item" d="M 336 250 L 1580 250"/>
+<path class="bb-edge data map-item" d="M 336 281.2 L 952 281.2 Q 958 281.2 958 287.2 L 958 336 Q 958 342 964 342 L 4558 342 Q 4564 342 4564 336 L 4564 256 Q 4564 250 4570 250 L 4580 250" marker-end="url(#bb-arrow-data)" data-from="entry" data-to="page"/>
+<path class="bb-flow map-item" d="M 336 281.2 L 952 281.2 Q 958 281.2 958 287.2 L 958 336 Q 958 342 964 342 L 4558 342 Q 4564 342 4564 336 L 4564 256 Q 4564 250 4570 250 L 4580 250"/>
+<path class="bb-edge data map-item" d="M 1836 250 L 3080 250" marker-end="url(#bb-arrow-data)" data-from="hooks" data-to="sync"/>
+<path class="bb-flow map-item" d="M 1836 250 L 3080 250"/>
+<path class="bb-edge data map-item" d="M 7580 250 L 6356 250 Q 6350 250 6350 256 L 6350 336 Q 6350 342 6344 342 L 4858 342 Q 4852 342 4852 336 L 4852 256 Q 4852 250 4846 250 L 4836 250" marker-end="url(#bb-arrow-data)" data-from="ci" data-to="page"/>
+<path class="bb-flow map-item" d="M 7580 250 L 6356 250 Q 6350 250 6350 256 L 6350 336 Q 6350 342 6344 342 L 4858 342 Q 4852 342 4852 336 L 4852 256 Q 4852 250 4846 250 L 4836 250"/>
+</g>
+<g class="bb-node map-item cat-sage" data-id="entry">
+<rect class="bb-node-box" x="80" y="172" width="256" height="156" rx="7"/>
+<circle class="bb-mark" cx="106" cy="198" r="4"/>
+<text class="bb-kicker" x="117" y="202">PUBLISH ENTRY POINTS</text>
+<text class="bb-node-title" x="102" y="230">Publish entry points</text>
+</g>
+<g class="bb-node map-item cat-teal" data-id="hooks">
+<rect class="bb-node-box" x="1580" y="172" width="256" height="156" rx="7"/>
+<circle class="bb-mark" cx="1606" cy="198" r="4"/>
+<text class="bb-kicker" x="1617" y="202">ORDERED PRE-RENDER HOOKS</text>
+<text class="bb-node-title" x="1602" y="230">Ordered pre-render hooks</text>
+</g>
+<g class="bb-node map-item cat-mustard" data-id="sync">
+<rect class="bb-node-box" x="3080" y="172" width="256" height="156" rx="7"/>
+<circle class="bb-mark" cx="3106" cy="198" r="4"/>
+<text class="bb-kicker" x="3117" y="202">COLLECTORS AND RECONCILIATION</text>
+<text class="bb-node-title" x="3102" y="230">Collectors and reconciliation</text>
+</g>
+<g class="bb-node map-item cat-mauve" data-id="page">
+<rect class="bb-node-box" x="4580" y="172" width="256" height="156" rx="7"/>
+<circle class="bb-mark" cx="4606" cy="198" r="4"/>
+<text class="bb-kicker" x="4617" y="202">DASHBOARD RENDERING</text>
+<text class="bb-node-title" x="4602" y="230">Dashboard rendering</text>
+</g>
+<g class="bb-node map-item cat-olive" data-id="deploy">
+<rect class="bb-node-box" x="6080" y="172" width="256" height="156" rx="7"/>
+<circle class="bb-mark" cx="6106" cy="198" r="4"/>
+<text class="bb-kicker" x="6117" y="202">OPTIONAL WORKER BUNDLE</text>
+<text class="bb-node-title" x="6102" y="230">Optional Worker bundle</text>
+</g>
+<g class="bb-node map-item cat-slate" data-id="ci">
+<rect class="bb-node-box" x="7580" y="172" width="256" height="156" rx="7"/>
+<circle class="bb-mark" cx="7606" cy="198" r="4"/>
+<text class="bb-kicker" x="7617" y="202">CONTINUOUS INTEGRATION</text>
+<text class="bb-node-title" x="7602" y="230">Continuous integration</text>
+</g>
+<g class="bb-legend" aria-label="Legend"><path class="bb-rule" d="M 40 354 H 7836"/><circle class="bb-mark cat-sage" cx="44" cy="372" r="4"/><text class="bb-legend-text" x="56" y="376">Publish entry points</text><circle class="bb-mark cat-teal" cx="204.5" cy="372" r="4"/><text class="bb-legend-text" x="216.5" y="376">Ordered pre-render hooks</text><circle class="bb-mark cat-mustard" cx="390.29999999999995" cy="372" r="4"/><text class="bb-legend-text" x="402.29999999999995" y="376">Collectors and reconciliation</text><circle class="bb-mark cat-mauve" cx="607.7249999999999" cy="372" r="4"/><text class="bb-legend-text" x="619.7249999999999" y="376">Dashboard rendering</text><circle class="bb-mark cat-olive" cx="761.8999999999999" cy="372" r="4"/><text class="bb-legend-text" x="773.8999999999999" y="376">Optional Worker bundle</text><circle class="bb-mark cat-slate" cx="935.0499999999998" cy="372" r="4"/><text class="bb-legend-text" x="947.0499999999998" y="376">Continuous integration</text><path class="bb-edge data" d="M 1104.1999999999998 372 L 1126.1999999999998 372"/><text class="bb-legend-text" x="1134.1999999999998" y="376">Data flow</text></g>
+</svg>

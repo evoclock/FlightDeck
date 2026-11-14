@@ -1,0 +1,332 @@
+{
+  "schema": "bowerbird/v1",
+  "categories": {
+    "sage": {
+      "label": "Publish entry points"
+    },
+    "teal": {
+      "label": "Ordered pre-render hooks"
+    },
+    "mustard": {
+      "label": "Collectors and reconciliation"
+    },
+    "mauve": {
+      "label": "Dashboard rendering"
+    },
+    "olive": {
+      "label": "Optional Worker bundle"
+    },
+    "slate": {
+      "label": "Continuous integration"
+    }
+  },
+  "traces": [],
+  "meta": {
+    "title": "Collectors and reconciliation",
+    "subtitle": "Live repository composition at origin/main 69bf757",
+    "repository": {
+      "url": "https://github.com/evoclock/FlightDeck",
+      "ref": "main"
+    },
+    "lightFlatFill": "filled",
+    "inputSha": "69bf75736e1bf516ddd0df72e2b76d333e352a20"
+  },
+  "zones": [
+    {
+      "id": "sync",
+      "title": "Collectors and reconciliation",
+      "category": "mustard"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "collector-activity",
+      "zone": "sync",
+      "at": [
+        10,
+        0
+      ],
+      "type": "skill",
+      "title": "Activity collector",
+      "category": "mustard",
+      "status": "implemented",
+      "lines": [
+        "Write hourly and we"
+      ],
+      "details": "Write hourly and weekly GitHub activity to instance data.\n\nSource: [`collectors/activity.py`](collectors/activity.py)\n\n[Back to overview](../../.treehouse/flightdeck-de31a8/1/flightdeck/docs/diagrams/flightdeck.composition/overview.iso.html)"
+    },
+    {
+      "id": "refresh-script",
+      "zone": "sync",
+      "at": [
+        11,
+        0
+      ],
+      "type": "skill",
+      "title": "PR cache script",
+      "category": "mustard",
+      "status": "implemented",
+      "lines": [
+        "Fetch and normalize"
+      ],
+      "details": "Fetch and normalize pull request cache entries.\n\nSource: [`scripts/refresh_pr_cache.py`](scripts/refresh_pr_cache.py)\n\n[Back to overview](../../.treehouse/flightdeck-de31a8/1/flightdeck/docs/diagrams/flightdeck.composition/overview.iso.html)"
+    },
+    {
+      "id": "repo-script",
+      "zone": "sync",
+      "at": [
+        12,
+        0
+      ],
+      "type": "skill",
+      "title": "Repository collector",
+      "category": "mustard",
+      "status": "implemented",
+      "lines": [
+        "Collect recent repo"
+      ],
+      "details": "Collect recent repository commits and branch coverage.\n\nSource: [`scripts/collect_repo_evidence.py`](scripts/collect_repo_evidence.py)\n\n[Back to overview](../../.treehouse/flightdeck-de31a8/1/flightdeck/docs/diagrams/flightdeck.composition/overview.iso.html)"
+    },
+    {
+      "id": "metrics-script",
+      "zone": "sync",
+      "at": [
+        13,
+        0
+      ],
+      "type": "skill",
+      "title": "Metrics collector",
+      "category": "mustard",
+      "status": "implemented",
+      "lines": [
+        "Sample local CPU, m"
+      ],
+      "details": "Sample local CPU, memory and disk metrics.\n\nSource: [`collectors/metrics_generic.py`](collectors/metrics_generic.py)\n\n[Back to overview](../../.treehouse/flightdeck-de31a8/1/flightdeck/docs/diagrams/flightdeck.composition/overview.iso.html)"
+    },
+    {
+      "id": "spark-script",
+      "zone": "sync",
+      "at": [
+        10,
+        1
+      ],
+      "type": "skill",
+      "title": "Spark collector",
+      "category": "mustard",
+      "status": "implemented",
+      "lines": [
+        "Copy configured spa"
+      ],
+      "details": "Copy configured spark readings into instance data.\n\nSource: [`collectors/spark.py`](collectors/spark.py)\n\n[Back to overview](../../.treehouse/flightdeck-de31a8/1/flightdeck/docs/diagrams/flightdeck.composition/overview.iso.html)"
+    },
+    {
+      "id": "sidecar-script",
+      "zone": "sync",
+      "at": [
+        11,
+        1
+      ],
+      "type": "skill",
+      "title": "Sidecar merger",
+      "category": "mustard",
+      "status": "implemented",
+      "lines": [
+        "Read optional sidec"
+      ],
+      "details": "Read optional sidecar files into evidence caches.\n\nSource: [`scripts/merge_sidecars.py`](scripts/merge_sidecars.py)\n\n[Back to overview](../../.treehouse/flightdeck-de31a8/1/flightdeck/docs/diagrams/flightdeck.composition/overview.iso.html)"
+    },
+    {
+      "id": "accept-script",
+      "zone": "sync",
+      "at": [
+        12,
+        1
+      ],
+      "type": "skill",
+      "title": "Answer ingest",
+      "category": "mustard",
+      "status": "implemented",
+      "lines": [
+        "Ingest pending reco"
+      ],
+      "details": "Ingest pending recorded chat answers before reconciliation.\n\nSource: [`scripts/record_chat_accept.py`](scripts/record_chat_accept.py)\n\n[Back to overview](../../.treehouse/flightdeck-de31a8/1/flightdeck/docs/diagrams/flightdeck.composition/overview.iso.html)"
+    },
+    {
+      "id": "response-script",
+      "zone": "sync",
+      "at": [
+        13,
+        1
+      ],
+      "type": "skill",
+      "title": "Response reconciler",
+      "category": "mustard",
+      "status": "implemented",
+      "lines": [
+        "Reconcile response "
+      ],
+      "details": "Reconcile response records into tracker decisions.\n\nSource: [`scripts/reconcile_responses.py`](scripts/reconcile_responses.py)\n\n[Back to overview](../../.treehouse/flightdeck-de31a8/1/flightdeck/docs/diagrams/flightdeck.composition/overview.iso.html)"
+    },
+    {
+      "id": "inflight-script",
+      "zone": "sync",
+      "at": [
+        10,
+        2
+      ],
+      "type": "skill",
+      "title": "Inflight reconciler",
+      "category": "mustard",
+      "status": "implemented",
+      "lines": [
+        "Update in-flight st"
+      ],
+      "details": "Update in-flight state from cached evidence.\n\nSource: [`scripts/reconcile_inflight.py`](scripts/reconcile_inflight.py)\n\n[Back to overview](../../.treehouse/flightdeck-de31a8/1/flightdeck/docs/diagrams/flightdeck.composition/overview.iso.html)"
+    },
+    {
+      "id": "merge-script",
+      "zone": "sync",
+      "at": [
+        11,
+        2
+      ],
+      "type": "skill",
+      "title": "Merge reconciler",
+      "category": "mustard",
+      "status": "implemented",
+      "lines": [
+        "Update the merge qu"
+      ],
+      "details": "Update the merge queue lifecycle.\n\nSource: [`scripts/reconcile_merges_lifecycle.py`](scripts/reconcile_merges_lifecycle.py)\n\n[Back to overview](../../.treehouse/flightdeck-de31a8/1/flightdeck/docs/diagrams/flightdeck.composition/overview.iso.html)"
+    },
+    {
+      "id": "decision-script",
+      "zone": "sync",
+      "at": [
+        12,
+        2
+      ],
+      "type": "skill",
+      "title": "Decision reconciler",
+      "category": "mustard",
+      "status": "implemented",
+      "lines": [
+        "Derive ready decisi"
+      ],
+      "details": "Derive ready decisions from current checks and PR heads.\n\nSource: [`scripts/reconcile_ready_decisions.py`](scripts/reconcile_ready_decisions.py)\n\n[Back to overview](../../.treehouse/flightdeck-de31a8/1/flightdeck/docs/diagrams/flightdeck.composition/overview.iso.html)"
+    },
+    {
+      "id": "step-script",
+      "zone": "sync",
+      "at": [
+        13,
+        2
+      ],
+      "type": "skill",
+      "title": "Step reconciler",
+      "category": "mustard",
+      "status": "implemented",
+      "lines": [
+        "Derive human checkl"
+      ],
+      "details": "Derive human checklist steps from repository evidence.\n\nSource: [`scripts/reconcile_steps_evidence.py`](scripts/reconcile_steps_evidence.py)\n\n[Back to overview](../../.treehouse/flightdeck-de31a8/1/flightdeck/docs/diagrams/flightdeck.composition/overview.iso.html)"
+    },
+    {
+      "id": "bot-script",
+      "zone": "sync",
+      "at": [
+        10,
+        3
+      ],
+      "type": "skill",
+      "title": "Bot report applier",
+      "category": "mustard",
+      "status": "implemented",
+      "lines": [
+        "Apply bot report up"
+      ],
+      "details": "Apply bot report updates to tracker rows.\n\nSource: [`scripts/apply_bot_reports.py`](scripts/apply_bot_reports.py)\n\n[Back to overview](../../.treehouse/flightdeck-de31a8/1/flightdeck/docs/diagrams/flightdeck.composition/overview.iso.html)"
+    },
+    {
+      "id": "pane-script",
+      "zone": "sync",
+      "at": [
+        11,
+        3
+      ],
+      "type": "skill",
+      "title": "Pane reconciler",
+      "category": "mustard",
+      "status": "implemented",
+      "lines": [
+        "Reconcile streams a"
+      ],
+      "details": "Reconcile streams and priorities from repository facts.\n\nSource: [`scripts/reconcile_repo_panes.py`](scripts/reconcile_repo_panes.py)\n\n[Back to overview](../../.treehouse/flightdeck-de31a8/1/flightdeck/docs/diagrams/flightdeck.composition/overview.iso.html)"
+    },
+    {
+      "id": "priority-script",
+      "zone": "sync",
+      "at": [
+        12,
+        3
+      ],
+      "type": "skill",
+      "title": "Priority reconciler",
+      "category": "mustard",
+      "status": "implemented",
+      "lines": [
+        "Reconcile priority "
+      ],
+      "details": "Reconcile priority state after pane updates.\n\nSource: [`scripts/reconcile_priorities.py`](scripts/reconcile_priorities.py)\n\n[Back to overview](../../.treehouse/flightdeck-de31a8/1/flightdeck/docs/diagrams/flightdeck.composition/overview.iso.html)"
+    },
+    {
+      "id": "pin-script",
+      "zone": "sync",
+      "at": [
+        13,
+        3
+      ],
+      "type": "skill",
+      "title": "Identifier pinner",
+      "category": "mustard",
+      "status": "implemented",
+      "lines": [
+        "Assign persistent i"
+      ],
+      "details": "Assign persistent identifiers to tracker entries.\n\nSource: [`scripts/pin_ids.py`](scripts/pin_ids.py)\n\n[Back to overview](../../.treehouse/flightdeck-de31a8/1/flightdeck/docs/diagrams/flightdeck.composition/overview.iso.html)"
+    },
+    {
+      "id": "fresh-script",
+      "zone": "sync",
+      "at": [
+        10,
+        4
+      ],
+      "type": "skill",
+      "title": "Freshness checker",
+      "category": "mustard",
+      "status": "implemented",
+      "lines": [
+        "Diagnose age and ga"
+      ],
+      "details": "Diagnose age and gaps in collected evidence.\n\nSource: [`scripts/freshness.py`](scripts/freshness.py)\n\n[Back to overview](../../.treehouse/flightdeck-de31a8/1/flightdeck/docs/diagrams/flightdeck.composition/overview.iso.html)"
+    },
+    {
+      "id": "evidence-script",
+      "zone": "sync",
+      "at": [
+        11,
+        4
+      ],
+      "type": "skill",
+      "title": "Evidence log",
+      "category": "mustard",
+      "status": "implemented",
+      "lines": [
+        "Log tracker evidenc"
+      ],
+      "details": "Log tracker evidence counts after ordered hooks.\n\nSource: [`scripts/tracker_evidence.py`](scripts/tracker_evidence.py)\n\n[Back to overview](../../.treehouse/flightdeck-de31a8/1/flightdeck/docs/diagrams/flightdeck.composition/overview.iso.html)"
+    }
+  ],
+  "edges": []
+}

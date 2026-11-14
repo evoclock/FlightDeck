@@ -1,0 +1,455 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2047 1458" width="2047" height="1458" role="img" aria-labelledby="bb-t">
+<title id="bb-t">Collectors and reconciliation</title>
+<style>
+text{font-family:Geist,"Geist Sans",ui-sans-serif,system-ui,-apple-system,"Segoe UI",Helvetica,Arial,sans-serif;font-variant-numeric:tabular-nums}
+.bb-title{font-size:36px;font-weight:300;letter-spacing:-.015em}
+.bb-subtitle{font-size:14px;font-weight:400}
+.bb-kicker-top{font-size:10.5px;font-weight:500;letter-spacing:2.6px}
+.bb-meta{font-size:11px;font-weight:400;letter-spacing:.03em}
+.bb-meter-big{font-size:42px;font-weight:300;letter-spacing:-.02em}
+.bb-meter-unit{font-size:17px;font-weight:300}
+.bb-meter-track{stroke-width:1;fill:none}
+.bb-meter-solid,.bb-meter-part{stroke-width:3;fill:none}
+.bb-meter-part{stroke-dasharray:2 3}
+.bb-rule{stroke-width:1;fill:none}
+.bb-zone{stroke-width:1}
+.bb-zone-kicker{font-size:10.5px;font-weight:500;letter-spacing:2.6px}
+.bb-zone-title{font-size:21px;font-weight:400;letter-spacing:-.005em}
+.bb-zone-sub{font-size:11.5px}
+.bb-node-box{stroke-width:1}
+.bb-node.status-planned .bb-node-box{stroke-dasharray:4 4}
+.bb-kicker{font-size:10.5px;font-weight:500;letter-spacing:2.4px}
+.bb-node-title{font-size:17px;font-weight:500;letter-spacing:-.005em}
+.bb-copy{font-size:13.5px;font-weight:400}
+.bb-hint{font-size:11.5px;font-weight:400;letter-spacing:.02em}
+.bb-status-text{font-size:9.5px;font-weight:600;letter-spacing:1.9px}
+.bb-dot{stroke-width:1.1;fill:none}
+.bb-edge{fill:none;stroke-width:1.25;stroke-linejoin:round;stroke-linecap:round}
+.bb-edge.control{stroke-dasharray:3 4}
+.bb-edge.failure{stroke-dasharray:.1 4.5;stroke-width:1.8}
+.bb-edge.is-planned{opacity:.4}
+.bb-label{font-size:11.5px;font-weight:500;letter-spacing:.02em;paint-order:stroke;stroke-width:6px;stroke-linejoin:round}
+.bb-legend-text{font-size:12px;font-weight:400}
+.bb-finding-text{font-size:9px;font-weight:600;letter-spacing:1.6px}
+.iso-face{stroke-width:.8;stroke-linejoin:round}
+.bb-node.status-planned .iso-face{fill:none;stroke-dasharray:4 4;stroke-width:1}
+.iso-hatch line{stroke-width:.8;opacity:.45}
+.iso-label-knockout{paint-order:stroke;stroke-width:6px;stroke-linejoin:round}
+.bb-canvas{fill:#fbf9f6}
+.bb-title,.bb-zone-title,.bb-node-title,.bb-meter-big,.bb-meter-unit{fill:#2f2a27}
+.bb-subtitle,.bb-copy,.bb-hint,.bb-legend-text,.bb-meta,.bb-kicker,.bb-zone-kicker,.bb-kicker-top,.bb-zone-sub{fill:#716961}
+.bb-rule,.bb-meter-track{stroke:#dcdad7}
+.bb-meter-solid{stroke:#2f2a27}
+.bb-meter-part{stroke:#716961}
+.bb-zone{fill:#f5f3f0;stroke:#dcdad7}
+.bb-node-box{fill:#fffdfa;stroke:#dcdad7}
+.bb-node.status-planned .bb-node-box{fill:none;stroke:#c2bfbc}
+.bb-node.status-planned .bb-node-title{fill:#716961}
+.bb-status-text{fill:#716961}
+.bb-status.is-implemented .bb-status-text{fill:#716961}
+.bb-dot{stroke:#716961}
+.bb-dot-fill{fill:#716961}
+.bb-status.is-implemented .bb-dot{stroke:#2f2a27}
+.bb-status.is-implemented .bb-dot-fill{fill:#2f2a27}
+.bb-edge.data{stroke:#888079}
+.bb-edge.control{stroke:#747c86}
+.bb-edge.failure{stroke:#9b4a36}
+.bb-arrow.data{fill:#888079}
+.bb-arrow.control{fill:#747c86}
+.bb-arrow.failure{fill:#9b4a36}
+.bb-label,.iso-label-knockout{stroke:#fbf9f6}
+.bb-label.data{fill:#716961}
+.bb-label.control{fill:#4c535c}
+.bb-label.failure{fill:#9b4a36}
+.bb-flow{stroke:#2f2a27;stroke-opacity:.55}
+.bb-finding-text,.bb-finding-inline{fill:#9b4a36}
+.bb-node.has-finding .bb-node-box{stroke:#9b4a36}
+.bb-pseudo-fill{fill:#2f2a27}
+.bb-pseudo-ring{fill:#fbf9f6;stroke:#2f2a27;stroke-width:1.3}
+.bb-pseudo-choice{fill:#fffdfa}
+.bb-node.is-selected .bb-node-box,.bb-node[tabindex]:focus .bb-node-box{stroke:#2f2a27}
+.cat-sage .bb-mark,.bb-mark.cat-sage{fill:#427f61}
+.cat-sage .bb-kicker,.cat-sage .bb-zone-kicker{fill:#477d61}
+.cat-sage .bb-node-box{fill:#eaefe9;stroke:#b7cdc0}
+.cat-sage.status-planned .bb-node-box{fill:none;stroke:#9fbcac}
+.bb-zone.cat-sage{fill:#f0f2ed;stroke:#c0d2c6}
+.cat-sage .iso-roof{fill:#afd5c2;stroke:#54a17b}
+.cat-sage .iso-left{fill:#8dc3a9;stroke:#54a17b}
+.cat-sage .iso-right{fill:#6fb492;stroke:#54a17b}
+.cat-sage.status-planned .iso-face{stroke:#3d8461}
+.cat-teal .bb-mark,.bb-mark.cat-teal{fill:#3b7273}
+.cat-teal .bb-kicker,.cat-teal .bb-zone-kicker{fill:#407171}
+.cat-teal .bb-node-box{fill:#e9eeeb;stroke:#b5c8c7}
+.cat-teal.status-planned .bb-node-box{fill:none;stroke:#9bb6b5}
+.bb-zone.cat-teal{fill:#eff1ee;stroke:#bececc}
+.cat-teal .iso-roof{fill:#aed5d6;stroke:#53a1a2}
+.cat-teal .iso-left{fill:#8cc3c4;stroke:#53a1a2}
+.cat-teal .iso-right{fill:#6eb4b5;stroke:#53a1a2}
+.cat-teal.status-planned .iso-face{stroke:#2f6869}
+.cat-mustard .bb-mark,.bb-mark.cat-mustard{fill:#7d6a33}
+.cat-mustard .bb-kicker,.cat-mustard .bb-zone-kicker{fill:#7c6a38}
+.cat-mustard .bb-node-box{fill:#f1ede4;stroke:#cec5ae}
+.cat-mustard.status-planned .bb-node-box{fill:none;stroke:#bcb295}
+.bb-zone.cat-mustard{fill:#f3f0ea;stroke:#d3cbb8}
+.cat-mustard .iso-roof{fill:#d6cbae;stroke:#a38e52}
+.cat-mustard .iso-left{fill:#c5b68c;stroke:#a38e52}
+.cat-mustard .iso-right{fill:#b6a36d;stroke:#a38e52}
+.cat-mustard.status-planned .iso-face{stroke:#8a7026}
+.cat-mauve .bb-mark,.bb-mark.cat-mauve{fill:#7b4e6d}
+.cat-mauve .bb-kicker,.cat-mauve .bb-zone-kicker{fill:#7a516c}
+.cat-mauve .bb-node-box{fill:#f0eaea;stroke:#cdbbc4}
+.cat-mauve.status-planned .bb-node-box{fill:none;stroke:#bba4b2}
+.bb-zone.cat-mauve{fill:#f3efee;stroke:#d2c2ca}
+.cat-mauve .iso-roof{fill:#cfb5c7;stroke:#946184}
+.cat-mauve .iso-left{fill:#bb96af;stroke:#946184}
+.cat-mauve .iso-right{fill:#a87a9a;stroke:#946184}
+.cat-mauve.status-planned .iso-face{stroke:#76536b}
+.cat-olive .bb-mark,.bb-mark.cat-olive{fill:#696e40}
+.cat-olive .bb-kicker,.cat-olive .bb-zone-kicker{fill:#6a6e43}
+.cat-olive .bb-node-box{fill:#efede6;stroke:#c6c7b3}
+.cat-olive.status-planned .bb-node-box{fill:none;stroke:#b2b49b}
+.bb-zone.cat-olive{fill:#f2f1eb;stroke:#cccdbc}
+.cat-olive .iso-roof{fill:#cfd2b2;stroke:#949b5a}
+.cat-olive .iso-left{fill:#babf91;stroke:#949b5a}
+.cat-olive .iso-right{fill:#a8ae74;stroke:#949b5a}
+.cat-olive.status-planned .iso-face{stroke:#5e6334}
+.cat-slate .bb-mark,.bb-mark.cat-slate{fill:#4a5c73}
+.cat-slate .bb-kicker,.cat-slate .bb-zone-kicker{fill:#4e5d71}
+.cat-slate .bb-node-box{fill:#ebebeb;stroke:#bac0c7}
+.cat-slate.status-planned .bb-node-box{fill:none;stroke:#a3abb5}
+.bb-zone.cat-slate{fill:#f0f0ee;stroke:#c2c7cc}
+.cat-slate .iso-roof{fill:#b5c1cf;stroke:#617894}
+.cat-slate .iso-left{fill:#96a7bb;stroke:#617894}
+.cat-slate .iso-right{fill:#7a8fa8;stroke:#617894}
+.cat-slate.status-planned .iso-face{stroke:#4f5d6e}
+.iso-shadow{fill:#3b2f26;fill-opacity:0.08}
+.iso-hatch line{stroke:#fbf9f6}
+.iso-tag-bg,.iso-label-bg{fill:#fbf9f6;fill-opacity:.9}
+.bb-label.plain{stroke:none}
+.bb-node:not([class*=cat-]) .iso-face{fill:#fffdfa;stroke:#dcdad7}
+@media (prefers-color-scheme:dark){
+.bb-canvas{fill:#1a1816}
+.bb-title,.bb-zone-title,.bb-node-title,.bb-meter-big,.bb-meter-unit{fill:#ead1b5}
+.bb-subtitle,.bb-copy,.bb-hint,.bb-legend-text,.bb-meta,.bb-kicker,.bb-zone-kicker,.bb-kicker-top,.bb-zone-sub{fill:#b09080}
+.bb-rule,.bb-meter-track{stroke:#35302b}
+.bb-meter-solid{stroke:#ead1b5}
+.bb-meter-part{stroke:#b09080}
+.bb-zone{fill:#1f1c19;stroke:#35302b}
+.bb-node-box{fill:#272421;stroke:#35302b}
+.bb-node.status-planned .bb-node-box{fill:none;stroke:#4c443c}
+.bb-node.status-planned .bb-node-title{fill:#b09080}
+.bb-status-text{fill:#b09080}
+.bb-status.is-implemented .bb-status-text{fill:#b09080}
+.bb-dot{stroke:#b09080}
+.bb-dot-fill{fill:#b09080}
+.bb-status.is-implemented .bb-dot{stroke:#ead1b5}
+.bb-status.is-implemented .bb-dot-fill{fill:#ead1b5}
+.bb-edge.data{stroke:#958574}
+.bb-edge.control{stroke:#6b737e}
+.bb-edge.failure{stroke:#c27a5c}
+.bb-arrow.data{fill:#958574}
+.bb-arrow.control{fill:#6b737e}
+.bb-arrow.failure{fill:#c27a5c}
+.bb-label,.iso-label-knockout{stroke:#1a1816}
+.bb-label.data{fill:#b09080}
+.bb-label.control{fill:#a4a8ae}
+.bb-label.failure{fill:#c27a5c}
+.bb-flow{stroke:#ead1b5;stroke-opacity:.55}
+.bb-finding-text,.bb-finding-inline{fill:#c27a5c}
+.bb-node.has-finding .bb-node-box{stroke:#c27a5c}
+.bb-pseudo-fill{fill:#ead1b5}
+.bb-pseudo-ring{fill:#1a1816;stroke:#ead1b5;stroke-width:1.3}
+.bb-pseudo-choice{fill:#272421}
+.bb-node.is-selected .bb-node-box,.bb-node[tabindex]:focus .bb-node-box{stroke:#ead1b5}
+.cat-sage .bb-mark,.bb-mark.cat-sage{fill:#7fbd9e}
+.cat-sage .bb-kicker,.cat-sage .bb-zone-kicker{fill:#89b498}
+.cat-sage .bb-node-box{fill:#353c35;stroke:#475b4e}
+.cat-sage.status-planned .bb-node-box{fill:none;stroke:#476253}
+.bb-zone.cat-sage{fill:#212420;stroke:#344339}
+.cat-sage .iso-roof{fill:#8fb7a3;stroke:#48705c}
+.cat-sage .iso-left{fill:#70a48a;stroke:#48705c}
+.cat-sage .iso-right{fill:#5a8c73;stroke:#48705c}
+.cat-sage.status-planned .iso-face{stroke:#79c39e}
+.cat-teal .bb-mark,.bb-mark.cat-teal{fill:#7aadae}
+.cat-teal .bb-kicker,.cat-teal .bb-zone-kicker{fill:#85a7a5}
+.cat-teal .bb-node-box{fill:#343a38;stroke:#455554}
+.cat-teal.status-planned .bb-node-box{fill:none;stroke:#455b5a}
+.bb-zone.cat-teal{fill:#212221;stroke:#333f3e}
+.cat-teal .iso-roof{fill:#8fb7b7;stroke:#486f70}
+.cat-teal .iso-left{fill:#70a2a4;stroke:#486f70}
+.cat-teal .iso-right{fill:#5a8b8c;stroke:#486f70}
+.cat-teal.status-planned .iso-face{stroke:#3f6f70}
+.cat-mustard .bb-mark,.bb-mark.cat-mustard{fill:#c2aa6a}
+.cat-mustard .bb-kicker,.cat-mustard .bb-zone-kicker{fill:#bea56e}
+.cat-mustard .bb-node-box{fill:#40392d;stroke:#5f543b}
+.cat-mustard.status-planned .bb-node-box{fill:none;stroke:#665a3c}
+.bb-zone.cat-mustard{fill:#26221c;stroke:#463e2c}
+.cat-mustard .iso-roof{fill:#b7ad8f;stroke:#706548}
+.cat-mustard .iso-left{fill:#a49670;stroke:#706548}
+.cat-mustard .iso-right{fill:#8c7e5a;stroke:#706548}
+.cat-mustard.status-planned .iso-face{stroke:#ceb05e}
+.cat-mauve .bb-mark,.bb-mark.cat-mauve{fill:#ae7a9d}
+.cat-mauve .bb-kicker,.cat-mauve .bb-zone-kicker{fill:#ae7e97}
+.cat-mauve .bb-node-box{fill:#3d3235;stroke:#58434e}
+.cat-mauve.status-planned .bb-node-box{fill:none;stroke:#5d4453}
+.bb-zone.cat-mauve{fill:#241f1f;stroke:#403139}
+.cat-mauve .iso-roof{fill:#b196a8;stroke:#694e61}
+.cat-mauve .iso-left{fill:#9b7890;stroke:#694e61}
+.cat-mauve .iso-right{fill:#846279;stroke:#694e61}
+.cat-mauve.status-planned .iso-face{stroke:#76536b}
+.cat-olive .bb-mark,.bb-mark.cat-olive{fill:#a5ae7a}
+.cat-olive .bb-kicker,.cat-olive .bb-zone-kicker{fill:#a7a87b}
+.cat-olive .bb-node-box{fill:#3b3a2f;stroke:#545641}
+.cat-olive.status-planned .bb-node-box{fill:none;stroke:#595c43}
+.bb-zone.cat-olive{fill:#24231d;stroke:#3e3f30}
+.cat-olive .iso-roof{fill:#acb096;stroke:#65694f}
+.cat-olive .iso-left{fill:#959a79;stroke:#65694f}
+.cat-olive .iso-right{fill:#7e8363;stroke:#65694f}
+.cat-olive.status-planned .iso-face{stroke:#6e7354}
+.cat-slate .bb-mark,.bb-mark.cat-slate{fill:#7a92ae}
+.cat-slate .bb-kicker,.cat-slate .bb-zone-kicker{fill:#8592a5}
+.cat-slate .bb-node-box{fill:#343638;stroke:#454c54}
+.cat-slate.status-planned .bb-node-box{fill:none;stroke:#454f5a}
+.bb-zone.cat-slate{fill:#212121;stroke:#33383e}
+.cat-slate .iso-roof{fill:#96a2b0;stroke:#4f5b69}
+.cat-slate .iso-left{fill:#79889a;stroke:#4f5b69}
+.cat-slate .iso-right{fill:#637183;stroke:#4f5b69}
+.cat-slate.status-planned .iso-face{stroke:#617082}
+.iso-shadow{fill:#000000;fill-opacity:0.32}
+.iso-hatch line{stroke:#1a1816}
+.iso-tag-bg,.iso-label-bg{fill:#1a1816;fill-opacity:.9}
+.bb-label.plain{stroke:none}
+.bb-node:not([class*=cat-]) .iso-face{fill:#272421;stroke:#35302b}
+}
+.bb-flow{fill:none;stroke-width:2.4;stroke-linecap:round;stroke-dasharray:.1 28;animation:bb-flow 2.6s linear infinite}
+@keyframes bb-flow{to{stroke-dashoffset:-28.1}}
+@media (prefers-reduced-motion:reduce){.bb-flow{animation:none;opacity:0}}
+</style>
+<defs><marker id="bb-arrow-data" viewBox="0 0 10 10" refX="8.6" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path class="bb-arrow data" d="M 0 1 L 10 5 L 0 9 z"/></marker><marker id="bb-arrow-control" viewBox="0 0 10 10" refX="8.6" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path class="bb-arrow control" d="M 0 1 L 10 5 L 0 9 z"/></marker><marker id="bb-arrow-failure" viewBox="0 0 10 10" refX="8.6" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path class="bb-arrow failure" d="M 0 1 L 10 5 L 0 9 z"/></marker></defs>
+<rect class="bb-canvas" x="0" y="0" width="2047" height="1458"/>
+<text class="bb-title" x="48" y="100">Collectors and reconciliation</text>
+<text class="bb-subtitle" x="48" y="130">Live repository composition at origin/main 69bf757</text>
+<g class="bb-zone-group cat-mustard"><polygon class="bb-zone cat-mustard" points="966,246 1998.3,842 1080.3,1372 48,776"/>
+</g>
+<polygon class="iso-shadow" points="919.1,305 1140.8,433 1005.7,511 784,383"/>
+<polygon class="iso-shadow" points="745.9,405 967.6,533 832.5,611 610.8,483"/>
+<polygon class="iso-shadow" points="1178.9,455 1400.6,583 1265.5,661 1043.8,533"/>
+<polygon class="iso-shadow" points="572.7,505 794.4,633 659.3,711 437.6,583"/>
+<polygon class="iso-shadow" points="1005.7,555 1227.4,683 1092.3,761 870.6,633"/>
+<polygon class="iso-shadow" points="1438.7,605 1660.4,733 1525.3,811 1303.6,683"/>
+<polygon class="iso-shadow" points="399.5,605 621.2,733 486.1,811 264.4,683"/>
+<polygon class="iso-shadow" points="832.5,655 1054.2,783 919.1,861 697.4,733"/>
+<polygon class="iso-shadow" points="1265.5,705 1487.2,833 1352.1,911 1130.4,783"/>
+<polygon class="iso-shadow" points="226.3,705 448,833 312.9,911 91.2,783"/>
+<polygon class="iso-shadow" points="1698.5,755 1920.2,883 1785.1,961 1563.4,833"/>
+<polygon class="iso-shadow" points="659.3,755 881,883 745.9,961 524.2,833"/>
+<polygon class="iso-shadow" points="1092.3,805 1314,933 1178.9,1011 957.2,883"/>
+<polygon class="iso-shadow" points="1525.3,855 1747,983 1611.9,1061 1390.2,933"/>
+<polygon class="iso-shadow" points="486.1,855 707.8,983 572.7,1061 351,933"/>
+<polygon class="iso-shadow" points="919.1,905 1140.8,1033 1005.7,1111 784,983"/>
+<polygon class="iso-shadow" points="1352.1,955 1573.8,1083 1438.7,1161 1217,1033"/>
+<polygon class="iso-shadow" points="1178.9,1055 1400.6,1183 1265.5,1261 1043.8,1133"/>
+<g class="bb-node map-item cat-mustard" data-id="collector-activity">
+<polygon class="iso-face iso-left" points="772,338 993.7,466 993.7,504 772,376"/>
+<polygon class="iso-face iso-right" points="1128.8,388 993.7,466 993.7,504 1128.8,426"/>
+<polygon class="iso-face iso-roof" points="907.1,260 1128.8,388 993.7,466 772,338"/>
+</g>
+<g class="bb-node map-item cat-mustard" data-id="spark-script">
+<polygon class="iso-face iso-left" points="598.8,438 820.5,566 820.5,604 598.8,476"/>
+<polygon class="iso-face iso-right" points="955.6,488 820.5,566 820.5,604 955.6,526"/>
+<polygon class="iso-face iso-roof" points="733.9,360 955.6,488 820.5,566 598.8,438"/>
+</g>
+<g class="bb-node map-item cat-mustard" data-id="refresh-script">
+<polygon class="iso-face iso-left" points="1031.8,488 1253.5,616 1253.5,654 1031.8,526"/>
+<polygon class="iso-face iso-right" points="1388.6,538 1253.5,616 1253.5,654 1388.6,576"/>
+<polygon class="iso-face iso-roof" points="1166.9,410 1388.6,538 1253.5,616 1031.8,488"/>
+</g>
+<g class="bb-node map-item cat-mustard" data-id="inflight-script">
+<polygon class="iso-face iso-left" points="425.6,538 647.3,666 647.3,704 425.6,576"/>
+<polygon class="iso-face iso-right" points="782.4,588 647.3,666 647.3,704 782.4,626"/>
+<polygon class="iso-face iso-roof" points="560.7,460 782.4,588 647.3,666 425.6,538"/>
+</g>
+<g class="bb-node map-item cat-mustard" data-id="sidecar-script">
+<polygon class="iso-face iso-left" points="858.6,588 1080.3,716 1080.3,754 858.6,626"/>
+<polygon class="iso-face iso-right" points="1215.4,638 1080.3,716 1080.3,754 1215.4,676"/>
+<polygon class="iso-face iso-roof" points="993.7,510 1215.4,638 1080.3,716 858.6,588"/>
+</g>
+<g class="bb-node map-item cat-mustard" data-id="repo-script">
+<polygon class="iso-face iso-left" points="1291.6,638 1513.3,766 1513.3,804 1291.6,676"/>
+<polygon class="iso-face iso-right" points="1648.4,688 1513.3,766 1513.3,804 1648.4,726"/>
+<polygon class="iso-face iso-roof" points="1426.7,560 1648.4,688 1513.3,766 1291.6,638"/>
+</g>
+<g class="bb-node map-item cat-mustard" data-id="bot-script">
+<polygon class="iso-face iso-left" points="252.4,638 474.1,766 474.1,804 252.4,676"/>
+<polygon class="iso-face iso-right" points="609.2,688 474.1,766 474.1,804 609.2,726"/>
+<polygon class="iso-face iso-roof" points="387.5,560 609.2,688 474.1,766 252.4,638"/>
+</g>
+<g class="bb-node map-item cat-mustard" data-id="merge-script">
+<polygon class="iso-face iso-left" points="685.4,688 907.1,816 907.1,854 685.4,726"/>
+<polygon class="iso-face iso-right" points="1042.2,738 907.1,816 907.1,854 1042.2,776"/>
+<polygon class="iso-face iso-roof" points="820.5,610 1042.2,738 907.1,816 685.4,688"/>
+</g>
+<g class="bb-node map-item cat-mustard" data-id="accept-script">
+<polygon class="iso-face iso-left" points="1118.4,738 1340.1,866 1340.1,904 1118.4,776"/>
+<polygon class="iso-face iso-right" points="1475.2,788 1340.1,866 1340.1,904 1475.2,826"/>
+<polygon class="iso-face iso-roof" points="1253.5,660 1475.2,788 1340.1,866 1118.4,738"/>
+</g>
+<g class="bb-node map-item cat-mustard" data-id="fresh-script">
+<polygon class="iso-face iso-left" points="79.2,738 300.9,866 300.9,904 79.2,776"/>
+<polygon class="iso-face iso-right" points="436,788 300.9,866 300.9,904 436,826"/>
+<polygon class="iso-face iso-roof" points="214.3,660 436,788 300.9,866 79.2,738"/>
+</g>
+<g class="bb-node map-item cat-mustard" data-id="metrics-script">
+<polygon class="iso-face iso-left" points="1551.4,788 1773.1,916 1773.1,954 1551.4,826"/>
+<polygon class="iso-face iso-right" points="1908.2,838 1773.1,916 1773.1,954 1908.2,876"/>
+<polygon class="iso-face iso-roof" points="1686.5,710 1908.2,838 1773.1,916 1551.4,788"/>
+</g>
+<g class="bb-node map-item cat-mustard" data-id="pane-script">
+<polygon class="iso-face iso-left" points="512.2,788 733.9,916 733.9,954 512.2,826"/>
+<polygon class="iso-face iso-right" points="869,838 733.9,916 733.9,954 869,876"/>
+<polygon class="iso-face iso-roof" points="647.3,710 869,838 733.9,916 512.2,788"/>
+</g>
+<g class="bb-node map-item cat-mustard" data-id="decision-script">
+<polygon class="iso-face iso-left" points="945.2,838 1166.9,966 1166.9,1004 945.2,876"/>
+<polygon class="iso-face iso-right" points="1302,888 1166.9,966 1166.9,1004 1302,926"/>
+<polygon class="iso-face iso-roof" points="1080.3,760 1302,888 1166.9,966 945.2,838"/>
+</g>
+<g class="bb-node map-item cat-mustard" data-id="response-script">
+<polygon class="iso-face iso-left" points="1378.2,888 1599.9,1016 1599.9,1054 1378.2,926"/>
+<polygon class="iso-face iso-right" points="1735,938 1599.9,1016 1599.9,1054 1735,976"/>
+<polygon class="iso-face iso-roof" points="1513.3,810 1735,938 1599.9,1016 1378.2,888"/>
+</g>
+<g class="bb-node map-item cat-mustard" data-id="evidence-script">
+<polygon class="iso-face iso-left" points="339,888 560.7,1016 560.7,1054 339,926"/>
+<polygon class="iso-face iso-right" points="695.8,938 560.7,1016 560.7,1054 695.8,976"/>
+<polygon class="iso-face iso-roof" points="474.1,810 695.8,938 560.7,1016 339,888"/>
+</g>
+<g class="bb-node map-item cat-mustard" data-id="priority-script">
+<polygon class="iso-face iso-left" points="772,938 993.7,1066 993.7,1104 772,976"/>
+<polygon class="iso-face iso-right" points="1128.8,988 993.7,1066 993.7,1104 1128.8,1026"/>
+<polygon class="iso-face iso-roof" points="907.1,860 1128.8,988 993.7,1066 772,938"/>
+</g>
+<g class="bb-node map-item cat-mustard" data-id="step-script">
+<polygon class="iso-face iso-left" points="1205,988 1426.7,1116 1426.7,1154 1205,1026"/>
+<polygon class="iso-face iso-right" points="1561.8,1038 1426.7,1116 1426.7,1154 1561.8,1076"/>
+<polygon class="iso-face iso-roof" points="1340.1,910 1561.8,1038 1426.7,1116 1205,988"/>
+</g>
+<g class="bb-node map-item cat-mustard" data-id="pin-script">
+<polygon class="iso-face iso-left" points="1031.8,1088 1253.5,1216 1253.5,1254 1031.8,1126"/>
+<polygon class="iso-face iso-right" points="1388.6,1138 1253.5,1216 1253.5,1254 1388.6,1176"/>
+<polygon class="iso-face iso-roof" points="1166.9,1010 1388.6,1138 1253.5,1216 1031.8,1088"/>
+</g>
+<g class="bb-edges">
+</g>
+<g class="iso-tag map-item cat-mustard" data-for="collector-activity" pointer-events="none">
+<rect class="iso-tag-bg" x="842.5" y="337" width="215.7" height="42" rx="3"/>
+<circle class="bb-mark" cx="922.1" cy="349.5" r="3"/>
+<text class="bb-kicker" x="950.4" y="353" text-anchor="middle">SKILL</text>
+<text class="bb-node-title" x="950.4" y="372" text-anchor="middle">Activity collector</text>
+</g>
+<g class="iso-tag map-item cat-mustard" data-for="spark-script" pointer-events="none">
+<rect class="iso-tag-bg" x="685.1" y="437" width="184.1" height="42" rx="3"/>
+<circle class="bb-mark" cx="748.9" cy="449.5" r="3"/>
+<text class="bb-kicker" x="777.2" y="453" text-anchor="middle">SKILL</text>
+<text class="bb-node-title" x="777.2" y="472" text-anchor="middle">Spark collector</text>
+</g>
+<g class="iso-tag map-item cat-mustard" data-for="refresh-script" pointer-events="none">
+<rect class="iso-tag-bg" x="1118.2" y="487" width="184.1" height="42" rx="3"/>
+<circle class="bb-mark" cx="1182" cy="499.5" r="3"/>
+<text class="bb-kicker" x="1210.2" y="503" text-anchor="middle">SKILL</text>
+<text class="bb-node-title" x="1210.2" y="522" text-anchor="middle">PR cache script</text>
+</g>
+<g class="iso-tag map-item cat-mustard" data-for="inflight-script" pointer-events="none">
+<rect class="iso-tag-bg" x="490.9" y="537" width="226.3" height="42" rx="3"/>
+<circle class="bb-mark" cx="575.7" cy="549.5" r="3"/>
+<text class="bb-kicker" x="604" y="553" text-anchor="middle">SKILL</text>
+<text class="bb-node-title" x="604" y="572" text-anchor="middle">Inflight reconciler</text>
+</g>
+<g class="iso-tag map-item cat-mustard" data-for="sidecar-script" pointer-events="none">
+<rect class="iso-tag-bg" x="950.2" y="587" width="173.6" height="42" rx="3"/>
+<circle class="bb-mark" cx="1008.8" cy="599.5" r="3"/>
+<text class="bb-kicker" x="1037" y="603" text-anchor="middle">SKILL</text>
+<text class="bb-node-title" x="1037" y="622" text-anchor="middle">Sidecar merger</text>
+</g>
+<g class="iso-tag map-item cat-mustard" data-for="repo-script" pointer-events="none">
+<rect class="iso-tag-bg" x="1351.6" y="637" width="236.8" height="42" rx="3"/>
+<circle class="bb-mark" cx="1441.8" cy="649.5" r="3"/>
+<text class="bb-kicker" x="1470" y="653" text-anchor="middle">SKILL</text>
+<text class="bb-node-title" x="1470" y="672" text-anchor="middle">Repository collector</text>
+</g>
+<g class="iso-tag map-item cat-mustard" data-for="bot-script" pointer-events="none">
+<rect class="iso-tag-bg" x="322.9" y="637" width="215.7" height="42" rx="3"/>
+<circle class="bb-mark" cx="402.5" cy="649.5" r="3"/>
+<text class="bb-kicker" x="430.8" y="653" text-anchor="middle">SKILL</text>
+<text class="bb-node-title" x="430.8" y="672" text-anchor="middle">Bot report applier</text>
+</g>
+<g class="iso-tag map-item cat-mustard" data-for="merge-script" pointer-events="none">
+<rect class="iso-tag-bg" x="766.5" y="687" width="194.6" height="42" rx="3"/>
+<circle class="bb-mark" cx="835.5" cy="699.5" r="3"/>
+<text class="bb-kicker" x="863.8" y="703" text-anchor="middle">SKILL</text>
+<text class="bb-node-title" x="863.8" y="722" text-anchor="middle">Merge reconciler</text>
+</g>
+<g class="iso-tag map-item cat-mustard" data-for="accept-script" pointer-events="none">
+<rect class="iso-tag-bg" x="1215.3" y="737" width="163" height="42" rx="3"/>
+<circle class="bb-mark" cx="1268.6" cy="749.5" r="3"/>
+<text class="bb-kicker" x="1296.8" y="753" text-anchor="middle">SKILL</text>
+<text class="bb-node-title" x="1296.8" y="772" text-anchor="middle">Answer ingest</text>
+</g>
+<g class="iso-tag map-item cat-mustard" data-for="fresh-script" pointer-events="none">
+<rect class="iso-tag-bg" x="155" y="737" width="205.2" height="42" rx="3"/>
+<circle class="bb-mark" cx="229.3" cy="749.5" r="3"/>
+<text class="bb-kicker" x="257.6" y="753" text-anchor="middle">SKILL</text>
+<text class="bb-node-title" x="257.6" y="772" text-anchor="middle">Freshness checker</text>
+</g>
+<g class="iso-tag map-item cat-mustard" data-for="metrics-script" pointer-events="none">
+<rect class="iso-tag-bg" x="1627.2" y="787" width="205.2" height="42" rx="3"/>
+<circle class="bb-mark" cx="1701.6" cy="799.5" r="3"/>
+<text class="bb-kicker" x="1729.8" y="803" text-anchor="middle">SKILL</text>
+<text class="bb-node-title" x="1729.8" y="822" text-anchor="middle">Metrics collector</text>
+</g>
+<g class="iso-tag map-item cat-mustard" data-for="pane-script" pointer-events="none">
+<rect class="iso-tag-bg" x="598.5" y="787" width="184.1" height="42" rx="3"/>
+<circle class="bb-mark" cx="662.3" cy="799.5" r="3"/>
+<text class="bb-kicker" x="690.6" y="803" text-anchor="middle">SKILL</text>
+<text class="bb-node-title" x="690.6" y="822" text-anchor="middle">Pane reconciler</text>
+</g>
+<g class="iso-tag map-item cat-mustard" data-for="decision-script" pointer-events="none">
+<rect class="iso-tag-bg" x="1010.5" y="837" width="226.3" height="42" rx="3"/>
+<circle class="bb-mark" cx="1095.4" cy="849.5" r="3"/>
+<text class="bb-kicker" x="1123.6" y="853" text-anchor="middle">SKILL</text>
+<text class="bb-node-title" x="1123.6" y="872" text-anchor="middle">Decision reconciler</text>
+</g>
+<g class="iso-tag map-item cat-mustard" data-for="response-script" pointer-events="none">
+<rect class="iso-tag-bg" x="1443.5" y="887" width="226.3" height="42" rx="3"/>
+<circle class="bb-mark" cx="1528.4" cy="899.5" r="3"/>
+<text class="bb-kicker" x="1556.6" y="903" text-anchor="middle">SKILL</text>
+<text class="bb-node-title" x="1556.6" y="922" text-anchor="middle">Response reconciler</text>
+</g>
+<g class="iso-tag map-item cat-mustard" data-for="evidence-script" pointer-events="none">
+<rect class="iso-tag-bg" x="441.1" y="887" width="152.5" height="42" rx="3"/>
+<circle class="bb-mark" cx="489.1" cy="899.5" r="3"/>
+<text class="bb-kicker" x="517.4" y="903" text-anchor="middle">SKILL</text>
+<text class="bb-node-title" x="517.4" y="922" text-anchor="middle">Evidence log</text>
+</g>
+<g class="iso-tag map-item cat-mustard" data-for="priority-script" pointer-events="none">
+<rect class="iso-tag-bg" x="837.3" y="937" width="226.3" height="42" rx="3"/>
+<circle class="bb-mark" cx="922.1" cy="949.5" r="3"/>
+<text class="bb-kicker" x="950.4" y="953" text-anchor="middle">SKILL</text>
+<text class="bb-node-title" x="950.4" y="972" text-anchor="middle">Priority reconciler</text>
+</g>
+<g class="iso-tag map-item cat-mustard" data-for="step-script" pointer-events="none">
+<rect class="iso-tag-bg" x="1291.4" y="987" width="184.1" height="42" rx="3"/>
+<circle class="bb-mark" cx="1355.2" cy="999.5" r="3"/>
+<text class="bb-kicker" x="1383.4" y="1003" text-anchor="middle">SKILL</text>
+<text class="bb-node-title" x="1383.4" y="1022" text-anchor="middle">Step reconciler</text>
+</g>
+<g class="iso-tag map-item cat-mustard" data-for="pin-script" pointer-events="none">
+<rect class="iso-tag-bg" x="1107.6" y="1087" width="205.2" height="42" rx="3"/>
+<circle class="bb-mark" cx="1182" cy="1099.5" r="3"/>
+<text class="bb-kicker" x="1210.2" y="1103" text-anchor="middle">SKILL</text>
+<text class="bb-node-title" x="1210.2" y="1122" text-anchor="middle">Identifier pinner</text>
+</g>
+<g class="bb-zone-group cat-mustard">
+<text class="bb-zone-title iso-label-knockout" x="966" y="234" text-anchor="middle">Collectors and reconciliation</text></g>
+<g class="bb-legend" aria-label="Legend"><path class="bb-rule" d="M 40 1406 H 2007"/><circle class="bb-mark cat-mustard" cx="52" cy="1424" r="4"/><text class="bb-legend-text" x="64" y="1428">Collectors and reconciliation</text></g>
+</svg>

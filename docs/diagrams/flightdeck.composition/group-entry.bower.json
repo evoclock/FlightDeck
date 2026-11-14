@@ -1,0 +1,81 @@
+{
+  "schema": "bowerbird/v1",
+  "categories": {
+    "sage": {
+      "label": "Publish entry points"
+    },
+    "teal": {
+      "label": "Ordered pre-render hooks"
+    },
+    "mustard": {
+      "label": "Collectors and reconciliation"
+    },
+    "mauve": {
+      "label": "Dashboard rendering"
+    },
+    "olive": {
+      "label": "Optional Worker bundle"
+    },
+    "slate": {
+      "label": "Continuous integration"
+    }
+  },
+  "traces": [],
+  "meta": {
+    "title": "Publish entry points",
+    "subtitle": "Live repository composition at origin/main 69bf757",
+    "repository": {
+      "url": "https://github.com/evoclock/FlightDeck",
+      "ref": "main"
+    },
+    "lightFlatFill": "filled",
+    "inputSha": "69bf75736e1bf516ddd0df72e2b76d333e352a20"
+  },
+  "zones": [
+    {
+      "id": "entry",
+      "title": "Publish entry points",
+      "category": "sage"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "publish",
+      "zone": "entry",
+      "at": [
+        0,
+        0
+      ],
+      "type": "workflow",
+      "title": "Publish selector",
+      "category": "sage",
+      "status": "implemented",
+      "lines": [
+        "Choose local build "
+      ],
+      "details": "Choose local build by default or opt-in Cloudflare deployment.\n\nSource: [`publish.sh`](publish.sh)\n\n[Back to overview](../../.treehouse/flightdeck-de31a8/1/flightdeck/docs/diagrams/flightdeck.composition/overview.iso.html) · [Open Optional Worker bundle](../../.treehouse/flightdeck-de31a8/1/flightdeck/docs/diagrams/flightdeck.composition/group-deploy.iso.html)"
+    },
+    {
+      "id": "local",
+      "zone": "entry",
+      "at": [
+        1,
+        0
+      ],
+      "type": "playbook",
+      "title": "Local publish",
+      "category": "sage",
+      "status": "implemented",
+      "lines": [
+        "Run pre-render hook"
+      ],
+      "details": "Run pre-render hooks, render the demo and copy its assets.\n\nSource: [`scripts/publish_local.sh`](scripts/publish_local.sh)\n\n[Back to overview](../../.treehouse/flightdeck-de31a8/1/flightdeck/docs/diagrams/flightdeck.composition/overview.iso.html) · [Open Ordered pre-render hooks](../../.treehouse/flightdeck-de31a8/1/flightdeck/docs/diagrams/flightdeck.composition/group-hooks.iso.html) · [Open Dashboard rendering](../../.treehouse/flightdeck-de31a8/1/flightdeck/docs/diagrams/flightdeck.composition/group-page.iso.html)"
+    }
+  ],
+  "edges": [
+    {
+      "from": "publish",
+      "to": "local"
+    }
+  ]
+}

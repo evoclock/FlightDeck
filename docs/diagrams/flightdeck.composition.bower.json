@@ -1,75 +1,1629 @@
 {
   "schema": "bowerbird/v1",
-  "meta": {"title": "FlightDeck composition", "subtitle": "Local publish, ordered evidence hooks, rendering, optional deployment and CI at 69bf757"},
+  "meta": {
+    "title": "FlightDeck composition",
+    "subtitle": "Live repository composition at origin/main 69bf757",
+    "repository": {
+      "url": "https://github.com/evoclock/FlightDeck",
+      "ref": "main"
+    }
+  },
   "composition": {
     "groups": [
-      {"id":"entry","title":"Publish entry points","status":"built"},
-      {"id":"hooks","title":"Ordered pre-render hooks","status":"built"},
-      {"id":"sync","title":"Collectors and reconciliation","status":"built"},
-      {"id":"page","title":"Dashboard rendering","status":"built"},
-      {"id":"deploy","title":"Optional Worker bundle","status":"built"},
-      {"id":"ci","title":"Continuous integration","status":"partial"}
+      {
+        "id": "entry",
+        "title": "Publish entry points",
+        "status": "built"
+      },
+      {
+        "id": "hooks",
+        "title": "Ordered pre-render hooks",
+        "status": "built"
+      },
+      {
+        "id": "sync",
+        "title": "Collectors and reconciliation",
+        "status": "built"
+      },
+      {
+        "id": "page",
+        "title": "Dashboard rendering",
+        "status": "built"
+      },
+      {
+        "id": "deploy",
+        "title": "Optional Worker bundle",
+        "status": "built"
+      },
+      {
+        "id": "ci",
+        "title": "Continuous integration",
+        "status": "partial"
+      }
     ],
     "components": [
-      {"id":"publish","title":"Publish selector","type":"workflow","group":"entry","purpose":"Choose local build by default or opt-in Cloudflare deployment.","status":"built","source":"publish.sh"},
-      {"id":"local","title":"Local publish","type":"playbook","group":"entry","purpose":"Run pre-render hooks, render the demo and copy its assets.","status":"built","source":"scripts/publish_local.sh"},
-      {"id":"cloud","title":"Cloudflare publish","type":"playbook","group":"deploy","purpose":"Build a Worker bundle and deploy only with validated local site settings.","status":"built","source":"scripts/publish_cloudflare.sh"},
-      {"id":"pre","title":"Pre-render sequence","type":"workflow","group":"hooks","purpose":"Run executable hook files lexically and stop on a failing hook.","status":"built","source":"hooks/run-pre-render.sh"},
-      {"id":"activity","title":"Collect activity","type":"playbook","group":"hooks","purpose":"Collect GitHub activity when an owner and instance data are available.","status":"built","source":"hooks/pre-render.d/00-collect-activity"},
-      {"id":"prcache","title":"Refresh PR cache","type":"playbook","group":"hooks","purpose":"Refresh cached pull request facts for reconciliation.","status":"built","source":"hooks/pre-render.d/01-refresh-pr-cache"},
-      {"id":"repo","title":"Collect repo evidence","type":"playbook","group":"hooks","purpose":"Collect repository evidence without discarding the prior cache on failure.","status":"built","source":"hooks/pre-render.d/01b-collect-repo-evidence"},
-      {"id":"cluster","title":"Collect cluster","type":"playbook","group":"hooks","purpose":"Collect metrics or spark readings only when configured.","status":"built","source":"hooks/pre-render.d/02-collect-cluster"},
-      {"id":"sidecars","title":"Merge sidecars","type":"playbook","group":"hooks","purpose":"Merge optional bot and response sidecar evidence before reconciliation.","status":"built","source":"hooks/pre-render.d/02b-merge-sidecars"},
-      {"id":"responses","title":"Reconcile responses","type":"playbook","group":"hooks","purpose":"Ingest pending chat answers before reconciling response history.","status":"built","source":"hooks/pre-render.d/03-reconcile-responses"},
-      {"id":"inflight","title":"Reconcile inflight","type":"playbook","group":"hooks","purpose":"Reconcile in-flight tracker state from evidence.","status":"built","source":"hooks/pre-render.d/05-reconcile-inflight"},
-      {"id":"merges","title":"Reconcile merges","type":"playbook","group":"hooks","purpose":"Update merge lifecycle from cached pull request state.","status":"built","source":"hooks/pre-render.d/07-reconcile-merges-lifecycle"},
-      {"id":"decisions","title":"Ready decisions","type":"playbook","group":"hooks","purpose":"Reconcile which decisions are ready from current evidence.","status":"built","source":"hooks/pre-render.d/10-reconcile-ready-decisions"},
-      {"id":"steps","title":"Steps evidence","type":"playbook","group":"hooks","purpose":"Reconcile human steps against recorded evidence.","status":"built","source":"hooks/pre-render.d/30-reconcile-steps-evidence"},
-      {"id":"bot","title":"Apply bot reports","type":"playbook","group":"hooks","purpose":"Apply collected bot reports to tracker state.","status":"built","source":"hooks/pre-render.d/40-apply-bot-reports"},
-      {"id":"panes","title":"Reconcile repo panes","type":"playbook","group":"hooks","purpose":"Update repository-backed streams and priorities.","status":"built","source":"hooks/pre-render.d/45-reconcile-repo-panes"},
-      {"id":"priorities","title":"Reconcile priorities","type":"playbook","group":"hooks","purpose":"Reconcile priority items after repository panes.","status":"built","source":"hooks/pre-render.d/50-reconcile-priorities"},
-      {"id":"ids","title":"Pin identifiers","type":"playbook","group":"hooks","purpose":"Pin stable tracker identifiers after reconciliation.","status":"built","source":"hooks/pre-render.d/90-pin-ids"},
-      {"id":"fresh","title":"Check freshness","type":"playbook","group":"hooks","purpose":"Report stale evidence without blocking a publish.","status":"built","source":"hooks/pre-render.d/92-freshness"},
-      {"id":"collector-activity","title":"Activity collector","type":"skill","group":"sync","purpose":"Write hourly and weekly GitHub activity to instance data.","status":"built","source":"collectors/activity.py"},
-      {"id":"refresh-script","title":"PR cache script","type":"skill","group":"sync","purpose":"Fetch and normalize pull request cache entries.","status":"built","source":"scripts/refresh_pr_cache.py"},
-      {"id":"repo-script","title":"Repository collector","type":"skill","group":"sync","purpose":"Collect recent repository commits and branch coverage.","status":"built","source":"scripts/collect_repo_evidence.py"},
-      {"id":"metrics-script","title":"Metrics collector","type":"skill","group":"sync","purpose":"Sample local CPU, memory and disk metrics.","status":"built","source":"collectors/metrics_generic.py"},
-      {"id":"spark-script","title":"Spark collector","type":"skill","group":"sync","purpose":"Copy configured spark readings into instance data.","status":"built","source":"collectors/spark.py"},
-      {"id":"sidecar-script","title":"Sidecar merger","type":"skill","group":"sync","purpose":"Read optional sidecar files into evidence caches.","status":"built","source":"scripts/merge_sidecars.py"},
-      {"id":"accept-script","title":"Pending answer ingest","type":"skill","group":"sync","purpose":"Ingest pending recorded chat answers before reconciliation.","status":"built","source":"scripts/record_chat_accept.py"},
-      {"id":"response-script","title":"Response reconciler","type":"skill","group":"sync","purpose":"Reconcile response records into tracker decisions.","status":"built","source":"scripts/reconcile_responses.py"},
-      {"id":"inflight-script","title":"Inflight reconciler","type":"skill","group":"sync","purpose":"Update in-flight state from cached evidence.","status":"built","source":"scripts/reconcile_inflight.py"},
-      {"id":"merge-script","title":"Merge reconciler","type":"skill","group":"sync","purpose":"Update the merge queue lifecycle.","status":"built","source":"scripts/reconcile_merges_lifecycle.py"},
-      {"id":"decision-script","title":"Decision reconciler","type":"skill","group":"sync","purpose":"Derive ready decisions from current checks and PR heads.","status":"built","source":"scripts/reconcile_ready_decisions.py"},
-      {"id":"step-script","title":"Step reconciler","type":"skill","group":"sync","purpose":"Derive human checklist steps from repository evidence.","status":"built","source":"scripts/reconcile_steps_evidence.py"},
-      {"id":"bot-script","title":"Bot report applier","type":"skill","group":"sync","purpose":"Apply bot report updates to tracker rows.","status":"built","source":"scripts/apply_bot_reports.py"},
-      {"id":"pane-script","title":"Pane reconciler","type":"skill","group":"sync","purpose":"Reconcile streams and priorities from repository facts.","status":"built","source":"scripts/reconcile_repo_panes.py"},
-      {"id":"priority-script","title":"Priority reconciler","type":"skill","group":"sync","purpose":"Reconcile priority state after pane updates.","status":"built","source":"scripts/reconcile_priorities.py"},
-      {"id":"pin-script","title":"Identifier pinner","type":"skill","group":"sync","purpose":"Assign persistent identifiers to tracker entries.","status":"built","source":"scripts/pin_ids.py"},
-      {"id":"fresh-script","title":"Freshness checker","type":"skill","group":"sync","purpose":"Diagnose age and gaps in collected evidence.","status":"built","source":"scripts/freshness.py"},
-      {"id":"evidence-script","title":"Evidence log","type":"skill","group":"sync","purpose":"Log tracker evidence counts after ordered hooks.","status":"built","source":"scripts/tracker_evidence.py"},
-      {"id":"runner","title":"Hook runner","type":"skill","group":"hooks","purpose":"Execute pre-render hooks in lexical order and log evidence.","status":"built","source":"hooks/run-pre-render.sh"},
-      {"id":"renderer","title":"HTML renderer","type":"skill","group":"page","purpose":"Assemble configured widgets into a standalone dashboard page.","status":"built","source":"flightdeck/render.py"},
-      {"id":"demo-config","title":"Demo config","type":"skill","group":"page","purpose":"Select the fixed dashboard slots for the public demo.","status":"built","source":"examples/demo/config.json"},
-      {"id":"demo-data","title":"Demo data","type":"skill","group":"page","purpose":"Provide static example tracker values without live collection.","status":"built","source":"examples/demo/data.json"},
-      {"id":"site-builder","title":"Worker builder","type":"skill","group":"deploy","purpose":"Embed rendered HTML in a Cloudflare Worker bundle.","status":"built","source":"site/build.py"},
-      {"id":"kv-upload","title":"Architecture uploader","type":"skill","group":"deploy","purpose":"Upload changed architecture HTML views to configured KV.","status":"built","source":"scripts/upload_architecture_kv.py"},
-      {"id":"tip-ci","title":"Tip CI","type":"workflow","group":"ci","purpose":"Run unit tests and demo render on main pushes and pull requests.","status":"built","source":".github/workflows/tip-ci.yml"},
-      {"id":"ci-tests","title":"Unit test gate","type":"playbook","group":"ci","purpose":"Discover and execute the Python test suite.","status":"built","source":".github/workflows/tip-ci.yml"},
-      {"id":"ci-demo","title":"Demo render gate","type":"playbook","group":"ci","purpose":"Render the demo HTML in CI after tests.","status":"built","source":".github/workflows/tip-ci.yml"},
-      {"id":"pr-ci","title":"PR wording CI","type":"workflow","group":"ci","purpose":"Lint draft and ready PR wording against the trusted base.","status":"built","source":".github/workflows/pr-wording.yml"},
-      {"id":"pr-gate","title":"Wording gate","type":"playbook","group":"ci","purpose":"Check PR title and body against the wording policy.","status":"built","source":".github/workflows/pr-wording.yml"},
-      {"id":"pr-lint","title":"PR wording linter","type":"skill","group":"ci","purpose":"Validate first-person PR sections and concise language.","status":"built","source":".github/tools/pr-wording/pr_wording_lint.py"},
-      {"id":"legacy-ci","title":"Buildkite placeholder","type":"skill","group":"ci","purpose":"Retain a deprecated no-op pipeline that points to Tip CI.","status":"partial","source":".buildkite/pipeline.yml"}
+      {
+        "id": "publish",
+        "title": "Publish selector",
+        "type": "workflow",
+        "group": "entry",
+        "purpose": "Choose local build by default or opt-in Cloudflare deployment.",
+        "status": "built",
+        "source": "publish.sh",
+        "category": "sage"
+      },
+      {
+        "id": "local",
+        "title": "Local publish",
+        "type": "playbook",
+        "group": "entry",
+        "purpose": "Run pre-render hooks, render the demo and copy its assets.",
+        "status": "built",
+        "source": "scripts/publish_local.sh",
+        "category": "sage"
+      },
+      {
+        "id": "cloud",
+        "title": "Cloudflare publish",
+        "type": "playbook",
+        "group": "deploy",
+        "purpose": "Build a Worker bundle and deploy only with validated local site settings.",
+        "status": "built",
+        "source": "scripts/publish_cloudflare.sh",
+        "category": "olive"
+      },
+      {
+        "id": "pre",
+        "title": "Pre-render sequence",
+        "type": "workflow",
+        "group": "hooks",
+        "purpose": "Run executable hook files lexically and stop on a failing hook.",
+        "status": "built",
+        "source": "hooks/run-pre-render.sh",
+        "category": "teal"
+      },
+      {
+        "id": "activity",
+        "title": "Collect activity",
+        "type": "playbook",
+        "group": "hooks",
+        "purpose": "Collect GitHub activity when an owner and instance data are available.",
+        "status": "built",
+        "source": "hooks/pre-render.d/00-collect-activity",
+        "category": "teal"
+      },
+      {
+        "id": "prcache",
+        "title": "Refresh PR cache",
+        "type": "playbook",
+        "group": "hooks",
+        "purpose": "Refresh cached pull request facts for reconciliation.",
+        "status": "built",
+        "source": "hooks/pre-render.d/01-refresh-pr-cache",
+        "category": "teal"
+      },
+      {
+        "id": "repo",
+        "title": "Repo evidence",
+        "type": "playbook",
+        "group": "hooks",
+        "purpose": "Collect repository evidence without discarding the prior cache on failure.",
+        "status": "built",
+        "source": "hooks/pre-render.d/01b-collect-repo-evidence",
+        "category": "teal"
+      },
+      {
+        "id": "cluster",
+        "title": "Collect cluster",
+        "type": "playbook",
+        "group": "hooks",
+        "purpose": "Collect metrics or spark readings only when configured.",
+        "status": "built",
+        "source": "hooks/pre-render.d/02-collect-cluster",
+        "category": "teal"
+      },
+      {
+        "id": "sidecars",
+        "title": "Merge sidecars",
+        "type": "playbook",
+        "group": "hooks",
+        "purpose": "Merge optional bot and response sidecar evidence before reconciliation.",
+        "status": "built",
+        "source": "hooks/pre-render.d/02b-merge-sidecars",
+        "category": "teal"
+      },
+      {
+        "id": "responses",
+        "title": "Reconcile responses",
+        "type": "playbook",
+        "group": "hooks",
+        "purpose": "Ingest pending chat answers before reconciling response history.",
+        "status": "built",
+        "source": "hooks/pre-render.d/03-reconcile-responses",
+        "category": "teal"
+      },
+      {
+        "id": "inflight",
+        "title": "Reconcile inflight",
+        "type": "playbook",
+        "group": "hooks",
+        "purpose": "Reconcile in-flight tracker state from evidence.",
+        "status": "built",
+        "source": "hooks/pre-render.d/05-reconcile-inflight",
+        "category": "teal"
+      },
+      {
+        "id": "merges",
+        "title": "Reconcile merges",
+        "type": "playbook",
+        "group": "hooks",
+        "purpose": "Update merge lifecycle from cached pull request state.",
+        "status": "built",
+        "source": "hooks/pre-render.d/07-reconcile-merges-lifecycle",
+        "category": "teal"
+      },
+      {
+        "id": "decisions",
+        "title": "Ready decisions",
+        "type": "playbook",
+        "group": "hooks",
+        "purpose": "Reconcile which decisions are ready from current evidence.",
+        "status": "built",
+        "source": "hooks/pre-render.d/10-reconcile-ready-decisions",
+        "category": "teal"
+      },
+      {
+        "id": "steps",
+        "title": "Steps evidence",
+        "type": "playbook",
+        "group": "hooks",
+        "purpose": "Reconcile human steps against recorded evidence.",
+        "status": "built",
+        "source": "hooks/pre-render.d/30-reconcile-steps-evidence",
+        "category": "teal"
+      },
+      {
+        "id": "bot",
+        "title": "Apply bot reports",
+        "type": "playbook",
+        "group": "hooks",
+        "purpose": "Apply collected bot reports to tracker state.",
+        "status": "built",
+        "source": "hooks/pre-render.d/40-apply-bot-reports",
+        "category": "teal"
+      },
+      {
+        "id": "panes",
+        "title": "Reconcile repo panes",
+        "type": "playbook",
+        "group": "hooks",
+        "purpose": "Update repository-backed streams and priorities.",
+        "status": "built",
+        "source": "hooks/pre-render.d/45-reconcile-repo-panes",
+        "category": "teal"
+      },
+      {
+        "id": "priorities",
+        "title": "Reconcile priorities",
+        "type": "playbook",
+        "group": "hooks",
+        "purpose": "Reconcile priority items after repository panes.",
+        "status": "built",
+        "source": "hooks/pre-render.d/50-reconcile-priorities",
+        "category": "teal"
+      },
+      {
+        "id": "ids",
+        "title": "Pin identifiers",
+        "type": "playbook",
+        "group": "hooks",
+        "purpose": "Pin stable tracker identifiers after reconciliation.",
+        "status": "built",
+        "source": "hooks/pre-render.d/90-pin-ids",
+        "category": "teal"
+      },
+      {
+        "id": "fresh",
+        "title": "Check freshness",
+        "type": "playbook",
+        "group": "hooks",
+        "purpose": "Report stale evidence without blocking a publish.",
+        "status": "built",
+        "source": "hooks/pre-render.d/92-freshness",
+        "category": "teal"
+      },
+      {
+        "id": "collector-activity",
+        "title": "Activity collector",
+        "type": "skill",
+        "group": "sync",
+        "purpose": "Write hourly and weekly GitHub activity to instance data.",
+        "status": "built",
+        "source": "collectors/activity.py",
+        "category": "mustard"
+      },
+      {
+        "id": "refresh-script",
+        "title": "PR cache script",
+        "type": "skill",
+        "group": "sync",
+        "purpose": "Fetch and normalize pull request cache entries.",
+        "status": "built",
+        "source": "scripts/refresh_pr_cache.py",
+        "category": "mustard"
+      },
+      {
+        "id": "repo-script",
+        "title": "Repository collector",
+        "type": "skill",
+        "group": "sync",
+        "purpose": "Collect recent repository commits and branch coverage.",
+        "status": "built",
+        "source": "scripts/collect_repo_evidence.py",
+        "category": "mustard"
+      },
+      {
+        "id": "metrics-script",
+        "title": "Metrics collector",
+        "type": "skill",
+        "group": "sync",
+        "purpose": "Sample local CPU, memory and disk metrics.",
+        "status": "built",
+        "source": "collectors/metrics_generic.py",
+        "category": "mustard"
+      },
+      {
+        "id": "spark-script",
+        "title": "Spark collector",
+        "type": "skill",
+        "group": "sync",
+        "purpose": "Copy configured spark readings into instance data.",
+        "status": "built",
+        "source": "collectors/spark.py",
+        "category": "mustard"
+      },
+      {
+        "id": "sidecar-script",
+        "title": "Sidecar merger",
+        "type": "skill",
+        "group": "sync",
+        "purpose": "Read optional sidecar files into evidence caches.",
+        "status": "built",
+        "source": "scripts/merge_sidecars.py",
+        "category": "mustard"
+      },
+      {
+        "id": "accept-script",
+        "title": "Answer ingest",
+        "type": "skill",
+        "group": "sync",
+        "purpose": "Ingest pending recorded chat answers before reconciliation.",
+        "status": "built",
+        "source": "scripts/record_chat_accept.py",
+        "category": "mustard"
+      },
+      {
+        "id": "response-script",
+        "title": "Response reconciler",
+        "type": "skill",
+        "group": "sync",
+        "purpose": "Reconcile response records into tracker decisions.",
+        "status": "built",
+        "source": "scripts/reconcile_responses.py",
+        "category": "mustard"
+      },
+      {
+        "id": "inflight-script",
+        "title": "Inflight reconciler",
+        "type": "skill",
+        "group": "sync",
+        "purpose": "Update in-flight state from cached evidence.",
+        "status": "built",
+        "source": "scripts/reconcile_inflight.py",
+        "category": "mustard"
+      },
+      {
+        "id": "merge-script",
+        "title": "Merge reconciler",
+        "type": "skill",
+        "group": "sync",
+        "purpose": "Update the merge queue lifecycle.",
+        "status": "built",
+        "source": "scripts/reconcile_merges_lifecycle.py",
+        "category": "mustard"
+      },
+      {
+        "id": "decision-script",
+        "title": "Decision reconciler",
+        "type": "skill",
+        "group": "sync",
+        "purpose": "Derive ready decisions from current checks and PR heads.",
+        "status": "built",
+        "source": "scripts/reconcile_ready_decisions.py",
+        "category": "mustard"
+      },
+      {
+        "id": "step-script",
+        "title": "Step reconciler",
+        "type": "skill",
+        "group": "sync",
+        "purpose": "Derive human checklist steps from repository evidence.",
+        "status": "built",
+        "source": "scripts/reconcile_steps_evidence.py",
+        "category": "mustard"
+      },
+      {
+        "id": "bot-script",
+        "title": "Bot report applier",
+        "type": "skill",
+        "group": "sync",
+        "purpose": "Apply bot report updates to tracker rows.",
+        "status": "built",
+        "source": "scripts/apply_bot_reports.py",
+        "category": "mustard"
+      },
+      {
+        "id": "pane-script",
+        "title": "Pane reconciler",
+        "type": "skill",
+        "group": "sync",
+        "purpose": "Reconcile streams and priorities from repository facts.",
+        "status": "built",
+        "source": "scripts/reconcile_repo_panes.py",
+        "category": "mustard"
+      },
+      {
+        "id": "priority-script",
+        "title": "Priority reconciler",
+        "type": "skill",
+        "group": "sync",
+        "purpose": "Reconcile priority state after pane updates.",
+        "status": "built",
+        "source": "scripts/reconcile_priorities.py",
+        "category": "mustard"
+      },
+      {
+        "id": "pin-script",
+        "title": "Identifier pinner",
+        "type": "skill",
+        "group": "sync",
+        "purpose": "Assign persistent identifiers to tracker entries.",
+        "status": "built",
+        "source": "scripts/pin_ids.py",
+        "category": "mustard"
+      },
+      {
+        "id": "fresh-script",
+        "title": "Freshness checker",
+        "type": "skill",
+        "group": "sync",
+        "purpose": "Diagnose age and gaps in collected evidence.",
+        "status": "built",
+        "source": "scripts/freshness.py",
+        "category": "mustard"
+      },
+      {
+        "id": "evidence-script",
+        "title": "Evidence log",
+        "type": "skill",
+        "group": "sync",
+        "purpose": "Log tracker evidence counts after ordered hooks.",
+        "status": "built",
+        "source": "scripts/tracker_evidence.py",
+        "category": "mustard"
+      },
+      {
+        "id": "runner",
+        "title": "Hook runner",
+        "type": "skill",
+        "group": "hooks",
+        "purpose": "Execute pre-render hooks in lexical order and log evidence.",
+        "status": "built",
+        "source": "hooks/run-pre-render.sh",
+        "category": "teal"
+      },
+      {
+        "id": "renderer",
+        "title": "HTML renderer",
+        "type": "skill",
+        "group": "page",
+        "purpose": "Assemble configured widgets into a standalone dashboard page.",
+        "status": "built",
+        "source": "flightdeck/render.py",
+        "category": "mauve"
+      },
+      {
+        "id": "demo-config",
+        "title": "Demo config",
+        "type": "skill",
+        "group": "page",
+        "purpose": "Select the fixed dashboard slots for the public demo.",
+        "status": "built",
+        "source": "examples/demo/config.json",
+        "category": "mauve"
+      },
+      {
+        "id": "demo-data",
+        "title": "Demo data",
+        "type": "skill",
+        "group": "page",
+        "purpose": "Provide static example tracker values without live collection.",
+        "status": "built",
+        "source": "examples/demo/data.json",
+        "category": "mauve"
+      },
+      {
+        "id": "site-builder",
+        "title": "Worker builder",
+        "type": "skill",
+        "group": "deploy",
+        "purpose": "Embed rendered HTML in a Cloudflare Worker bundle.",
+        "status": "built",
+        "source": "site/build.py",
+        "category": "olive"
+      },
+      {
+        "id": "kv-upload",
+        "title": "Arch uploader",
+        "type": "skill",
+        "group": "deploy",
+        "purpose": "Upload changed architecture HTML views to configured KV.",
+        "status": "built",
+        "source": "scripts/upload_architecture_kv.py",
+        "category": "olive"
+      },
+      {
+        "id": "tip-ci",
+        "title": "Tip CI",
+        "type": "workflow",
+        "group": "ci",
+        "purpose": "Run unit tests and demo render on main pushes and pull requests.",
+        "status": "built",
+        "source": ".github/workflows/tip-ci.yml",
+        "category": "slate"
+      },
+      {
+        "id": "ci-tests",
+        "title": "Unit test gate",
+        "type": "playbook",
+        "group": "ci",
+        "purpose": "Discover and execute the Python test suite.",
+        "status": "built",
+        "source": ".github/workflows/tip-ci.yml",
+        "category": "slate"
+      },
+      {
+        "id": "ci-demo",
+        "title": "Demo render gate",
+        "type": "playbook",
+        "group": "ci",
+        "purpose": "Render the demo HTML in CI after tests.",
+        "status": "built",
+        "source": ".github/workflows/tip-ci.yml",
+        "category": "slate"
+      },
+      {
+        "id": "pr-ci",
+        "title": "PR wording CI",
+        "type": "workflow",
+        "group": "ci",
+        "purpose": "Lint draft and ready PR wording against the trusted base.",
+        "status": "built",
+        "source": ".github/workflows/pr-wording.yml",
+        "category": "slate"
+      },
+      {
+        "id": "pr-gate",
+        "title": "Wording gate",
+        "type": "playbook",
+        "group": "ci",
+        "purpose": "Check PR title and body against the wording policy.",
+        "status": "built",
+        "source": ".github/workflows/pr-wording.yml",
+        "category": "slate"
+      },
+      {
+        "id": "pr-lint",
+        "title": "PR wording linter",
+        "type": "skill",
+        "group": "ci",
+        "purpose": "Validate first-person PR sections and concise language.",
+        "status": "built",
+        "source": ".github/tools/pr-wording/pr_wording_lint.py",
+        "category": "slate"
+      },
+      {
+        "id": "legacy-ci",
+        "title": "Legacy CI",
+        "type": "skill",
+        "group": "ci",
+        "purpose": "Retain a deprecated no-op pipeline that points to Tip CI.",
+        "status": "partial",
+        "source": ".buildkite/pipeline.yml",
+        "category": "slate"
+      }
     ],
     "edges": [
-      {"from":"publish","to":"local","step":1},{"from":"publish","to":"cloud","step":2},
-      {"from":"local","to":"runner","step":1},{"from":"local","to":"demo-config","step":2},{"from":"local","to":"demo-data","step":3},{"from":"local","to":"renderer","step":4},
-      {"from":"cloud","to":"site-builder","step":1},{"from":"cloud","to":"kv-upload","step":2},
-      {"from":"pre","to":"activity","step":1},{"from":"pre","to":"prcache","step":2},{"from":"pre","to":"repo","step":3},{"from":"pre","to":"cluster","step":4},{"from":"pre","to":"sidecars","step":5},{"from":"pre","to":"responses","step":6},{"from":"pre","to":"inflight","step":7},{"from":"pre","to":"merges","step":8},{"from":"pre","to":"decisions","step":9},{"from":"pre","to":"steps","step":10},{"from":"pre","to":"bot","step":11},{"from":"pre","to":"panes","step":12},{"from":"pre","to":"priorities","step":13},{"from":"pre","to":"ids","step":14},{"from":"pre","to":"fresh","step":15},
-      {"from":"activity","to":"collector-activity","step":1},{"from":"prcache","to":"refresh-script","step":1},{"from":"repo","to":"repo-script","step":1},{"from":"cluster","to":"metrics-script","step":1},{"from":"cluster","to":"spark-script","step":2},{"from":"sidecars","to":"sidecar-script","step":1},
-      {"from":"responses","to":"accept-script","step":1},{"from":"responses","to":"response-script","step":2},{"from":"inflight","to":"inflight-script","step":1},{"from":"merges","to":"merge-script","step":1},{"from":"decisions","to":"decision-script","step":1},{"from":"steps","to":"step-script","step":1},{"from":"bot","to":"bot-script","step":1},{"from":"panes","to":"pane-script","step":1},{"from":"priorities","to":"priority-script","step":1},{"from":"ids","to":"pin-script","step":1},{"from":"fresh","to":"fresh-script","step":1},
-      {"from":"tip-ci","to":"ci-tests","step":1},{"from":"tip-ci","to":"ci-demo","step":2},{"from":"ci-demo","to":"renderer","step":1},{"from":"pr-ci","to":"pr-gate","step":1},{"from":"pr-gate","to":"pr-lint","step":1}
+      {
+        "from": "publish",
+        "to": "local",
+        "step": 1
+      },
+      {
+        "from": "publish",
+        "to": "cloud",
+        "step": 2
+      },
+      {
+        "from": "local",
+        "to": "runner",
+        "step": 1
+      },
+      {
+        "from": "local",
+        "to": "demo-config",
+        "step": 2
+      },
+      {
+        "from": "local",
+        "to": "demo-data",
+        "step": 3
+      },
+      {
+        "from": "local",
+        "to": "renderer",
+        "step": 4
+      },
+      {
+        "from": "cloud",
+        "to": "site-builder",
+        "step": 1
+      },
+      {
+        "from": "cloud",
+        "to": "kv-upload",
+        "step": 2
+      },
+      {
+        "from": "pre",
+        "to": "activity",
+        "step": 1
+      },
+      {
+        "from": "pre",
+        "to": "prcache",
+        "step": 2
+      },
+      {
+        "from": "pre",
+        "to": "repo",
+        "step": 3
+      },
+      {
+        "from": "pre",
+        "to": "cluster",
+        "step": 4
+      },
+      {
+        "from": "pre",
+        "to": "sidecars",
+        "step": 5
+      },
+      {
+        "from": "pre",
+        "to": "responses",
+        "step": 6
+      },
+      {
+        "from": "pre",
+        "to": "inflight",
+        "step": 7
+      },
+      {
+        "from": "pre",
+        "to": "merges",
+        "step": 8
+      },
+      {
+        "from": "pre",
+        "to": "decisions",
+        "step": 9
+      },
+      {
+        "from": "pre",
+        "to": "steps",
+        "step": 10
+      },
+      {
+        "from": "pre",
+        "to": "bot",
+        "step": 11
+      },
+      {
+        "from": "pre",
+        "to": "panes",
+        "step": 12
+      },
+      {
+        "from": "pre",
+        "to": "priorities",
+        "step": 13
+      },
+      {
+        "from": "pre",
+        "to": "ids",
+        "step": 14
+      },
+      {
+        "from": "pre",
+        "to": "fresh",
+        "step": 15
+      },
+      {
+        "from": "activity",
+        "to": "collector-activity",
+        "step": 1
+      },
+      {
+        "from": "prcache",
+        "to": "refresh-script",
+        "step": 1
+      },
+      {
+        "from": "repo",
+        "to": "repo-script",
+        "step": 1
+      },
+      {
+        "from": "cluster",
+        "to": "metrics-script",
+        "step": 1
+      },
+      {
+        "from": "cluster",
+        "to": "spark-script",
+        "step": 2
+      },
+      {
+        "from": "sidecars",
+        "to": "sidecar-script",
+        "step": 1
+      },
+      {
+        "from": "responses",
+        "to": "accept-script",
+        "step": 1
+      },
+      {
+        "from": "responses",
+        "to": "response-script",
+        "step": 2
+      },
+      {
+        "from": "inflight",
+        "to": "inflight-script",
+        "step": 1
+      },
+      {
+        "from": "merges",
+        "to": "merge-script",
+        "step": 1
+      },
+      {
+        "from": "decisions",
+        "to": "decision-script",
+        "step": 1
+      },
+      {
+        "from": "steps",
+        "to": "step-script",
+        "step": 1
+      },
+      {
+        "from": "bot",
+        "to": "bot-script",
+        "step": 1
+      },
+      {
+        "from": "panes",
+        "to": "pane-script",
+        "step": 1
+      },
+      {
+        "from": "priorities",
+        "to": "priority-script",
+        "step": 1
+      },
+      {
+        "from": "ids",
+        "to": "pin-script",
+        "step": 1
+      },
+      {
+        "from": "fresh",
+        "to": "fresh-script",
+        "step": 1
+      },
+      {
+        "from": "tip-ci",
+        "to": "ci-tests",
+        "step": 1
+      },
+      {
+        "from": "tip-ci",
+        "to": "ci-demo",
+        "step": 2
+      },
+      {
+        "from": "ci-demo",
+        "to": "renderer",
+        "step": 1
+      },
+      {
+        "from": "pr-ci",
+        "to": "pr-gate",
+        "step": 1
+      },
+      {
+        "from": "pr-gate",
+        "to": "pr-lint",
+        "step": 1
+      }
     ]
-  }
+  },
+  "categories": {
+    "sage": {
+      "label": "Publish entry points"
+    },
+    "teal": {
+      "label": "Ordered pre-render hooks"
+    },
+    "mustard": {
+      "label": "Collectors and reconciliation"
+    },
+    "mauve": {
+      "label": "Dashboard rendering"
+    },
+    "olive": {
+      "label": "Optional Worker bundle"
+    },
+    "slate": {
+      "label": "Continuous integration"
+    }
+  },
+  "zones": [
+    {
+      "id": "entry",
+      "title": "Publish entry points",
+      "category": "sage"
+    },
+    {
+      "id": "hooks",
+      "title": "Ordered pre-render hooks",
+      "category": "teal"
+    },
+    {
+      "id": "sync",
+      "title": "Collectors and reconciliation",
+      "category": "mustard"
+    },
+    {
+      "id": "page",
+      "title": "Dashboard rendering",
+      "category": "mauve"
+    },
+    {
+      "id": "deploy",
+      "title": "Optional Worker bundle",
+      "category": "olive"
+    },
+    {
+      "id": "ci",
+      "title": "Continuous integration",
+      "category": "slate"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "publish",
+      "zone": "entry",
+      "at": [
+        0,
+        0
+      ],
+      "type": "workflow",
+      "title": "Publish selector",
+      "category": "sage",
+      "status": "implemented",
+      "lines": [
+        "Choose local build "
+      ],
+      "details": "Choose local build by default or opt-in Cloudflare deployment.\n\nSource: [`publish.sh`](publish.sh)"
+    },
+    {
+      "id": "local",
+      "zone": "entry",
+      "at": [
+        1,
+        0
+      ],
+      "type": "playbook",
+      "title": "Local publish",
+      "category": "sage",
+      "status": "implemented",
+      "lines": [
+        "Run pre-render hook"
+      ],
+      "details": "Run pre-render hooks, render the demo and copy its assets.\n\nSource: [`scripts/publish_local.sh`](scripts/publish_local.sh)"
+    },
+    {
+      "id": "cloud",
+      "zone": "deploy",
+      "at": [
+        20,
+        0
+      ],
+      "type": "playbook",
+      "title": "Cloudflare publish",
+      "category": "olive",
+      "status": "implemented",
+      "lines": [
+        "Build a Worker bund"
+      ],
+      "details": "Build a Worker bundle and deploy only with validated local site settings.\n\nSource: [`scripts/publish_cloudflare.sh`](scripts/publish_cloudflare.sh)"
+    },
+    {
+      "id": "pre",
+      "zone": "hooks",
+      "at": [
+        5,
+        0
+      ],
+      "type": "workflow",
+      "title": "Pre-render sequence",
+      "category": "teal",
+      "status": "implemented",
+      "lines": [
+        "Run executable hook"
+      ],
+      "details": "Run executable hook files lexically and stop on a failing hook.\n\nSource: [`hooks/run-pre-render.sh`](hooks/run-pre-render.sh)"
+    },
+    {
+      "id": "activity",
+      "zone": "hooks",
+      "at": [
+        6,
+        0
+      ],
+      "type": "playbook",
+      "title": "Collect activity",
+      "category": "teal",
+      "status": "implemented",
+      "lines": [
+        "Collect GitHub acti"
+      ],
+      "details": "Collect GitHub activity when an owner and instance data are available.\n\nSource: [`hooks/pre-render.d/00-collect-activity`](hooks/pre-render.d/00-collect-activity)"
+    },
+    {
+      "id": "prcache",
+      "zone": "hooks",
+      "at": [
+        7,
+        0
+      ],
+      "type": "playbook",
+      "title": "Refresh PR cache",
+      "category": "teal",
+      "status": "implemented",
+      "lines": [
+        "Refresh cached pull"
+      ],
+      "details": "Refresh cached pull request facts for reconciliation.\n\nSource: [`hooks/pre-render.d/01-refresh-pr-cache`](hooks/pre-render.d/01-refresh-pr-cache)"
+    },
+    {
+      "id": "repo",
+      "zone": "hooks",
+      "at": [
+        8,
+        0
+      ],
+      "type": "playbook",
+      "title": "Repo evidence",
+      "category": "teal",
+      "status": "implemented",
+      "lines": [
+        "Collect repository "
+      ],
+      "details": "Collect repository evidence without discarding the prior cache on failure.\n\nSource: [`hooks/pre-render.d/01b-collect-repo-evidence`](hooks/pre-render.d/01b-collect-repo-evidence)"
+    },
+    {
+      "id": "cluster",
+      "zone": "hooks",
+      "at": [
+        5,
+        1
+      ],
+      "type": "playbook",
+      "title": "Collect cluster",
+      "category": "teal",
+      "status": "implemented",
+      "lines": [
+        "Collect metrics or "
+      ],
+      "details": "Collect metrics or spark readings only when configured.\n\nSource: [`hooks/pre-render.d/02-collect-cluster`](hooks/pre-render.d/02-collect-cluster)"
+    },
+    {
+      "id": "sidecars",
+      "zone": "hooks",
+      "at": [
+        6,
+        1
+      ],
+      "type": "playbook",
+      "title": "Merge sidecars",
+      "category": "teal",
+      "status": "implemented",
+      "lines": [
+        "Merge optional bot "
+      ],
+      "details": "Merge optional bot and response sidecar evidence before reconciliation.\n\nSource: [`hooks/pre-render.d/02b-merge-sidecars`](hooks/pre-render.d/02b-merge-sidecars)"
+    },
+    {
+      "id": "responses",
+      "zone": "hooks",
+      "at": [
+        7,
+        1
+      ],
+      "type": "playbook",
+      "title": "Reconcile responses",
+      "category": "teal",
+      "status": "implemented",
+      "lines": [
+        "Ingest pending chat"
+      ],
+      "details": "Ingest pending chat answers before reconciling response history.\n\nSource: [`hooks/pre-render.d/03-reconcile-responses`](hooks/pre-render.d/03-reconcile-responses)"
+    },
+    {
+      "id": "inflight",
+      "zone": "hooks",
+      "at": [
+        8,
+        1
+      ],
+      "type": "playbook",
+      "title": "Reconcile inflight",
+      "category": "teal",
+      "status": "implemented",
+      "lines": [
+        "Reconcile in-flight"
+      ],
+      "details": "Reconcile in-flight tracker state from evidence.\n\nSource: [`hooks/pre-render.d/05-reconcile-inflight`](hooks/pre-render.d/05-reconcile-inflight)"
+    },
+    {
+      "id": "merges",
+      "zone": "hooks",
+      "at": [
+        5,
+        2
+      ],
+      "type": "playbook",
+      "title": "Reconcile merges",
+      "category": "teal",
+      "status": "implemented",
+      "lines": [
+        "Update merge lifecy"
+      ],
+      "details": "Update merge lifecycle from cached pull request state.\n\nSource: [`hooks/pre-render.d/07-reconcile-merges-lifecycle`](hooks/pre-render.d/07-reconcile-merges-lifecycle)"
+    },
+    {
+      "id": "decisions",
+      "zone": "hooks",
+      "at": [
+        6,
+        2
+      ],
+      "type": "playbook",
+      "title": "Ready decisions",
+      "category": "teal",
+      "status": "implemented",
+      "lines": [
+        "Reconcile which dec"
+      ],
+      "details": "Reconcile which decisions are ready from current evidence.\n\nSource: [`hooks/pre-render.d/10-reconcile-ready-decisions`](hooks/pre-render.d/10-reconcile-ready-decisions)"
+    },
+    {
+      "id": "steps",
+      "zone": "hooks",
+      "at": [
+        7,
+        2
+      ],
+      "type": "playbook",
+      "title": "Steps evidence",
+      "category": "teal",
+      "status": "implemented",
+      "lines": [
+        "Reconcile human ste"
+      ],
+      "details": "Reconcile human steps against recorded evidence.\n\nSource: [`hooks/pre-render.d/30-reconcile-steps-evidence`](hooks/pre-render.d/30-reconcile-steps-evidence)"
+    },
+    {
+      "id": "bot",
+      "zone": "hooks",
+      "at": [
+        8,
+        2
+      ],
+      "type": "playbook",
+      "title": "Apply bot reports",
+      "category": "teal",
+      "status": "implemented",
+      "lines": [
+        "Apply collected bot"
+      ],
+      "details": "Apply collected bot reports to tracker state.\n\nSource: [`hooks/pre-render.d/40-apply-bot-reports`](hooks/pre-render.d/40-apply-bot-reports)"
+    },
+    {
+      "id": "panes",
+      "zone": "hooks",
+      "at": [
+        5,
+        3
+      ],
+      "type": "playbook",
+      "title": "Reconcile repo panes",
+      "category": "teal",
+      "status": "implemented",
+      "lines": [
+        "Update repository-b"
+      ],
+      "details": "Update repository-backed streams and priorities.\n\nSource: [`hooks/pre-render.d/45-reconcile-repo-panes`](hooks/pre-render.d/45-reconcile-repo-panes)"
+    },
+    {
+      "id": "priorities",
+      "zone": "hooks",
+      "at": [
+        6,
+        3
+      ],
+      "type": "playbook",
+      "title": "Reconcile priorities",
+      "category": "teal",
+      "status": "implemented",
+      "lines": [
+        "Reconcile priority "
+      ],
+      "details": "Reconcile priority items after repository panes.\n\nSource: [`hooks/pre-render.d/50-reconcile-priorities`](hooks/pre-render.d/50-reconcile-priorities)"
+    },
+    {
+      "id": "ids",
+      "zone": "hooks",
+      "at": [
+        7,
+        3
+      ],
+      "type": "playbook",
+      "title": "Pin identifiers",
+      "category": "teal",
+      "status": "implemented",
+      "lines": [
+        "Pin stable tracker "
+      ],
+      "details": "Pin stable tracker identifiers after reconciliation.\n\nSource: [`hooks/pre-render.d/90-pin-ids`](hooks/pre-render.d/90-pin-ids)"
+    },
+    {
+      "id": "fresh",
+      "zone": "hooks",
+      "at": [
+        8,
+        3
+      ],
+      "type": "playbook",
+      "title": "Check freshness",
+      "category": "teal",
+      "status": "implemented",
+      "lines": [
+        "Report stale eviden"
+      ],
+      "details": "Report stale evidence without blocking a publish.\n\nSource: [`hooks/pre-render.d/92-freshness`](hooks/pre-render.d/92-freshness)"
+    },
+    {
+      "id": "collector-activity",
+      "zone": "sync",
+      "at": [
+        10,
+        0
+      ],
+      "type": "skill",
+      "title": "Activity collector",
+      "category": "mustard",
+      "status": "implemented",
+      "lines": [
+        "Write hourly and we"
+      ],
+      "details": "Write hourly and weekly GitHub activity to instance data.\n\nSource: [`collectors/activity.py`](collectors/activity.py)"
+    },
+    {
+      "id": "refresh-script",
+      "zone": "sync",
+      "at": [
+        11,
+        0
+      ],
+      "type": "skill",
+      "title": "PR cache script",
+      "category": "mustard",
+      "status": "implemented",
+      "lines": [
+        "Fetch and normalize"
+      ],
+      "details": "Fetch and normalize pull request cache entries.\n\nSource: [`scripts/refresh_pr_cache.py`](scripts/refresh_pr_cache.py)"
+    },
+    {
+      "id": "repo-script",
+      "zone": "sync",
+      "at": [
+        12,
+        0
+      ],
+      "type": "skill",
+      "title": "Repository collector",
+      "category": "mustard",
+      "status": "implemented",
+      "lines": [
+        "Collect recent repo"
+      ],
+      "details": "Collect recent repository commits and branch coverage.\n\nSource: [`scripts/collect_repo_evidence.py`](scripts/collect_repo_evidence.py)"
+    },
+    {
+      "id": "metrics-script",
+      "zone": "sync",
+      "at": [
+        13,
+        0
+      ],
+      "type": "skill",
+      "title": "Metrics collector",
+      "category": "mustard",
+      "status": "implemented",
+      "lines": [
+        "Sample local CPU, m"
+      ],
+      "details": "Sample local CPU, memory and disk metrics.\n\nSource: [`collectors/metrics_generic.py`](collectors/metrics_generic.py)"
+    },
+    {
+      "id": "spark-script",
+      "zone": "sync",
+      "at": [
+        10,
+        1
+      ],
+      "type": "skill",
+      "title": "Spark collector",
+      "category": "mustard",
+      "status": "implemented",
+      "lines": [
+        "Copy configured spa"
+      ],
+      "details": "Copy configured spark readings into instance data.\n\nSource: [`collectors/spark.py`](collectors/spark.py)"
+    },
+    {
+      "id": "sidecar-script",
+      "zone": "sync",
+      "at": [
+        11,
+        1
+      ],
+      "type": "skill",
+      "title": "Sidecar merger",
+      "category": "mustard",
+      "status": "implemented",
+      "lines": [
+        "Read optional sidec"
+      ],
+      "details": "Read optional sidecar files into evidence caches.\n\nSource: [`scripts/merge_sidecars.py`](scripts/merge_sidecars.py)"
+    },
+    {
+      "id": "accept-script",
+      "zone": "sync",
+      "at": [
+        12,
+        1
+      ],
+      "type": "skill",
+      "title": "Answer ingest",
+      "category": "mustard",
+      "status": "implemented",
+      "lines": [
+        "Ingest pending reco"
+      ],
+      "details": "Ingest pending recorded chat answers before reconciliation.\n\nSource: [`scripts/record_chat_accept.py`](scripts/record_chat_accept.py)"
+    },
+    {
+      "id": "response-script",
+      "zone": "sync",
+      "at": [
+        13,
+        1
+      ],
+      "type": "skill",
+      "title": "Response reconciler",
+      "category": "mustard",
+      "status": "implemented",
+      "lines": [
+        "Reconcile response "
+      ],
+      "details": "Reconcile response records into tracker decisions.\n\nSource: [`scripts/reconcile_responses.py`](scripts/reconcile_responses.py)"
+    },
+    {
+      "id": "inflight-script",
+      "zone": "sync",
+      "at": [
+        10,
+        2
+      ],
+      "type": "skill",
+      "title": "Inflight reconciler",
+      "category": "mustard",
+      "status": "implemented",
+      "lines": [
+        "Update in-flight st"
+      ],
+      "details": "Update in-flight state from cached evidence.\n\nSource: [`scripts/reconcile_inflight.py`](scripts/reconcile_inflight.py)"
+    },
+    {
+      "id": "merge-script",
+      "zone": "sync",
+      "at": [
+        11,
+        2
+      ],
+      "type": "skill",
+      "title": "Merge reconciler",
+      "category": "mustard",
+      "status": "implemented",
+      "lines": [
+        "Update the merge qu"
+      ],
+      "details": "Update the merge queue lifecycle.\n\nSource: [`scripts/reconcile_merges_lifecycle.py`](scripts/reconcile_merges_lifecycle.py)"
+    },
+    {
+      "id": "decision-script",
+      "zone": "sync",
+      "at": [
+        12,
+        2
+      ],
+      "type": "skill",
+      "title": "Decision reconciler",
+      "category": "mustard",
+      "status": "implemented",
+      "lines": [
+        "Derive ready decisi"
+      ],
+      "details": "Derive ready decisions from current checks and PR heads.\n\nSource: [`scripts/reconcile_ready_decisions.py`](scripts/reconcile_ready_decisions.py)"
+    },
+    {
+      "id": "step-script",
+      "zone": "sync",
+      "at": [
+        13,
+        2
+      ],
+      "type": "skill",
+      "title": "Step reconciler",
+      "category": "mustard",
+      "status": "implemented",
+      "lines": [
+        "Derive human checkl"
+      ],
+      "details": "Derive human checklist steps from repository evidence.\n\nSource: [`scripts/reconcile_steps_evidence.py`](scripts/reconcile_steps_evidence.py)"
+    },
+    {
+      "id": "bot-script",
+      "zone": "sync",
+      "at": [
+        10,
+        3
+      ],
+      "type": "skill",
+      "title": "Bot report applier",
+      "category": "mustard",
+      "status": "implemented",
+      "lines": [
+        "Apply bot report up"
+      ],
+      "details": "Apply bot report updates to tracker rows.\n\nSource: [`scripts/apply_bot_reports.py`](scripts/apply_bot_reports.py)"
+    },
+    {
+      "id": "pane-script",
+      "zone": "sync",
+      "at": [
+        11,
+        3
+      ],
+      "type": "skill",
+      "title": "Pane reconciler",
+      "category": "mustard",
+      "status": "implemented",
+      "lines": [
+        "Reconcile streams a"
+      ],
+      "details": "Reconcile streams and priorities from repository facts.\n\nSource: [`scripts/reconcile_repo_panes.py`](scripts/reconcile_repo_panes.py)"
+    },
+    {
+      "id": "priority-script",
+      "zone": "sync",
+      "at": [
+        12,
+        3
+      ],
+      "type": "skill",
+      "title": "Priority reconciler",
+      "category": "mustard",
+      "status": "implemented",
+      "lines": [
+        "Reconcile priority "
+      ],
+      "details": "Reconcile priority state after pane updates.\n\nSource: [`scripts/reconcile_priorities.py`](scripts/reconcile_priorities.py)"
+    },
+    {
+      "id": "pin-script",
+      "zone": "sync",
+      "at": [
+        13,
+        3
+      ],
+      "type": "skill",
+      "title": "Identifier pinner",
+      "category": "mustard",
+      "status": "implemented",
+      "lines": [
+        "Assign persistent i"
+      ],
+      "details": "Assign persistent identifiers to tracker entries.\n\nSource: [`scripts/pin_ids.py`](scripts/pin_ids.py)"
+    },
+    {
+      "id": "fresh-script",
+      "zone": "sync",
+      "at": [
+        10,
+        4
+      ],
+      "type": "skill",
+      "title": "Freshness checker",
+      "category": "mustard",
+      "status": "implemented",
+      "lines": [
+        "Diagnose age and ga"
+      ],
+      "details": "Diagnose age and gaps in collected evidence.\n\nSource: [`scripts/freshness.py`](scripts/freshness.py)"
+    },
+    {
+      "id": "evidence-script",
+      "zone": "sync",
+      "at": [
+        11,
+        4
+      ],
+      "type": "skill",
+      "title": "Evidence log",
+      "category": "mustard",
+      "status": "implemented",
+      "lines": [
+        "Log tracker evidenc"
+      ],
+      "details": "Log tracker evidence counts after ordered hooks.\n\nSource: [`scripts/tracker_evidence.py`](scripts/tracker_evidence.py)"
+    },
+    {
+      "id": "runner",
+      "zone": "hooks",
+      "at": [
+        5,
+        4
+      ],
+      "type": "skill",
+      "title": "Hook runner",
+      "category": "teal",
+      "status": "implemented",
+      "lines": [
+        "Execute pre-render "
+      ],
+      "details": "Execute pre-render hooks in lexical order and log evidence.\n\nSource: [`hooks/run-pre-render.sh`](hooks/run-pre-render.sh)"
+    },
+    {
+      "id": "renderer",
+      "zone": "page",
+      "at": [
+        15,
+        0
+      ],
+      "type": "skill",
+      "title": "HTML renderer",
+      "category": "mauve",
+      "status": "implemented",
+      "lines": [
+        "Assemble configured"
+      ],
+      "details": "Assemble configured widgets into a standalone dashboard page.\n\nSource: [`flightdeck/render.py`](flightdeck/render.py)"
+    },
+    {
+      "id": "demo-config",
+      "zone": "page",
+      "at": [
+        16,
+        0
+      ],
+      "type": "skill",
+      "title": "Demo config",
+      "category": "mauve",
+      "status": "implemented",
+      "lines": [
+        "Select the fixed da"
+      ],
+      "details": "Select the fixed dashboard slots for the public demo.\n\nSource: [`examples/demo/config.json`](examples/demo/config.json)"
+    },
+    {
+      "id": "demo-data",
+      "zone": "page",
+      "at": [
+        17,
+        0
+      ],
+      "type": "skill",
+      "title": "Demo data",
+      "category": "mauve",
+      "status": "implemented",
+      "lines": [
+        "Provide static exam"
+      ],
+      "details": "Provide static example tracker values without live collection.\n\nSource: [`examples/demo/data.json`](examples/demo/data.json)"
+    },
+    {
+      "id": "site-builder",
+      "zone": "deploy",
+      "at": [
+        21,
+        0
+      ],
+      "type": "skill",
+      "title": "Worker builder",
+      "category": "olive",
+      "status": "implemented",
+      "lines": [
+        "Embed rendered HTML"
+      ],
+      "details": "Embed rendered HTML in a Cloudflare Worker bundle.\n\nSource: [`site/build.py`](site/build.py)"
+    },
+    {
+      "id": "kv-upload",
+      "zone": "deploy",
+      "at": [
+        22,
+        0
+      ],
+      "type": "skill",
+      "title": "Arch uploader",
+      "category": "olive",
+      "status": "implemented",
+      "lines": [
+        "Upload changed arch"
+      ],
+      "details": "Upload changed architecture HTML views to configured KV.\n\nSource: [`scripts/upload_architecture_kv.py`](scripts/upload_architecture_kv.py)"
+    },
+    {
+      "id": "tip-ci",
+      "zone": "ci",
+      "at": [
+        25,
+        0
+      ],
+      "type": "workflow",
+      "title": "Tip CI",
+      "category": "slate",
+      "status": "implemented",
+      "lines": [
+        "Run unit tests and "
+      ],
+      "details": "Run unit tests and demo render on main pushes and pull requests.\n\nSource: [`.github/workflows/tip-ci.yml`](.github/workflows/tip-ci.yml)"
+    },
+    {
+      "id": "ci-tests",
+      "zone": "ci",
+      "at": [
+        26,
+        0
+      ],
+      "type": "playbook",
+      "title": "Unit test gate",
+      "category": "slate",
+      "status": "implemented",
+      "lines": [
+        "Discover and execut"
+      ],
+      "details": "Discover and execute the Python test suite.\n\nSource: [`.github/workflows/tip-ci.yml`](.github/workflows/tip-ci.yml)"
+    },
+    {
+      "id": "ci-demo",
+      "zone": "ci",
+      "at": [
+        27,
+        0
+      ],
+      "type": "playbook",
+      "title": "Demo render gate",
+      "category": "slate",
+      "status": "implemented",
+      "lines": [
+        "Render the demo HTM"
+      ],
+      "details": "Render the demo HTML in CI after tests.\n\nSource: [`.github/workflows/tip-ci.yml`](.github/workflows/tip-ci.yml)"
+    },
+    {
+      "id": "pr-ci",
+      "zone": "ci",
+      "at": [
+        28,
+        0
+      ],
+      "type": "workflow",
+      "title": "PR wording CI",
+      "category": "slate",
+      "status": "implemented",
+      "lines": [
+        "Lint draft and read"
+      ],
+      "details": "Lint draft and ready PR wording against the trusted base.\n\nSource: [`.github/workflows/pr-wording.yml`](.github/workflows/pr-wording.yml)"
+    },
+    {
+      "id": "pr-gate",
+      "zone": "ci",
+      "at": [
+        25,
+        1
+      ],
+      "type": "playbook",
+      "title": "Wording gate",
+      "category": "slate",
+      "status": "implemented",
+      "lines": [
+        "Check PR title and "
+      ],
+      "details": "Check PR title and body against the wording policy.\n\nSource: [`.github/workflows/pr-wording.yml`](.github/workflows/pr-wording.yml)"
+    },
+    {
+      "id": "pr-lint",
+      "zone": "ci",
+      "at": [
+        26,
+        1
+      ],
+      "type": "skill",
+      "title": "PR wording linter",
+      "category": "slate",
+      "status": "implemented",
+      "lines": [
+        "Validate first-pers"
+      ],
+      "details": "Validate first-person PR sections and concise language.\n\nSource: [`.github/tools/pr-wording/pr_wording_lint.py`](.github/tools/pr-wording/pr_wording_lint.py)"
+    },
+    {
+      "id": "legacy-ci",
+      "zone": "ci",
+      "at": [
+        27,
+        1
+      ],
+      "type": "skill",
+      "title": "Legacy CI",
+      "category": "slate",
+      "status": "partial",
+      "lines": [
+        "Retain a deprecated"
+      ],
+      "details": "Retain a deprecated no-op pipeline that points to Tip CI.\n\nSource: [`.buildkite/pipeline.yml`](.buildkite/pipeline.yml)"
+    }
+  ],
+  "edges": []
 }

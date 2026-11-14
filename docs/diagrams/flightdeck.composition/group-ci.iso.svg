@@ -1,0 +1,331 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1527 1158" width="1527" height="1158" role="img" aria-labelledby="bb-t">
+<title id="bb-t">Continuous integration</title>
+<style>
+text{font-family:Geist,"Geist Sans",ui-sans-serif,system-ui,-apple-system,"Segoe UI",Helvetica,Arial,sans-serif;font-variant-numeric:tabular-nums}
+.bb-title{font-size:36px;font-weight:300;letter-spacing:-.015em}
+.bb-subtitle{font-size:14px;font-weight:400}
+.bb-kicker-top{font-size:10.5px;font-weight:500;letter-spacing:2.6px}
+.bb-meta{font-size:11px;font-weight:400;letter-spacing:.03em}
+.bb-meter-big{font-size:42px;font-weight:300;letter-spacing:-.02em}
+.bb-meter-unit{font-size:17px;font-weight:300}
+.bb-meter-track{stroke-width:1;fill:none}
+.bb-meter-solid,.bb-meter-part{stroke-width:3;fill:none}
+.bb-meter-part{stroke-dasharray:2 3}
+.bb-rule{stroke-width:1;fill:none}
+.bb-zone{stroke-width:1}
+.bb-zone-kicker{font-size:10.5px;font-weight:500;letter-spacing:2.6px}
+.bb-zone-title{font-size:21px;font-weight:400;letter-spacing:-.005em}
+.bb-zone-sub{font-size:11.5px}
+.bb-node-box{stroke-width:1}
+.bb-node.status-planned .bb-node-box{stroke-dasharray:4 4}
+.bb-kicker{font-size:10.5px;font-weight:500;letter-spacing:2.4px}
+.bb-node-title{font-size:17px;font-weight:500;letter-spacing:-.005em}
+.bb-copy{font-size:13.5px;font-weight:400}
+.bb-hint{font-size:11.5px;font-weight:400;letter-spacing:.02em}
+.bb-status-text{font-size:9.5px;font-weight:600;letter-spacing:1.9px}
+.bb-dot{stroke-width:1.1;fill:none}
+.bb-edge{fill:none;stroke-width:1.25;stroke-linejoin:round;stroke-linecap:round}
+.bb-edge.control{stroke-dasharray:3 4}
+.bb-edge.failure{stroke-dasharray:.1 4.5;stroke-width:1.8}
+.bb-edge.is-planned{opacity:.4}
+.bb-label{font-size:11.5px;font-weight:500;letter-spacing:.02em;paint-order:stroke;stroke-width:6px;stroke-linejoin:round}
+.bb-legend-text{font-size:12px;font-weight:400}
+.bb-finding-text{font-size:9px;font-weight:600;letter-spacing:1.6px}
+.iso-face{stroke-width:.8;stroke-linejoin:round}
+.bb-node.status-planned .iso-face{fill:none;stroke-dasharray:4 4;stroke-width:1}
+.iso-hatch line{stroke-width:.8;opacity:.45}
+.iso-label-knockout{paint-order:stroke;stroke-width:6px;stroke-linejoin:round}
+.bb-canvas{fill:#fbf9f6}
+.bb-title,.bb-zone-title,.bb-node-title,.bb-meter-big,.bb-meter-unit{fill:#2f2a27}
+.bb-subtitle,.bb-copy,.bb-hint,.bb-legend-text,.bb-meta,.bb-kicker,.bb-zone-kicker,.bb-kicker-top,.bb-zone-sub{fill:#716961}
+.bb-rule,.bb-meter-track{stroke:#dcdad7}
+.bb-meter-solid{stroke:#2f2a27}
+.bb-meter-part{stroke:#716961}
+.bb-zone{fill:#f5f3f0;stroke:#dcdad7}
+.bb-node-box{fill:#fffdfa;stroke:#dcdad7}
+.bb-node.status-planned .bb-node-box{fill:none;stroke:#c2bfbc}
+.bb-node.status-planned .bb-node-title{fill:#716961}
+.bb-status-text{fill:#716961}
+.bb-status.is-implemented .bb-status-text{fill:#716961}
+.bb-dot{stroke:#716961}
+.bb-dot-fill{fill:#716961}
+.bb-status.is-implemented .bb-dot{stroke:#2f2a27}
+.bb-status.is-implemented .bb-dot-fill{fill:#2f2a27}
+.bb-edge.data{stroke:#888079}
+.bb-edge.control{stroke:#747c86}
+.bb-edge.failure{stroke:#9b4a36}
+.bb-arrow.data{fill:#888079}
+.bb-arrow.control{fill:#747c86}
+.bb-arrow.failure{fill:#9b4a36}
+.bb-label,.iso-label-knockout{stroke:#fbf9f6}
+.bb-label.data{fill:#716961}
+.bb-label.control{fill:#4c535c}
+.bb-label.failure{fill:#9b4a36}
+.bb-flow{stroke:#2f2a27;stroke-opacity:.55}
+.bb-finding-text,.bb-finding-inline{fill:#9b4a36}
+.bb-node.has-finding .bb-node-box{stroke:#9b4a36}
+.bb-pseudo-fill{fill:#2f2a27}
+.bb-pseudo-ring{fill:#fbf9f6;stroke:#2f2a27;stroke-width:1.3}
+.bb-pseudo-choice{fill:#fffdfa}
+.bb-node.is-selected .bb-node-box,.bb-node[tabindex]:focus .bb-node-box{stroke:#2f2a27}
+.cat-sage .bb-mark,.bb-mark.cat-sage{fill:#427f61}
+.cat-sage .bb-kicker,.cat-sage .bb-zone-kicker{fill:#477d61}
+.cat-sage .bb-node-box{fill:#eaefe9;stroke:#b7cdc0}
+.cat-sage.status-planned .bb-node-box{fill:none;stroke:#9fbcac}
+.bb-zone.cat-sage{fill:#f0f2ed;stroke:#c0d2c6}
+.cat-sage .iso-roof{fill:#afd5c2;stroke:#54a17b}
+.cat-sage .iso-left{fill:#8dc3a9;stroke:#54a17b}
+.cat-sage .iso-right{fill:#6fb492;stroke:#54a17b}
+.cat-sage.status-planned .iso-face{stroke:#3d8461}
+.cat-teal .bb-mark,.bb-mark.cat-teal{fill:#3b7273}
+.cat-teal .bb-kicker,.cat-teal .bb-zone-kicker{fill:#407171}
+.cat-teal .bb-node-box{fill:#e9eeeb;stroke:#b5c8c7}
+.cat-teal.status-planned .bb-node-box{fill:none;stroke:#9bb6b5}
+.bb-zone.cat-teal{fill:#eff1ee;stroke:#bececc}
+.cat-teal .iso-roof{fill:#aed5d6;stroke:#53a1a2}
+.cat-teal .iso-left{fill:#8cc3c4;stroke:#53a1a2}
+.cat-teal .iso-right{fill:#6eb4b5;stroke:#53a1a2}
+.cat-teal.status-planned .iso-face{stroke:#2f6869}
+.cat-mustard .bb-mark,.bb-mark.cat-mustard{fill:#7d6a33}
+.cat-mustard .bb-kicker,.cat-mustard .bb-zone-kicker{fill:#7c6a38}
+.cat-mustard .bb-node-box{fill:#f1ede4;stroke:#cec5ae}
+.cat-mustard.status-planned .bb-node-box{fill:none;stroke:#bcb295}
+.bb-zone.cat-mustard{fill:#f3f0ea;stroke:#d3cbb8}
+.cat-mustard .iso-roof{fill:#d6cbae;stroke:#a38e52}
+.cat-mustard .iso-left{fill:#c5b68c;stroke:#a38e52}
+.cat-mustard .iso-right{fill:#b6a36d;stroke:#a38e52}
+.cat-mustard.status-planned .iso-face{stroke:#8a7026}
+.cat-mauve .bb-mark,.bb-mark.cat-mauve{fill:#7b4e6d}
+.cat-mauve .bb-kicker,.cat-mauve .bb-zone-kicker{fill:#7a516c}
+.cat-mauve .bb-node-box{fill:#f0eaea;stroke:#cdbbc4}
+.cat-mauve.status-planned .bb-node-box{fill:none;stroke:#bba4b2}
+.bb-zone.cat-mauve{fill:#f3efee;stroke:#d2c2ca}
+.cat-mauve .iso-roof{fill:#cfb5c7;stroke:#946184}
+.cat-mauve .iso-left{fill:#bb96af;stroke:#946184}
+.cat-mauve .iso-right{fill:#a87a9a;stroke:#946184}
+.cat-mauve.status-planned .iso-face{stroke:#76536b}
+.cat-olive .bb-mark,.bb-mark.cat-olive{fill:#696e40}
+.cat-olive .bb-kicker,.cat-olive .bb-zone-kicker{fill:#6a6e43}
+.cat-olive .bb-node-box{fill:#efede6;stroke:#c6c7b3}
+.cat-olive.status-planned .bb-node-box{fill:none;stroke:#b2b49b}
+.bb-zone.cat-olive{fill:#f2f1eb;stroke:#cccdbc}
+.cat-olive .iso-roof{fill:#cfd2b2;stroke:#949b5a}
+.cat-olive .iso-left{fill:#babf91;stroke:#949b5a}
+.cat-olive .iso-right{fill:#a8ae74;stroke:#949b5a}
+.cat-olive.status-planned .iso-face{stroke:#5e6334}
+.cat-slate .bb-mark,.bb-mark.cat-slate{fill:#4a5c73}
+.cat-slate .bb-kicker,.cat-slate .bb-zone-kicker{fill:#4e5d71}
+.cat-slate .bb-node-box{fill:#ebebeb;stroke:#bac0c7}
+.cat-slate.status-planned .bb-node-box{fill:none;stroke:#a3abb5}
+.bb-zone.cat-slate{fill:#f0f0ee;stroke:#c2c7cc}
+.cat-slate .iso-roof{fill:#b5c1cf;stroke:#617894}
+.cat-slate .iso-left{fill:#96a7bb;stroke:#617894}
+.cat-slate .iso-right{fill:#7a8fa8;stroke:#617894}
+.cat-slate.status-planned .iso-face{stroke:#4f5d6e}
+.iso-shadow{fill:#3b2f26;fill-opacity:0.08}
+.iso-hatch line{stroke:#fbf9f6}
+.iso-tag-bg,.iso-label-bg{fill:#fbf9f6;fill-opacity:.9}
+.bb-label.plain{stroke:none}
+.bb-node:not([class*=cat-]) .iso-face{fill:#fffdfa;stroke:#dcdad7}
+@media (prefers-color-scheme:dark){
+.bb-canvas{fill:#1a1816}
+.bb-title,.bb-zone-title,.bb-node-title,.bb-meter-big,.bb-meter-unit{fill:#ead1b5}
+.bb-subtitle,.bb-copy,.bb-hint,.bb-legend-text,.bb-meta,.bb-kicker,.bb-zone-kicker,.bb-kicker-top,.bb-zone-sub{fill:#b09080}
+.bb-rule,.bb-meter-track{stroke:#35302b}
+.bb-meter-solid{stroke:#ead1b5}
+.bb-meter-part{stroke:#b09080}
+.bb-zone{fill:#1f1c19;stroke:#35302b}
+.bb-node-box{fill:#272421;stroke:#35302b}
+.bb-node.status-planned .bb-node-box{fill:none;stroke:#4c443c}
+.bb-node.status-planned .bb-node-title{fill:#b09080}
+.bb-status-text{fill:#b09080}
+.bb-status.is-implemented .bb-status-text{fill:#b09080}
+.bb-dot{stroke:#b09080}
+.bb-dot-fill{fill:#b09080}
+.bb-status.is-implemented .bb-dot{stroke:#ead1b5}
+.bb-status.is-implemented .bb-dot-fill{fill:#ead1b5}
+.bb-edge.data{stroke:#958574}
+.bb-edge.control{stroke:#6b737e}
+.bb-edge.failure{stroke:#c27a5c}
+.bb-arrow.data{fill:#958574}
+.bb-arrow.control{fill:#6b737e}
+.bb-arrow.failure{fill:#c27a5c}
+.bb-label,.iso-label-knockout{stroke:#1a1816}
+.bb-label.data{fill:#b09080}
+.bb-label.control{fill:#a4a8ae}
+.bb-label.failure{fill:#c27a5c}
+.bb-flow{stroke:#ead1b5;stroke-opacity:.55}
+.bb-finding-text,.bb-finding-inline{fill:#c27a5c}
+.bb-node.has-finding .bb-node-box{stroke:#c27a5c}
+.bb-pseudo-fill{fill:#ead1b5}
+.bb-pseudo-ring{fill:#1a1816;stroke:#ead1b5;stroke-width:1.3}
+.bb-pseudo-choice{fill:#272421}
+.bb-node.is-selected .bb-node-box,.bb-node[tabindex]:focus .bb-node-box{stroke:#ead1b5}
+.cat-sage .bb-mark,.bb-mark.cat-sage{fill:#7fbd9e}
+.cat-sage .bb-kicker,.cat-sage .bb-zone-kicker{fill:#89b498}
+.cat-sage .bb-node-box{fill:#353c35;stroke:#475b4e}
+.cat-sage.status-planned .bb-node-box{fill:none;stroke:#476253}
+.bb-zone.cat-sage{fill:#212420;stroke:#344339}
+.cat-sage .iso-roof{fill:#8fb7a3;stroke:#48705c}
+.cat-sage .iso-left{fill:#70a48a;stroke:#48705c}
+.cat-sage .iso-right{fill:#5a8c73;stroke:#48705c}
+.cat-sage.status-planned .iso-face{stroke:#79c39e}
+.cat-teal .bb-mark,.bb-mark.cat-teal{fill:#7aadae}
+.cat-teal .bb-kicker,.cat-teal .bb-zone-kicker{fill:#85a7a5}
+.cat-teal .bb-node-box{fill:#343a38;stroke:#455554}
+.cat-teal.status-planned .bb-node-box{fill:none;stroke:#455b5a}
+.bb-zone.cat-teal{fill:#212221;stroke:#333f3e}
+.cat-teal .iso-roof{fill:#8fb7b7;stroke:#486f70}
+.cat-teal .iso-left{fill:#70a2a4;stroke:#486f70}
+.cat-teal .iso-right{fill:#5a8b8c;stroke:#486f70}
+.cat-teal.status-planned .iso-face{stroke:#3f6f70}
+.cat-mustard .bb-mark,.bb-mark.cat-mustard{fill:#c2aa6a}
+.cat-mustard .bb-kicker,.cat-mustard .bb-zone-kicker{fill:#bea56e}
+.cat-mustard .bb-node-box{fill:#40392d;stroke:#5f543b}
+.cat-mustard.status-planned .bb-node-box{fill:none;stroke:#665a3c}
+.bb-zone.cat-mustard{fill:#26221c;stroke:#463e2c}
+.cat-mustard .iso-roof{fill:#b7ad8f;stroke:#706548}
+.cat-mustard .iso-left{fill:#a49670;stroke:#706548}
+.cat-mustard .iso-right{fill:#8c7e5a;stroke:#706548}
+.cat-mustard.status-planned .iso-face{stroke:#ceb05e}
+.cat-mauve .bb-mark,.bb-mark.cat-mauve{fill:#ae7a9d}
+.cat-mauve .bb-kicker,.cat-mauve .bb-zone-kicker{fill:#ae7e97}
+.cat-mauve .bb-node-box{fill:#3d3235;stroke:#58434e}
+.cat-mauve.status-planned .bb-node-box{fill:none;stroke:#5d4453}
+.bb-zone.cat-mauve{fill:#241f1f;stroke:#403139}
+.cat-mauve .iso-roof{fill:#b196a8;stroke:#694e61}
+.cat-mauve .iso-left{fill:#9b7890;stroke:#694e61}
+.cat-mauve .iso-right{fill:#846279;stroke:#694e61}
+.cat-mauve.status-planned .iso-face{stroke:#76536b}
+.cat-olive .bb-mark,.bb-mark.cat-olive{fill:#a5ae7a}
+.cat-olive .bb-kicker,.cat-olive .bb-zone-kicker{fill:#a7a87b}
+.cat-olive .bb-node-box{fill:#3b3a2f;stroke:#545641}
+.cat-olive.status-planned .bb-node-box{fill:none;stroke:#595c43}
+.bb-zone.cat-olive{fill:#24231d;stroke:#3e3f30}
+.cat-olive .iso-roof{fill:#acb096;stroke:#65694f}
+.cat-olive .iso-left{fill:#959a79;stroke:#65694f}
+.cat-olive .iso-right{fill:#7e8363;stroke:#65694f}
+.cat-olive.status-planned .iso-face{stroke:#6e7354}
+.cat-slate .bb-mark,.bb-mark.cat-slate{fill:#7a92ae}
+.cat-slate .bb-kicker,.cat-slate .bb-zone-kicker{fill:#8592a5}
+.cat-slate .bb-node-box{fill:#343638;stroke:#454c54}
+.cat-slate.status-planned .bb-node-box{fill:none;stroke:#454f5a}
+.bb-zone.cat-slate{fill:#212121;stroke:#33383e}
+.cat-slate .iso-roof{fill:#96a2b0;stroke:#4f5b69}
+.cat-slate .iso-left{fill:#79889a;stroke:#4f5b69}
+.cat-slate .iso-right{fill:#637183;stroke:#4f5b69}
+.cat-slate.status-planned .iso-face{stroke:#617082}
+.iso-shadow{fill:#000000;fill-opacity:0.32}
+.iso-hatch line{stroke:#1a1816}
+.iso-tag-bg,.iso-label-bg{fill:#1a1816;fill-opacity:.9}
+.bb-label.plain{stroke:none}
+.bb-node:not([class*=cat-]) .iso-face{fill:#272421;stroke:#35302b}
+}
+.bb-flow{fill:none;stroke-width:2.4;stroke-linecap:round;stroke-dasharray:.1 28;animation:bb-flow 2.6s linear infinite}
+@keyframes bb-flow{to{stroke-dashoffset:-28.1}}
+@media (prefers-reduced-motion:reduce){.bb-flow{animation:none;opacity:0}}
+</style>
+<defs><marker id="bb-arrow-data" viewBox="0 0 10 10" refX="8.6" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path class="bb-arrow data" d="M 0 1 L 10 5 L 0 9 z"/></marker><marker id="bb-arrow-control" viewBox="0 0 10 10" refX="8.6" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path class="bb-arrow control" d="M 0 1 L 10 5 L 0 9 z"/></marker><marker id="bb-arrow-failure" viewBox="0 0 10 10" refX="8.6" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path class="bb-arrow failure" d="M 0 1 L 10 5 L 0 9 z"/></marker></defs>
+<rect class="bb-canvas" x="0" y="0" width="1527" height="1158"/>
+<text class="bb-title" x="48" y="100">Continuous integration</text>
+<text class="bb-subtitle" x="48" y="130">Live repository composition at origin/main 69bf757</text>
+<g class="bb-zone-group cat-slate"><polygon class="bb-zone cat-slate" points="446.4,246 1478.7,842 1080.3,1072 48,476"/>
+</g>
+<polygon class="iso-shadow" points="399.5,305 621.2,433 486.1,511 264.4,383"/>
+<polygon class="iso-shadow" points="226.3,405 448,533 312.9,611 91.2,483"/>
+<polygon class="iso-shadow" points="659.3,455 881,583 745.9,661 524.2,533"/>
+<polygon class="iso-shadow" points="486.1,555 707.8,683 572.7,761 351,633"/>
+<polygon class="iso-shadow" points="919.1,605 1140.8,733 1005.7,811 784,683"/>
+<polygon class="iso-shadow" points="745.9,705 967.6,833 832.5,911 610.8,783"/>
+<polygon class="iso-shadow" points="1178.9,755 1400.6,883 1265.5,961 1043.8,833"/>
+<g class="bb-node map-item cat-slate" data-id="tip-ci">
+<polygon class="iso-face iso-left" points="252.4,338 474.1,466 474.1,504 252.4,376"/>
+<polygon class="iso-face iso-right" points="609.2,388 474.1,466 474.1,504 609.2,426"/>
+<polygon class="iso-face iso-roof" points="387.5,260 609.2,388 474.1,466 252.4,338"/>
+</g>
+<g class="bb-node map-item cat-slate" data-id="pr-gate">
+<polygon class="iso-face iso-left" points="79.2,438 300.9,566 300.9,604 79.2,476"/>
+<polygon class="iso-face iso-right" points="436,488 300.9,566 300.9,604 436,526"/>
+<polygon class="iso-face iso-roof" points="214.3,360 436,488 300.9,566 79.2,438"/>
+</g>
+<g class="bb-node map-item cat-slate" data-id="ci-tests">
+<polygon class="iso-face iso-left" points="512.2,488 733.9,616 733.9,654 512.2,526"/>
+<polygon class="iso-face iso-right" points="869,538 733.9,616 733.9,654 869,576"/>
+<polygon class="iso-face iso-roof" points="647.3,410 869,538 733.9,616 512.2,488"/>
+</g>
+<g class="bb-node map-item cat-slate" data-id="pr-lint">
+<polygon class="iso-face iso-left" points="339,588 560.7,716 560.7,754 339,626"/>
+<polygon class="iso-face iso-right" points="695.8,638 560.7,716 560.7,754 695.8,676"/>
+<polygon class="iso-face iso-roof" points="474.1,510 695.8,638 560.7,716 339,588"/>
+</g>
+<g class="bb-node map-item cat-slate" data-id="ci-demo">
+<polygon class="iso-face iso-left" points="772,638 993.7,766 993.7,804 772,676"/>
+<polygon class="iso-face iso-right" points="1128.8,688 993.7,766 993.7,804 1128.8,726"/>
+<polygon class="iso-face iso-roof" points="907.1,560 1128.8,688 993.7,766 772,638"/>
+</g>
+<g class="bb-node map-item cat-slate" data-id="legacy-ci">
+<polygon class="iso-face iso-left" points="598.8,738 820.5,866 820.5,904 598.8,776"/>
+<polygon class="iso-face iso-right" points="955.6,788 820.5,866 820.5,904 955.6,826"/>
+<polygon class="iso-face iso-roof" points="733.9,660 955.6,788 820.5,866 598.8,738"/>
+</g>
+<g class="bb-node map-item cat-slate" data-id="pr-ci">
+<polygon class="iso-face iso-left" points="1031.8,788 1253.5,916 1253.5,954 1031.8,826"/>
+<polygon class="iso-face iso-right" points="1388.6,838 1253.5,916 1253.5,954 1388.6,876"/>
+<polygon class="iso-face iso-roof" points="1166.9,710 1388.6,838 1253.5,916 1031.8,788"/>
+</g>
+<g class="bb-edges">
+<path class="bb-edge data map-item" d="M 561.9 415.3 L 581.8 426.8 Q 586.1 429.3 581.8 431.8 L 570.2 438.5 Q 565.9 441 570.2 443.5 L 579.7 449" marker-end="url(#bb-arrow-data)"/>
+<path class="bb-flow map-item" d="M 561.9 415.3 L 581.8 426.8 Q 586.1 429.3 581.8 431.8 L 570.2 438.5 Q 565.9 441 570.2 443.5 L 579.7 449"/>
+<path class="bb-edge data map-item" d="M 521.4 438.7 L 543 451.2 Q 547.4 453.7 543 456.2 L 492.3 485.5 Q 487.9 488 492.3 490.5 L 741.7 634.5 Q 746 637 750.3 634.5 L 821.4 593.5 Q 825.7 591 830 593.5 L 839.5 599" marker-end="url(#bb-arrow-data)"/>
+<path class="bb-flow map-item" d="M 521.4 438.7 L 543 451.2 Q 547.4 453.7 543 456.2 L 492.3 485.5 Q 487.9 488 492.3 490.5 L 741.7 634.5 Q 746 637 750.3 634.5 L 821.4 593.5 Q 825.7 591 830 593.5 L 839.5 599"/>
+<path class="bb-edge data map-item" d="M 1099.4 749 L 1077.7 736.5 Q 1073.4 734 1069 736.5 L 984.2 785.5 Q 979.8 788 975.5 785.5 L 466.3 491.5 Q 462 489 457.6 491.5 L 406.9 520.8 Q 402.6 523.3 398.2 520.8 L 388.7 515.3" marker-end="url(#bb-arrow-data)"/>
+<path class="bb-flow map-item" d="M 1099.4 749 L 1077.7 736.5 Q 1073.4 734 1069 736.5 L 984.2 785.5 Q 979.8 788 975.5 785.5 L 466.3 491.5 Q 462 489 457.6 491.5 L 406.9 520.8 Q 402.6 523.3 398.2 520.8 L 388.7 515.3"/>
+<path class="bb-edge data map-item" d="M 348.2 538.7 L 368.1 550.2 Q 372.4 552.7 376.7 550.2 L 388.3 543.5 Q 392.7 541 397 543.5 L 406.5 549" marker-end="url(#bb-arrow-data)"/>
+<path class="bb-flow map-item" d="M 348.2 538.7 L 368.1 550.2 Q 372.4 552.7 376.7 550.2 L 388.3 543.5 Q 392.7 541 397 543.5 L 406.5 549"/>
+</g>
+<g class="iso-tag map-item cat-slate" data-for="tip-ci" pointer-events="none">
+<rect class="iso-tag-bg" x="385.4" y="337" width="90.8" height="42" rx="3"/>
+<circle class="bb-mark" cx="390.4" cy="349.5" r="3"/>
+<text class="bb-kicker" x="430.8" y="353" text-anchor="middle">WORKFLOW</text>
+<text class="bb-node-title" x="430.8" y="372" text-anchor="middle">Tip CI</text>
+</g>
+<g class="iso-tag map-item cat-slate" data-for="pr-gate" pointer-events="none">
+<rect class="iso-tag-bg" x="181.3" y="437" width="152.5" height="42" rx="3"/>
+<circle class="bb-mark" cx="217.2" cy="449.5" r="3"/>
+<text class="bb-kicker" x="257.6" y="453" text-anchor="middle">PLAYBOOK</text>
+<text class="bb-node-title" x="257.6" y="472" text-anchor="middle">Wording gate</text>
+</g>
+<g class="iso-tag map-item cat-slate" data-for="ci-tests" pointer-events="none">
+<rect class="iso-tag-bg" x="603.8" y="487" width="173.6" height="42" rx="3"/>
+<circle class="bb-mark" cx="650.2" cy="499.5" r="3"/>
+<text class="bb-kicker" x="690.6" y="503" text-anchor="middle">PLAYBOOK</text>
+<text class="bb-node-title" x="690.6" y="522" text-anchor="middle">Unit test gate</text>
+</g>
+<g class="iso-tag map-item cat-slate" data-for="pr-lint" pointer-events="none">
+<rect class="iso-tag-bg" x="414.8" y="587" width="205.2" height="42" rx="3"/>
+<circle class="bb-mark" cx="489.1" cy="599.5" r="3"/>
+<text class="bb-kicker" x="517.4" y="603" text-anchor="middle">SKILL</text>
+<text class="bb-node-title" x="517.4" y="622" text-anchor="middle">PR wording linter</text>
+</g>
+<g class="iso-tag map-item cat-slate" data-for="ci-demo" pointer-events="none">
+<rect class="iso-tag-bg" x="853.1" y="637" width="194.6" height="42" rx="3"/>
+<circle class="bb-mark" cx="910" cy="649.5" r="3"/>
+<text class="bb-kicker" x="950.4" y="653" text-anchor="middle">PLAYBOOK</text>
+<text class="bb-node-title" x="950.4" y="672" text-anchor="middle">Demo render gate</text>
+</g>
+<g class="iso-tag map-item cat-slate" data-for="legacy-ci" pointer-events="none">
+<rect class="iso-tag-bg" x="716.8" y="737" width="120.9" height="42" rx="3"/>
+<circle class="bb-mark" cx="748.9" cy="749.5" r="3"/>
+<text class="bb-kicker" x="777.2" y="753" text-anchor="middle">SKILL</text>
+<text class="bb-node-title" x="777.2" y="772" text-anchor="middle">Legacy CI</text>
+</g>
+<g class="iso-tag map-item cat-slate" data-for="pr-ci" pointer-events="none">
+<rect class="iso-tag-bg" x="1128.7" y="787" width="163" height="42" rx="3"/>
+<circle class="bb-mark" cx="1169.8" cy="799.5" r="3"/>
+<text class="bb-kicker" x="1210.2" y="803" text-anchor="middle">WORKFLOW</text>
+<text class="bb-node-title" x="1210.2" y="822" text-anchor="middle">PR wording CI</text>
+</g>
+<g class="bb-zone-group cat-slate">
+<text class="bb-zone-title iso-label-knockout" x="446.4" y="234" text-anchor="middle">Continuous integration</text></g>
+<g class="bb-legend" aria-label="Legend"><path class="bb-rule" d="M 40 1106 H 1487"/><circle class="bb-mark cat-slate" cx="52" cy="1124" r="4"/><text class="bb-legend-text" x="64" y="1128">Continuous integration</text></g>
+</svg>
