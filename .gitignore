@@ -5,3 +5,4 @@ site/dist/
 site/site.json
 .cache/
 config/sync.json
+.local/
