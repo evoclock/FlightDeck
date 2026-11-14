@@ -1,0 +1,136 @@
+{
+  "schema": "bowerbird/v1",
+  "categories": {
+    "sage": {
+      "label": "Publish entry points"
+    },
+    "teal": {
+      "label": "Ordered pre-render hooks"
+    },
+    "mustard": {
+      "label": "Collectors and reconciliation"
+    },
+    "mauve": {
+      "label": "Dashboard rendering"
+    },
+    "olive": {
+      "label": "Optional Worker bundle"
+    },
+    "slate": {
+      "label": "Continuous integration"
+    }
+  },
+  "traces": [],
+  "meta": {
+    "title": "FlightDeck composition",
+    "subtitle": "Live repository composition at origin/main 69bf757",
+    "repository": {
+      "url": "https://github.com/evoclock/FlightDeck",
+      "ref": "main"
+    },
+    "lightFlatFill": "filled",
+    "inputSha": "69bf75736e1bf516ddd0df72e2b76d333e352a20"
+  },
+  "nodes": [
+    {
+      "id": "entry",
+      "title": "Publish entry points",
+      "at": [
+        0,
+        0
+      ],
+      "category": "sage",
+      "status": "implemented",
+      "type": "Publish entry points",
+      "traces": [],
+      "details": "[Open Publish entry points](../../.treehouse/flightdeck-de31a8/1/flightdeck/docs/diagrams/flightdeck.composition/group-entry.iso.html)"
+    },
+    {
+      "id": "hooks",
+      "title": "Ordered pre-render hooks",
+      "at": [
+        5,
+        0
+      ],
+      "category": "teal",
+      "status": "implemented",
+      "type": "Ordered pre-render hooks",
+      "traces": [],
+      "details": "[Open Ordered pre-render hooks](../../.treehouse/flightdeck-de31a8/1/flightdeck/docs/diagrams/flightdeck.composition/group-hooks.iso.html)"
+    },
+    {
+      "id": "sync",
+      "title": "Collectors and reconciliation",
+      "at": [
+        10,
+        0
+      ],
+      "category": "mustard",
+      "status": "implemented",
+      "type": "Collectors and reconciliation",
+      "traces": [],
+      "details": "[Open Collectors and reconciliation](../../.treehouse/flightdeck-de31a8/1/flightdeck/docs/diagrams/flightdeck.composition/group-sync.iso.html)"
+    },
+    {
+      "id": "page",
+      "title": "Dashboard rendering",
+      "at": [
+        15,
+        0
+      ],
+      "category": "mauve",
+      "status": "implemented",
+      "type": "Dashboard rendering",
+      "traces": [],
+      "details": "[Open Dashboard rendering](../../.treehouse/flightdeck-de31a8/1/flightdeck/docs/diagrams/flightdeck.composition/group-page.iso.html)"
+    },
+    {
+      "id": "deploy",
+      "title": "Optional Worker bundle",
+      "at": [
+        20,
+        0
+      ],
+      "category": "olive",
+      "status": "implemented",
+      "type": "Optional Worker bundle",
+      "traces": [],
+      "details": "[Open Optional Worker bundle](../../.treehouse/flightdeck-de31a8/1/flightdeck/docs/diagrams/flightdeck.composition/group-deploy.iso.html)"
+    },
+    {
+      "id": "ci",
+      "title": "Continuous integration",
+      "at": [
+        25,
+        0
+      ],
+      "category": "slate",
+      "status": "partial",
+      "type": "Continuous integration",
+      "traces": [],
+      "details": "[Open Continuous integration](../../.treehouse/flightdeck-de31a8/1/flightdeck/docs/diagrams/flightdeck.composition/group-ci.iso.html)"
+    }
+  ],
+  "edges": [
+    {
+      "from": "entry",
+      "to": "deploy"
+    },
+    {
+      "from": "entry",
+      "to": "hooks"
+    },
+    {
+      "from": "entry",
+      "to": "page"
+    },
+    {
+      "from": "hooks",
+      "to": "sync"
+    },
+    {
+      "from": "ci",
+      "to": "page"
+    }
+  ]
+}

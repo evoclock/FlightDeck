@@ -1,0 +1,92 @@
+{
+  "schema": "bowerbird/v1",
+  "categories": {
+    "sage": {
+      "label": "Publish entry points"
+    },
+    "teal": {
+      "label": "Ordered pre-render hooks"
+    },
+    "mustard": {
+      "label": "Collectors and reconciliation"
+    },
+    "mauve": {
+      "label": "Dashboard rendering"
+    },
+    "olive": {
+      "label": "Optional Worker bundle"
+    },
+    "slate": {
+      "label": "Continuous integration"
+    }
+  },
+  "traces": [],
+  "meta": {
+    "title": "Dashboard rendering",
+    "subtitle": "Live repository composition at origin/main 69bf757",
+    "repository": {
+      "url": "https://github.com/evoclock/FlightDeck",
+      "ref": "main"
+    },
+    "lightFlatFill": "filled",
+    "inputSha": "69bf75736e1bf516ddd0df72e2b76d333e352a20"
+  },
+  "zones": [
+    {
+      "id": "page",
+      "title": "Dashboard rendering",
+      "category": "mauve"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "renderer",
+      "zone": "page",
+      "at": [
+        15,
+        0
+      ],
+      "type": "skill",
+      "title": "HTML renderer",
+      "category": "mauve",
+      "status": "implemented",
+      "lines": [
+        "Assemble configured"
+      ],
+      "details": "Assemble configured widgets into a standalone dashboard page.\n\nSource: [`flightdeck/render.py`](flightdeck/render.py)\n\n[Back to overview](../../.treehouse/flightdeck-de31a8/1/flightdeck/docs/diagrams/flightdeck.composition/overview.iso.html)"
+    },
+    {
+      "id": "demo-config",
+      "zone": "page",
+      "at": [
+        16,
+        0
+      ],
+      "type": "skill",
+      "title": "Demo config",
+      "category": "mauve",
+      "status": "implemented",
+      "lines": [
+        "Select the fixed da"
+      ],
+      "details": "Select the fixed dashboard slots for the public demo.\n\nSource: [`examples/demo/config.json`](examples/demo/config.json)\n\n[Back to overview](../../.treehouse/flightdeck-de31a8/1/flightdeck/docs/diagrams/flightdeck.composition/overview.iso.html)"
+    },
+    {
+      "id": "demo-data",
+      "zone": "page",
+      "at": [
+        17,
+        0
+      ],
+      "type": "skill",
+      "title": "Demo data",
+      "category": "mauve",
+      "status": "implemented",
+      "lines": [
+        "Provide static exam"
+      ],
+      "details": "Provide static example tracker values without live collection.\n\nSource: [`examples/demo/data.json`](examples/demo/data.json)\n\n[Back to overview](../../.treehouse/flightdeck-de31a8/1/flightdeck/docs/diagrams/flightdeck.composition/overview.iso.html)"
+    }
+  ],
+  "edges": []
+}

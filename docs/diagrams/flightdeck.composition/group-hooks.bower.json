@@ -1,0 +1,377 @@
+{
+  "schema": "bowerbird/v1",
+  "categories": {
+    "sage": {
+      "label": "Publish entry points"
+    },
+    "teal": {
+      "label": "Ordered pre-render hooks"
+    },
+    "mustard": {
+      "label": "Collectors and reconciliation"
+    },
+    "mauve": {
+      "label": "Dashboard rendering"
+    },
+    "olive": {
+      "label": "Optional Worker bundle"
+    },
+    "slate": {
+      "label": "Continuous integration"
+    }
+  },
+  "traces": [],
+  "meta": {
+    "title": "Ordered pre-render hooks",
+    "subtitle": "Live repository composition at origin/main 69bf757",
+    "repository": {
+      "url": "https://github.com/evoclock/FlightDeck",
+      "ref": "main"
+    },
+    "lightFlatFill": "filled",
+    "inputSha": "69bf75736e1bf516ddd0df72e2b76d333e352a20"
+  },
+  "zones": [
+    {
+      "id": "hooks",
+      "title": "Ordered pre-render hooks",
+      "category": "teal"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "pre",
+      "zone": "hooks",
+      "at": [
+        5,
+        0
+      ],
+      "type": "workflow",
+      "title": "Pre-render sequence",
+      "category": "teal",
+      "status": "implemented",
+      "lines": [
+        "Run executable hook"
+      ],
+      "details": "Run executable hook files lexically and stop on a failing hook.\n\nSource: [`hooks/run-pre-render.sh`](hooks/run-pre-render.sh)\n\n[Back to overview](../../.treehouse/flightdeck-de31a8/1/flightdeck/docs/diagrams/flightdeck.composition/overview.iso.html)"
+    },
+    {
+      "id": "activity",
+      "zone": "hooks",
+      "at": [
+        6,
+        0
+      ],
+      "type": "playbook",
+      "title": "Collect activity",
+      "category": "teal",
+      "status": "implemented",
+      "lines": [
+        "Collect GitHub acti"
+      ],
+      "details": "Collect GitHub activity when an owner and instance data are available.\n\nSource: [`hooks/pre-render.d/00-collect-activity`](hooks/pre-render.d/00-collect-activity)\n\n[Back to overview](../../.treehouse/flightdeck-de31a8/1/flightdeck/docs/diagrams/flightdeck.composition/overview.iso.html) · [Open Collectors and reconciliation](../../.treehouse/flightdeck-de31a8/1/flightdeck/docs/diagrams/flightdeck.composition/group-sync.iso.html)"
+    },
+    {
+      "id": "prcache",
+      "zone": "hooks",
+      "at": [
+        7,
+        0
+      ],
+      "type": "playbook",
+      "title": "Refresh PR cache",
+      "category": "teal",
+      "status": "implemented",
+      "lines": [
+        "Refresh cached pull"
+      ],
+      "details": "Refresh cached pull request facts for reconciliation.\n\nSource: [`hooks/pre-render.d/01-refresh-pr-cache`](hooks/pre-render.d/01-refresh-pr-cache)\n\n[Back to overview](../../.treehouse/flightdeck-de31a8/1/flightdeck/docs/diagrams/flightdeck.composition/overview.iso.html) · [Open Collectors and reconciliation](../../.treehouse/flightdeck-de31a8/1/flightdeck/docs/diagrams/flightdeck.composition/group-sync.iso.html)"
+    },
+    {
+      "id": "repo",
+      "zone": "hooks",
+      "at": [
+        8,
+        0
+      ],
+      "type": "playbook",
+      "title": "Repo evidence",
+      "category": "teal",
+      "status": "implemented",
+      "lines": [
+        "Collect repository "
+      ],
+      "details": "Collect repository evidence without discarding the prior cache on failure.\n\nSource: [`hooks/pre-render.d/01b-collect-repo-evidence`](hooks/pre-render.d/01b-collect-repo-evidence)\n\n[Back to overview](../../.treehouse/flightdeck-de31a8/1/flightdeck/docs/diagrams/flightdeck.composition/overview.iso.html) · [Open Collectors and reconciliation](../../.treehouse/flightdeck-de31a8/1/flightdeck/docs/diagrams/flightdeck.composition/group-sync.iso.html)"
+    },
+    {
+      "id": "cluster",
+      "zone": "hooks",
+      "at": [
+        5,
+        1
+      ],
+      "type": "playbook",
+      "title": "Collect cluster",
+      "category": "teal",
+      "status": "implemented",
+      "lines": [
+        "Collect metrics or "
+      ],
+      "details": "Collect metrics or spark readings only when configured.\n\nSource: [`hooks/pre-render.d/02-collect-cluster`](hooks/pre-render.d/02-collect-cluster)\n\n[Back to overview](../../.treehouse/flightdeck-de31a8/1/flightdeck/docs/diagrams/flightdeck.composition/overview.iso.html) · [Open Collectors and reconciliation](../../.treehouse/flightdeck-de31a8/1/flightdeck/docs/diagrams/flightdeck.composition/group-sync.iso.html)"
+    },
+    {
+      "id": "sidecars",
+      "zone": "hooks",
+      "at": [
+        6,
+        1
+      ],
+      "type": "playbook",
+      "title": "Merge sidecars",
+      "category": "teal",
+      "status": "implemented",
+      "lines": [
+        "Merge optional bot "
+      ],
+      "details": "Merge optional bot and response sidecar evidence before reconciliation.\n\nSource: [`hooks/pre-render.d/02b-merge-sidecars`](hooks/pre-render.d/02b-merge-sidecars)\n\n[Back to overview](../../.treehouse/flightdeck-de31a8/1/flightdeck/docs/diagrams/flightdeck.composition/overview.iso.html) · [Open Collectors and reconciliation](../../.treehouse/flightdeck-de31a8/1/flightdeck/docs/diagrams/flightdeck.composition/group-sync.iso.html)"
+    },
+    {
+      "id": "responses",
+      "zone": "hooks",
+      "at": [
+        7,
+        1
+      ],
+      "type": "playbook",
+      "title": "Reconcile responses",
+      "category": "teal",
+      "status": "implemented",
+      "lines": [
+        "Ingest pending chat"
+      ],
+      "details": "Ingest pending chat answers before reconciling response history.\n\nSource: [`hooks/pre-render.d/03-reconcile-responses`](hooks/pre-render.d/03-reconcile-responses)\n\n[Back to overview](../../.treehouse/flightdeck-de31a8/1/flightdeck/docs/diagrams/flightdeck.composition/overview.iso.html) · [Open Collectors and reconciliation](../../.treehouse/flightdeck-de31a8/1/flightdeck/docs/diagrams/flightdeck.composition/group-sync.iso.html)"
+    },
+    {
+      "id": "inflight",
+      "zone": "hooks",
+      "at": [
+        8,
+        1
+      ],
+      "type": "playbook",
+      "title": "Reconcile inflight",
+      "category": "teal",
+      "status": "implemented",
+      "lines": [
+        "Reconcile in-flight"
+      ],
+      "details": "Reconcile in-flight tracker state from evidence.\n\nSource: [`hooks/pre-render.d/05-reconcile-inflight`](hooks/pre-render.d/05-reconcile-inflight)\n\n[Back to overview](../../.treehouse/flightdeck-de31a8/1/flightdeck/docs/diagrams/flightdeck.composition/overview.iso.html) · [Open Collectors and reconciliation](../../.treehouse/flightdeck-de31a8/1/flightdeck/docs/diagrams/flightdeck.composition/group-sync.iso.html)"
+    },
+    {
+      "id": "merges",
+      "zone": "hooks",
+      "at": [
+        5,
+        2
+      ],
+      "type": "playbook",
+      "title": "Reconcile merges",
+      "category": "teal",
+      "status": "implemented",
+      "lines": [
+        "Update merge lifecy"
+      ],
+      "details": "Update merge lifecycle from cached pull request state.\n\nSource: [`hooks/pre-render.d/07-reconcile-merges-lifecycle`](hooks/pre-render.d/07-reconcile-merges-lifecycle)\n\n[Back to overview](../../.treehouse/flightdeck-de31a8/1/flightdeck/docs/diagrams/flightdeck.composition/overview.iso.html) · [Open Collectors and reconciliation](../../.treehouse/flightdeck-de31a8/1/flightdeck/docs/diagrams/flightdeck.composition/group-sync.iso.html)"
+    },
+    {
+      "id": "decisions",
+      "zone": "hooks",
+      "at": [
+        6,
+        2
+      ],
+      "type": "playbook",
+      "title": "Ready decisions",
+      "category": "teal",
+      "status": "implemented",
+      "lines": [
+        "Reconcile which dec"
+      ],
+      "details": "Reconcile which decisions are ready from current evidence.\n\nSource: [`hooks/pre-render.d/10-reconcile-ready-decisions`](hooks/pre-render.d/10-reconcile-ready-decisions)\n\n[Back to overview](../../.treehouse/flightdeck-de31a8/1/flightdeck/docs/diagrams/flightdeck.composition/overview.iso.html) · [Open Collectors and reconciliation](../../.treehouse/flightdeck-de31a8/1/flightdeck/docs/diagrams/flightdeck.composition/group-sync.iso.html)"
+    },
+    {
+      "id": "steps",
+      "zone": "hooks",
+      "at": [
+        7,
+        2
+      ],
+      "type": "playbook",
+      "title": "Steps evidence",
+      "category": "teal",
+      "status": "implemented",
+      "lines": [
+        "Reconcile human ste"
+      ],
+      "details": "Reconcile human steps against recorded evidence.\n\nSource: [`hooks/pre-render.d/30-reconcile-steps-evidence`](hooks/pre-render.d/30-reconcile-steps-evidence)\n\n[Back to overview](../../.treehouse/flightdeck-de31a8/1/flightdeck/docs/diagrams/flightdeck.composition/overview.iso.html) · [Open Collectors and reconciliation](../../.treehouse/flightdeck-de31a8/1/flightdeck/docs/diagrams/flightdeck.composition/group-sync.iso.html)"
+    },
+    {
+      "id": "bot",
+      "zone": "hooks",
+      "at": [
+        8,
+        2
+      ],
+      "type": "playbook",
+      "title": "Apply bot reports",
+      "category": "teal",
+      "status": "implemented",
+      "lines": [
+        "Apply collected bot"
+      ],
+      "details": "Apply collected bot reports to tracker state.\n\nSource: [`hooks/pre-render.d/40-apply-bot-reports`](hooks/pre-render.d/40-apply-bot-reports)\n\n[Back to overview](../../.treehouse/flightdeck-de31a8/1/flightdeck/docs/diagrams/flightdeck.composition/overview.iso.html) · [Open Collectors and reconciliation](../../.treehouse/flightdeck-de31a8/1/flightdeck/docs/diagrams/flightdeck.composition/group-sync.iso.html)"
+    },
+    {
+      "id": "panes",
+      "zone": "hooks",
+      "at": [
+        5,
+        3
+      ],
+      "type": "playbook",
+      "title": "Reconcile repo panes",
+      "category": "teal",
+      "status": "implemented",
+      "lines": [
+        "Update repository-b"
+      ],
+      "details": "Update repository-backed streams and priorities.\n\nSource: [`hooks/pre-render.d/45-reconcile-repo-panes`](hooks/pre-render.d/45-reconcile-repo-panes)\n\n[Back to overview](../../.treehouse/flightdeck-de31a8/1/flightdeck/docs/diagrams/flightdeck.composition/overview.iso.html) · [Open Collectors and reconciliation](../../.treehouse/flightdeck-de31a8/1/flightdeck/docs/diagrams/flightdeck.composition/group-sync.iso.html)"
+    },
+    {
+      "id": "priorities",
+      "zone": "hooks",
+      "at": [
+        6,
+        3
+      ],
+      "type": "playbook",
+      "title": "Reconcile priorities",
+      "category": "teal",
+      "status": "implemented",
+      "lines": [
+        "Reconcile priority "
+      ],
+      "details": "Reconcile priority items after repository panes.\n\nSource: [`hooks/pre-render.d/50-reconcile-priorities`](hooks/pre-render.d/50-reconcile-priorities)\n\n[Back to overview](../../.treehouse/flightdeck-de31a8/1/flightdeck/docs/diagrams/flightdeck.composition/overview.iso.html) · [Open Collectors and reconciliation](../../.treehouse/flightdeck-de31a8/1/flightdeck/docs/diagrams/flightdeck.composition/group-sync.iso.html)"
+    },
+    {
+      "id": "ids",
+      "zone": "hooks",
+      "at": [
+        7,
+        3
+      ],
+      "type": "playbook",
+      "title": "Pin identifiers",
+      "category": "teal",
+      "status": "implemented",
+      "lines": [
+        "Pin stable tracker "
+      ],
+      "details": "Pin stable tracker identifiers after reconciliation.\n\nSource: [`hooks/pre-render.d/90-pin-ids`](hooks/pre-render.d/90-pin-ids)\n\n[Back to overview](../../.treehouse/flightdeck-de31a8/1/flightdeck/docs/diagrams/flightdeck.composition/overview.iso.html) · [Open Collectors and reconciliation](../../.treehouse/flightdeck-de31a8/1/flightdeck/docs/diagrams/flightdeck.composition/group-sync.iso.html)"
+    },
+    {
+      "id": "fresh",
+      "zone": "hooks",
+      "at": [
+        8,
+        3
+      ],
+      "type": "playbook",
+      "title": "Check freshness",
+      "category": "teal",
+      "status": "implemented",
+      "lines": [
+        "Report stale eviden"
+      ],
+      "details": "Report stale evidence without blocking a publish.\n\nSource: [`hooks/pre-render.d/92-freshness`](hooks/pre-render.d/92-freshness)\n\n[Back to overview](../../.treehouse/flightdeck-de31a8/1/flightdeck/docs/diagrams/flightdeck.composition/overview.iso.html) · [Open Collectors and reconciliation](../../.treehouse/flightdeck-de31a8/1/flightdeck/docs/diagrams/flightdeck.composition/group-sync.iso.html)"
+    },
+    {
+      "id": "runner",
+      "zone": "hooks",
+      "at": [
+        5,
+        4
+      ],
+      "type": "skill",
+      "title": "Hook runner",
+      "category": "teal",
+      "status": "implemented",
+      "lines": [
+        "Execute pre-render "
+      ],
+      "details": "Execute pre-render hooks in lexical order and log evidence.\n\nSource: [`hooks/run-pre-render.sh`](hooks/run-pre-render.sh)\n\n[Back to overview](../../.treehouse/flightdeck-de31a8/1/flightdeck/docs/diagrams/flightdeck.composition/overview.iso.html)"
+    }
+  ],
+  "edges": [
+    {
+      "from": "pre",
+      "to": "activity"
+    },
+    {
+      "from": "pre",
+      "to": "prcache"
+    },
+    {
+      "from": "pre",
+      "to": "repo"
+    },
+    {
+      "from": "pre",
+      "to": "cluster"
+    },
+    {
+      "from": "pre",
+      "to": "sidecars"
+    },
+    {
+      "from": "pre",
+      "to": "responses"
+    },
+    {
+      "from": "pre",
+      "to": "inflight"
+    },
+    {
+      "from": "pre",
+      "to": "merges"
+    },
+    {
+      "from": "pre",
+      "to": "decisions"
+    },
+    {
+      "from": "pre",
+      "to": "steps"
+    },
+    {
+      "from": "pre",
+      "to": "bot"
+    },
+    {
+      "from": "pre",
+      "to": "panes"
+    },
+    {
+      "from": "pre",
+      "to": "priorities"
+    },
+    {
+      "from": "pre",
+      "to": "ids"
+    },
+    {
+      "from": "pre",
+      "to": "fresh"
+    }
+  ]
+}

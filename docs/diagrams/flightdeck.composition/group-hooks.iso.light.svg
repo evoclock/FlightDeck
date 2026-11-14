@@ -1,0 +1,379 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2047 1458" width="2047" height="1458" role="img" aria-labelledby="bb-t">
+<title id="bb-t">Ordered pre-render hooks</title>
+<style>
+text{font-family:Geist,"Geist Sans",ui-sans-serif,system-ui,-apple-system,"Segoe UI",Helvetica,Arial,sans-serif;font-variant-numeric:tabular-nums}
+.bb-title{font-size:36px;font-weight:300;letter-spacing:-.015em}
+.bb-subtitle{font-size:14px;font-weight:400}
+.bb-kicker-top{font-size:10.5px;font-weight:500;letter-spacing:2.6px}
+.bb-meta{font-size:11px;font-weight:400;letter-spacing:.03em}
+.bb-meter-big{font-size:42px;font-weight:300;letter-spacing:-.02em}
+.bb-meter-unit{font-size:17px;font-weight:300}
+.bb-meter-track{stroke-width:1;fill:none}
+.bb-meter-solid,.bb-meter-part{stroke-width:3;fill:none}
+.bb-meter-part{stroke-dasharray:2 3}
+.bb-rule{stroke-width:1;fill:none}
+.bb-zone{stroke-width:1}
+.bb-zone-kicker{font-size:10.5px;font-weight:500;letter-spacing:2.6px}
+.bb-zone-title{font-size:21px;font-weight:400;letter-spacing:-.005em}
+.bb-zone-sub{font-size:11.5px}
+.bb-node-box{stroke-width:1}
+.bb-node.status-planned .bb-node-box{stroke-dasharray:4 4}
+.bb-kicker{font-size:10.5px;font-weight:500;letter-spacing:2.4px}
+.bb-node-title{font-size:17px;font-weight:500;letter-spacing:-.005em}
+.bb-copy{font-size:13.5px;font-weight:400}
+.bb-hint{font-size:11.5px;font-weight:400;letter-spacing:.02em}
+.bb-status-text{font-size:9.5px;font-weight:600;letter-spacing:1.9px}
+.bb-dot{stroke-width:1.1;fill:none}
+.bb-edge{fill:none;stroke-width:1.25;stroke-linejoin:round;stroke-linecap:round}
+.bb-edge.control{stroke-dasharray:3 4}
+.bb-edge.failure{stroke-dasharray:.1 4.5;stroke-width:1.8}
+.bb-edge.is-planned{opacity:.4}
+.bb-label{font-size:11.5px;font-weight:500;letter-spacing:.02em;paint-order:stroke;stroke-width:6px;stroke-linejoin:round}
+.bb-legend-text{font-size:12px;font-weight:400}
+.bb-finding-text{font-size:9px;font-weight:600;letter-spacing:1.6px}
+.iso-face{stroke-width:.8;stroke-linejoin:round}
+.bb-node.status-planned .iso-face{fill:none;stroke-dasharray:4 4;stroke-width:1}
+.iso-hatch line{stroke-width:.8;opacity:.45}
+.iso-label-knockout{paint-order:stroke;stroke-width:6px;stroke-linejoin:round}
+.bb-canvas{fill:#fbf9f6}
+.bb-title,.bb-zone-title,.bb-node-title,.bb-meter-big,.bb-meter-unit{fill:#2f2a27}
+.bb-subtitle,.bb-copy,.bb-hint,.bb-legend-text,.bb-meta,.bb-kicker,.bb-zone-kicker,.bb-kicker-top,.bb-zone-sub{fill:#716961}
+.bb-rule,.bb-meter-track{stroke:#dcdad7}
+.bb-meter-solid{stroke:#2f2a27}
+.bb-meter-part{stroke:#716961}
+.bb-zone{fill:#f5f3f0;stroke:#dcdad7}
+.bb-node-box{fill:#fffdfa;stroke:#dcdad7}
+.bb-node.status-planned .bb-node-box{fill:none;stroke:#c2bfbc}
+.bb-node.status-planned .bb-node-title{fill:#716961}
+.bb-status-text{fill:#716961}
+.bb-status.is-implemented .bb-status-text{fill:#716961}
+.bb-dot{stroke:#716961}
+.bb-dot-fill{fill:#716961}
+.bb-status.is-implemented .bb-dot{stroke:#2f2a27}
+.bb-status.is-implemented .bb-dot-fill{fill:#2f2a27}
+.bb-edge.data{stroke:#888079}
+.bb-edge.control{stroke:#747c86}
+.bb-edge.failure{stroke:#9b4a36}
+.bb-arrow.data{fill:#888079}
+.bb-arrow.control{fill:#747c86}
+.bb-arrow.failure{fill:#9b4a36}
+.bb-label,.iso-label-knockout{stroke:#fbf9f6}
+.bb-label.data{fill:#716961}
+.bb-label.control{fill:#4c535c}
+.bb-label.failure{fill:#9b4a36}
+.bb-flow{stroke:#2f2a27;stroke-opacity:.55}
+.bb-finding-text,.bb-finding-inline{fill:#9b4a36}
+.bb-node.has-finding .bb-node-box{stroke:#9b4a36}
+.bb-pseudo-fill{fill:#2f2a27}
+.bb-pseudo-ring{fill:#fbf9f6;stroke:#2f2a27;stroke-width:1.3}
+.bb-pseudo-choice{fill:#fffdfa}
+.bb-node.is-selected .bb-node-box,.bb-node[tabindex]:focus .bb-node-box{stroke:#2f2a27}
+.cat-sage .bb-mark,.bb-mark.cat-sage{fill:#427f61}
+.cat-sage .bb-kicker,.cat-sage .bb-zone-kicker{fill:#477d61}
+.cat-sage .bb-node-box{fill:#eaefe9;stroke:#b7cdc0}
+.cat-sage.status-planned .bb-node-box{fill:none;stroke:#9fbcac}
+.bb-zone.cat-sage{fill:#f0f2ed;stroke:#c0d2c6}
+.cat-sage .iso-roof{fill:#afd5c2;stroke:#54a17b}
+.cat-sage .iso-left{fill:#8dc3a9;stroke:#54a17b}
+.cat-sage .iso-right{fill:#6fb492;stroke:#54a17b}
+.cat-sage.status-planned .iso-face{stroke:#3d8461}
+.cat-teal .bb-mark,.bb-mark.cat-teal{fill:#3b7273}
+.cat-teal .bb-kicker,.cat-teal .bb-zone-kicker{fill:#407171}
+.cat-teal .bb-node-box{fill:#e9eeeb;stroke:#b5c8c7}
+.cat-teal.status-planned .bb-node-box{fill:none;stroke:#9bb6b5}
+.bb-zone.cat-teal{fill:#eff1ee;stroke:#bececc}
+.cat-teal .iso-roof{fill:#aed5d6;stroke:#53a1a2}
+.cat-teal .iso-left{fill:#8cc3c4;stroke:#53a1a2}
+.cat-teal .iso-right{fill:#6eb4b5;stroke:#53a1a2}
+.cat-teal.status-planned .iso-face{stroke:#2f6869}
+.cat-mustard .bb-mark,.bb-mark.cat-mustard{fill:#7d6a33}
+.cat-mustard .bb-kicker,.cat-mustard .bb-zone-kicker{fill:#7c6a38}
+.cat-mustard .bb-node-box{fill:#f1ede4;stroke:#cec5ae}
+.cat-mustard.status-planned .bb-node-box{fill:none;stroke:#bcb295}
+.bb-zone.cat-mustard{fill:#f3f0ea;stroke:#d3cbb8}
+.cat-mustard .iso-roof{fill:#d6cbae;stroke:#a38e52}
+.cat-mustard .iso-left{fill:#c5b68c;stroke:#a38e52}
+.cat-mustard .iso-right{fill:#b6a36d;stroke:#a38e52}
+.cat-mustard.status-planned .iso-face{stroke:#8a7026}
+.cat-mauve .bb-mark,.bb-mark.cat-mauve{fill:#7b4e6d}
+.cat-mauve .bb-kicker,.cat-mauve .bb-zone-kicker{fill:#7a516c}
+.cat-mauve .bb-node-box{fill:#f0eaea;stroke:#cdbbc4}
+.cat-mauve.status-planned .bb-node-box{fill:none;stroke:#bba4b2}
+.bb-zone.cat-mauve{fill:#f3efee;stroke:#d2c2ca}
+.cat-mauve .iso-roof{fill:#cfb5c7;stroke:#946184}
+.cat-mauve .iso-left{fill:#bb96af;stroke:#946184}
+.cat-mauve .iso-right{fill:#a87a9a;stroke:#946184}
+.cat-mauve.status-planned .iso-face{stroke:#76536b}
+.cat-olive .bb-mark,.bb-mark.cat-olive{fill:#696e40}
+.cat-olive .bb-kicker,.cat-olive .bb-zone-kicker{fill:#6a6e43}
+.cat-olive .bb-node-box{fill:#efede6;stroke:#c6c7b3}
+.cat-olive.status-planned .bb-node-box{fill:none;stroke:#b2b49b}
+.bb-zone.cat-olive{fill:#f2f1eb;stroke:#cccdbc}
+.cat-olive .iso-roof{fill:#cfd2b2;stroke:#949b5a}
+.cat-olive .iso-left{fill:#babf91;stroke:#949b5a}
+.cat-olive .iso-right{fill:#a8ae74;stroke:#949b5a}
+.cat-olive.status-planned .iso-face{stroke:#5e6334}
+.cat-slate .bb-mark,.bb-mark.cat-slate{fill:#4a5c73}
+.cat-slate .bb-kicker,.cat-slate .bb-zone-kicker{fill:#4e5d71}
+.cat-slate .bb-node-box{fill:#ebebeb;stroke:#bac0c7}
+.cat-slate.status-planned .bb-node-box{fill:none;stroke:#a3abb5}
+.bb-zone.cat-slate{fill:#f0f0ee;stroke:#c2c7cc}
+.cat-slate .iso-roof{fill:#b5c1cf;stroke:#617894}
+.cat-slate .iso-left{fill:#96a7bb;stroke:#617894}
+.cat-slate .iso-right{fill:#7a8fa8;stroke:#617894}
+.cat-slate.status-planned .iso-face{stroke:#4f5d6e}
+.iso-shadow{fill:#3b2f26;fill-opacity:0.08}
+.iso-hatch line{stroke:#fbf9f6}
+.iso-tag-bg,.iso-label-bg{fill:#fbf9f6;fill-opacity:.9}
+.bb-label.plain{stroke:none}
+.bb-node:not([class*=cat-]) .iso-face{fill:#fffdfa;stroke:#dcdad7}
+.bb-flow{fill:none;stroke-width:2.4;stroke-linecap:round;stroke-dasharray:.1 28;animation:bb-flow 2.6s linear infinite}
+@keyframes bb-flow{to{stroke-dashoffset:-28.1}}
+@media (prefers-reduced-motion:reduce){.bb-flow{animation:none;opacity:0}}
+</style>
+<defs><marker id="bb-arrow-data" viewBox="0 0 10 10" refX="8.6" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path class="bb-arrow data" d="M 0 1 L 10 5 L 0 9 z"/></marker><marker id="bb-arrow-control" viewBox="0 0 10 10" refX="8.6" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path class="bb-arrow control" d="M 0 1 L 10 5 L 0 9 z"/></marker><marker id="bb-arrow-failure" viewBox="0 0 10 10" refX="8.6" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path class="bb-arrow failure" d="M 0 1 L 10 5 L 0 9 z"/></marker></defs>
+<rect class="bb-canvas" x="0" y="0" width="2047" height="1458"/>
+<text class="bb-title" x="48" y="100">Ordered pre-render hooks</text>
+<text class="bb-subtitle" x="48" y="130">Live repository composition at origin/main 69bf757</text>
+<g class="bb-zone-group cat-teal"><polygon class="bb-zone cat-teal" points="966,246 1998.3,842 1080.3,1372 48,776"/>
+</g>
+<polygon class="iso-shadow" points="919.1,305 1140.8,433 1005.7,511 784,383"/>
+<polygon class="iso-shadow" points="745.9,405 967.6,533 832.5,611 610.8,483"/>
+<polygon class="iso-shadow" points="1178.9,455 1400.6,583 1265.5,661 1043.8,533"/>
+<polygon class="iso-shadow" points="572.7,505 794.4,633 659.3,711 437.6,583"/>
+<polygon class="iso-shadow" points="1005.7,555 1227.4,683 1092.3,761 870.6,633"/>
+<polygon class="iso-shadow" points="1438.7,605 1660.4,733 1525.3,811 1303.6,683"/>
+<polygon class="iso-shadow" points="399.5,605 621.2,733 486.1,811 264.4,683"/>
+<polygon class="iso-shadow" points="832.5,655 1054.2,783 919.1,861 697.4,733"/>
+<polygon class="iso-shadow" points="1265.5,705 1487.2,833 1352.1,911 1130.4,783"/>
+<polygon class="iso-shadow" points="226.3,705 448,833 312.9,911 91.2,783"/>
+<polygon class="iso-shadow" points="1698.5,755 1920.2,883 1785.1,961 1563.4,833"/>
+<polygon class="iso-shadow" points="659.3,755 881,883 745.9,961 524.2,833"/>
+<polygon class="iso-shadow" points="1092.3,805 1314,933 1178.9,1011 957.2,883"/>
+<polygon class="iso-shadow" points="1525.3,855 1747,983 1611.9,1061 1390.2,933"/>
+<polygon class="iso-shadow" points="919.1,905 1140.8,1033 1005.7,1111 784,983"/>
+<polygon class="iso-shadow" points="1352.1,955 1573.8,1083 1438.7,1161 1217,1033"/>
+<polygon class="iso-shadow" points="1178.9,1055 1400.6,1183 1265.5,1261 1043.8,1133"/>
+<g class="bb-node map-item cat-teal" data-id="pre">
+<polygon class="iso-face iso-left" points="772,338 993.7,466 993.7,504 772,376"/>
+<polygon class="iso-face iso-right" points="1128.8,388 993.7,466 993.7,504 1128.8,426"/>
+<polygon class="iso-face iso-roof" points="907.1,260 1128.8,388 993.7,466 772,338"/>
+</g>
+<g class="bb-node map-item cat-teal" data-id="cluster">
+<polygon class="iso-face iso-left" points="598.8,438 820.5,566 820.5,604 598.8,476"/>
+<polygon class="iso-face iso-right" points="955.6,488 820.5,566 820.5,604 955.6,526"/>
+<polygon class="iso-face iso-roof" points="733.9,360 955.6,488 820.5,566 598.8,438"/>
+</g>
+<g class="bb-node map-item cat-teal" data-id="activity">
+<polygon class="iso-face iso-left" points="1031.8,488 1253.5,616 1253.5,654 1031.8,526"/>
+<polygon class="iso-face iso-right" points="1388.6,538 1253.5,616 1253.5,654 1388.6,576"/>
+<polygon class="iso-face iso-roof" points="1166.9,410 1388.6,538 1253.5,616 1031.8,488"/>
+</g>
+<g class="bb-node map-item cat-teal" data-id="merges">
+<polygon class="iso-face iso-left" points="425.6,538 647.3,666 647.3,704 425.6,576"/>
+<polygon class="iso-face iso-right" points="782.4,588 647.3,666 647.3,704 782.4,626"/>
+<polygon class="iso-face iso-roof" points="560.7,460 782.4,588 647.3,666 425.6,538"/>
+</g>
+<g class="bb-node map-item cat-teal" data-id="sidecars">
+<polygon class="iso-face iso-left" points="858.6,588 1080.3,716 1080.3,754 858.6,626"/>
+<polygon class="iso-face iso-right" points="1215.4,638 1080.3,716 1080.3,754 1215.4,676"/>
+<polygon class="iso-face iso-roof" points="993.7,510 1215.4,638 1080.3,716 858.6,588"/>
+</g>
+<g class="bb-node map-item cat-teal" data-id="prcache">
+<polygon class="iso-face iso-left" points="1291.6,638 1513.3,766 1513.3,804 1291.6,676"/>
+<polygon class="iso-face iso-right" points="1648.4,688 1513.3,766 1513.3,804 1648.4,726"/>
+<polygon class="iso-face iso-roof" points="1426.7,560 1648.4,688 1513.3,766 1291.6,638"/>
+</g>
+<g class="bb-node map-item cat-teal" data-id="panes">
+<polygon class="iso-face iso-left" points="252.4,638 474.1,766 474.1,804 252.4,676"/>
+<polygon class="iso-face iso-right" points="609.2,688 474.1,766 474.1,804 609.2,726"/>
+<polygon class="iso-face iso-roof" points="387.5,560 609.2,688 474.1,766 252.4,638"/>
+</g>
+<g class="bb-node map-item cat-teal" data-id="decisions">
+<polygon class="iso-face iso-left" points="685.4,688 907.1,816 907.1,854 685.4,726"/>
+<polygon class="iso-face iso-right" points="1042.2,738 907.1,816 907.1,854 1042.2,776"/>
+<polygon class="iso-face iso-roof" points="820.5,610 1042.2,738 907.1,816 685.4,688"/>
+</g>
+<g class="bb-node map-item cat-teal" data-id="responses">
+<polygon class="iso-face iso-left" points="1118.4,738 1340.1,866 1340.1,904 1118.4,776"/>
+<polygon class="iso-face iso-right" points="1475.2,788 1340.1,866 1340.1,904 1475.2,826"/>
+<polygon class="iso-face iso-roof" points="1253.5,660 1475.2,788 1340.1,866 1118.4,738"/>
+</g>
+<g class="bb-node map-item cat-teal" data-id="runner">
+<polygon class="iso-face iso-left" points="79.2,738 300.9,866 300.9,904 79.2,776"/>
+<polygon class="iso-face iso-right" points="436,788 300.9,866 300.9,904 436,826"/>
+<polygon class="iso-face iso-roof" points="214.3,660 436,788 300.9,866 79.2,738"/>
+</g>
+<g class="bb-node map-item cat-teal" data-id="repo">
+<polygon class="iso-face iso-left" points="1551.4,788 1773.1,916 1773.1,954 1551.4,826"/>
+<polygon class="iso-face iso-right" points="1908.2,838 1773.1,916 1773.1,954 1908.2,876"/>
+<polygon class="iso-face iso-roof" points="1686.5,710 1908.2,838 1773.1,916 1551.4,788"/>
+</g>
+<g class="bb-node map-item cat-teal" data-id="priorities">
+<polygon class="iso-face iso-left" points="512.2,788 733.9,916 733.9,954 512.2,826"/>
+<polygon class="iso-face iso-right" points="869,838 733.9,916 733.9,954 869,876"/>
+<polygon class="iso-face iso-roof" points="647.3,710 869,838 733.9,916 512.2,788"/>
+</g>
+<g class="bb-node map-item cat-teal" data-id="steps">
+<polygon class="iso-face iso-left" points="945.2,838 1166.9,966 1166.9,1004 945.2,876"/>
+<polygon class="iso-face iso-right" points="1302,888 1166.9,966 1166.9,1004 1302,926"/>
+<polygon class="iso-face iso-roof" points="1080.3,760 1302,888 1166.9,966 945.2,838"/>
+</g>
+<g class="bb-node map-item cat-teal" data-id="inflight">
+<polygon class="iso-face iso-left" points="1378.2,888 1599.9,1016 1599.9,1054 1378.2,926"/>
+<polygon class="iso-face iso-right" points="1735,938 1599.9,1016 1599.9,1054 1735,976"/>
+<polygon class="iso-face iso-roof" points="1513.3,810 1735,938 1599.9,1016 1378.2,888"/>
+</g>
+<g class="bb-node map-item cat-teal" data-id="ids">
+<polygon class="iso-face iso-left" points="772,938 993.7,1066 993.7,1104 772,976"/>
+<polygon class="iso-face iso-right" points="1128.8,988 993.7,1066 993.7,1104 1128.8,1026"/>
+<polygon class="iso-face iso-roof" points="907.1,860 1128.8,988 993.7,1066 772,938"/>
+</g>
+<g class="bb-node map-item cat-teal" data-id="bot">
+<polygon class="iso-face iso-left" points="1205,988 1426.7,1116 1426.7,1154 1205,1026"/>
+<polygon class="iso-face iso-right" points="1561.8,1038 1426.7,1116 1426.7,1154 1561.8,1076"/>
+<polygon class="iso-face iso-roof" points="1340.1,910 1561.8,1038 1426.7,1116 1205,988"/>
+</g>
+<g class="bb-node map-item cat-teal" data-id="fresh">
+<polygon class="iso-face iso-left" points="1031.8,1088 1253.5,1216 1253.5,1254 1031.8,1126"/>
+<polygon class="iso-face iso-right" points="1388.6,1138 1253.5,1216 1253.5,1254 1388.6,1176"/>
+<polygon class="iso-face iso-roof" points="1166.9,1010 1388.6,1138 1253.5,1216 1031.8,1088"/>
+</g>
+<g class="bb-edges">
+<path class="bb-edge data map-item" d="M 1098.4 405.5 L 1118.3 417 Q 1122.7 419.5 1118.3 422 L 1089.8 438.5 Q 1085.5 441 1089.8 443.5 L 1099.4 449" marker-end="url(#bb-arrow-data)"/>
+<path class="bb-flow map-item" d="M 1098.4 405.5 L 1118.3 417 Q 1122.7 419.5 1118.3 422 L 1089.8 438.5 Q 1085.5 441 1089.8 443.5 L 1099.4 449"/>
+<path class="bb-edge data map-item" d="M 1091.6 409.4 L 1113.3 421.9 Q 1117.6 424.4 1122 421.9 L 1162.6 398.5 Q 1166.9 396 1171.2 398.5 L 1420.7 542.5 Q 1425 545 1420.7 547.5 L 1349.6 588.5 Q 1345.3 591 1349.6 593.5 L 1359.2 599" marker-end="url(#bb-arrow-data)"/>
+<path class="bb-flow map-item" d="M 1091.6 409.4 L 1113.3 421.9 Q 1117.6 424.4 1122 421.9 L 1162.6 398.5 Q 1166.9 396 1171.2 398.5 L 1420.7 542.5 Q 1425 545 1420.7 547.5 L 1349.6 588.5 Q 1345.3 591 1349.6 593.5 L 1359.2 599"/>
+<path class="bb-edge data map-item" d="M 1084.9 413.3 L 1105.7 425.3 Q 1110 427.8 1114.3 425.3 L 1166.9 395 Q 1171.2 392.5 1175.6 395 L 1685.7 689.5 Q 1690 692 1685.7 694.5 L 1609.4 738.5 Q 1605.1 741 1609.4 743.5 L 1619 749" marker-end="url(#bb-arrow-data)"/>
+<path class="bb-flow map-item" d="M 1084.9 413.3 L 1105.7 425.3 Q 1110 427.8 1114.3 425.3 L 1166.9 395 Q 1171.2 392.5 1175.6 395 L 1685.7 689.5 Q 1690 692 1685.7 694.5 L 1609.4 738.5 Q 1605.1 741 1609.4 743.5 L 1619 749"/>
+<path class="bb-edge data map-item" d="M 838.5 376.4 L 818.6 387.9 Q 814.3 390.4 818.6 392.9 L 854.3 413.5 Q 858.6 416 854.3 418.5 L 844.7 424" marker-end="url(#bb-arrow-data)"/>
+<path class="bb-flow map-item" d="M 838.5 376.4 L 818.6 387.9 Q 814.3 390.4 818.6 392.9 L 854.3 413.5 Q 858.6 416 854.3 418.5 L 844.7 424"/>
+<path class="bb-edge data map-item" d="M 1078.1 417.2 L 1092.9 425.8 Q 1097.3 428.3 1092.9 430.8 L 911.5 535.5 Q 907.2 538 911.5 540.5 L 926.1 549" marker-end="url(#bb-arrow-data)"/>
+<path class="bb-flow map-item" d="M 1078.1 417.2 L 1092.9 425.8 Q 1097.3 428.3 1092.9 430.8 L 911.5 535.5 Q 907.2 538 911.5 540.5 L 926.1 549"/>
+<path class="bb-edge data map-item" d="M 1071.4 421.2 L 1093 433.7 Q 1097.4 436.2 1093 438.7 L 998 493.5 Q 993.7 496 998 498.5 L 1247.4 642.5 Q 1251.8 645 1247.4 647.5 L 1176.4 688.5 Q 1172.1 691 1176.4 693.5 L 1186 699" marker-end="url(#bb-arrow-data)"/>
+<path class="bb-flow map-item" d="M 1071.4 421.2 L 1093 433.7 Q 1097.4 436.2 1093 438.7 L 998 493.5 Q 993.7 496 998 498.5 L 1247.4 642.5 Q 1251.8 645 1247.4 647.5 L 1176.4 688.5 Q 1172.1 691 1176.4 693.5 L 1186 699"/>
+<path class="bb-edge data map-item" d="M 1064.6 425 L 1085.4 437 Q 1089.7 439.5 1085.4 442 L 998 492.5 Q 993.7 495 998 497.5 L 1508.1 792 Q 1512.4 794.5 1508.1 797 L 1436.2 838.5 Q 1431.9 841 1436.2 843.5 L 1445.8 849" marker-end="url(#bb-arrow-data)"/>
+<path class="bb-flow map-item" d="M 1064.6 425 L 1085.4 437 Q 1089.7 439.5 1085.4 442 L 998 492.5 Q 993.7 495 998 497.5 L 1508.1 792 Q 1512.4 794.5 1508.1 797 L 1436.2 838.5 Q 1431.9 841 1436.2 843.5 L 1445.8 849"/>
+<path class="bb-edge data map-item" d="M 882.8 402 L 868.1 410.5 Q 863.8 413 859.5 410.5 L 745.2 344.5 Q 740.8 342 736.5 344.5 L 566.7 442.5 Q 562.4 445 566.7 447.5 L 681.1 513.5 Q 685.4 516 681.1 518.5 L 671.5 524" marker-end="url(#bb-arrow-data)"/>
+<path class="bb-flow map-item" d="M 882.8 402 L 868.1 410.5 Q 863.8 413 859.5 410.5 L 745.2 344.5 Q 740.8 342 736.5 344.5 L 566.7 442.5 Q 562.4 445 566.7 447.5 L 681.1 513.5 Q 685.4 516 681.1 518.5 L 671.5 524"/>
+<path class="bb-edge data map-item" d="M 1057.9 428.9 L 1077.8 440.4 Q 1082.1 442.9 1077.8 445.4 L 743.4 638.5 Q 739.1 641 743.4 643.5 L 752.9 649" marker-end="url(#bb-arrow-data)"/>
+<path class="bb-flow map-item" d="M 1057.9 428.9 L 1077.8 440.4 Q 1082.1 442.9 1077.8 445.4 L 743.4 638.5 Q 739.1 641 743.4 643.5 L 752.9 649"/>
+<path class="bb-edge data map-item" d="M 1051.1 432.8 L 1060.8 438.4 Q 1065.1 440.9 1060.8 443.4 L 812.9 586.6 Q 808.5 589.1 812.9 591.6 L 1074.2 742.5 Q 1078.6 745 1074.2 747.5 L 1003.2 788.5 Q 998.9 791 1003.2 793.5 L 1012.8 799" marker-end="url(#bb-arrow-data)"/>
+<path class="bb-flow map-item" d="M 1051.1 432.8 L 1060.8 438.4 Q 1065.1 440.9 1060.8 443.4 L 812.9 586.6 Q 808.5 589.1 812.9 591.6 L 1074.2 742.5 Q 1078.6 745 1074.2 747.5 L 1003.2 788.5 Q 998.9 791 1003.2 793.5 L 1012.8 799"/>
+<path class="bb-edge data map-item" d="M 1044.4 436.7 L 1054 442.3 Q 1058.3 444.8 1054 447.3 L 813.7 586 Q 809.3 588.5 813.7 591 L 1334.9 892 Q 1339.2 894.5 1334.9 897 L 1263 938.5 Q 1258.7 941 1263 943.5 L 1272.6 949" marker-end="url(#bb-arrow-data)"/>
+<path class="bb-flow map-item" d="M 1044.4 436.7 L 1054 442.3 Q 1058.3 444.8 1054 447.3 L 813.7 586 Q 809.3 588.5 813.7 591 L 1334.9 892 Q 1339.2 894.5 1334.9 897 L 1263 938.5 Q 1258.7 941 1263 943.5 L 1272.6 949"/>
+<path class="bb-edge data map-item" d="M 927.2 427.6 L 905.5 440.1 Q 901.2 442.6 905.5 445.1 L 975.5 485.5 Q 979.8 488 975.5 490.5 L 639.5 684.5 Q 635.2 687 630.8 684.5 L 516.5 618.5 Q 512.2 616 507.9 618.5 L 498.3 624" marker-end="url(#bb-arrow-data)"/>
+<path class="bb-flow map-item" d="M 927.2 427.6 L 905.5 440.1 Q 901.2 442.6 905.5 445.1 L 975.5 485.5 Q 979.8 488 975.5 490.5 L 639.5 684.5 Q 635.2 687 630.8 684.5 L 516.5 618.5 Q 512.2 616 507.9 618.5 L 498.3 624"/>
+<path class="bb-edge data map-item" d="M 1037.6 440.7 L 1047.1 446.2 Q 1051.5 448.7 1047.1 451.2 L 559.8 732.5 Q 555.5 735 559.8 737.5 L 579.7 749" marker-end="url(#bb-arrow-data)"/>
+<path class="bb-flow map-item" d="M 1037.6 440.7 L 1047.1 446.2 Q 1051.5 448.7 1047.1 451.2 L 559.8 732.5 Q 555.5 735 559.8 737.5 L 579.7 749"/>
+<path class="bb-edge data map-item" d="M 1030.9 444.5 L 1043 451.6 Q 1044.7 452.5 1043 453.5 L 1041.8 454.2 Q 1041.3 454.5 1040.9 454.2 L 1040.9 454.2 Q 1040.5 454 1040 454.2 L 638.6 686 Q 634.3 688.5 638.6 691 L 901 842.5 Q 905.4 845 901 847.5 L 830 888.5 Q 825.7 891 830 893.5 L 839.5 899" marker-end="url(#bb-arrow-data)"/>
+<path class="bb-flow map-item" d="M 1030.9 444.5 L 1043 451.6 Q 1044.7 452.5 1043 453.5 L 1041.8 454.2 Q 1041.3 454.5 1040.9 454.2 L 1040.9 454.2 Q 1040.5 454 1040 454.2 L 638.6 686 Q 634.3 688.5 638.6 691 L 901 842.5 Q 905.4 845 901 847.5 L 830 888.5 Q 825.7 891 830 893.5 L 839.5 899"/>
+<path class="bb-edge data map-item" d="M 1024.1 448.4 L 1045.7 460.9 Q 1050.1 463.4 1045.7 465.9 L 1011.9 485.5 Q 1007.6 488 1011.9 490.5 L 1515 781 Q 1519.4 783.5 1515 786 L 1083.8 1035 Q 1079.4 1037.5 1083.8 1040 L 1099.4 1049" marker-end="url(#bb-arrow-data)"/>
+<path class="bb-flow map-item" d="M 1024.1 448.4 L 1045.7 460.9 Q 1050.1 463.4 1045.7 465.9 L 1011.9 485.5 Q 1007.6 488 1011.9 490.5 L 1515 781 Q 1519.4 783.5 1515 786 L 1083.8 1035 Q 1079.4 1037.5 1083.8 1040 L 1099.4 1049"/>
+</g>
+<g class="iso-tag map-item cat-teal" data-for="pre" pointer-events="none">
+<rect class="iso-tag-bg" x="837.3" y="337" width="226.3" height="42" rx="3"/>
+<circle class="bb-mark" cx="910" cy="349.5" r="3"/>
+<text class="bb-kicker" x="950.4" y="353" text-anchor="middle">WORKFLOW</text>
+<text class="bb-node-title" x="950.4" y="372" text-anchor="middle">Pre-render sequence</text>
+</g>
+<g class="iso-tag map-item cat-teal" data-for="cluster" pointer-events="none">
+<rect class="iso-tag-bg" x="685.1" y="437" width="184.1" height="42" rx="3"/>
+<circle class="bb-mark" cx="736.8" cy="449.5" r="3"/>
+<text class="bb-kicker" x="777.2" y="453" text-anchor="middle">PLAYBOOK</text>
+<text class="bb-node-title" x="777.2" y="472" text-anchor="middle">Collect cluster</text>
+</g>
+<g class="iso-tag map-item cat-teal" data-for="activity" pointer-events="none">
+<rect class="iso-tag-bg" x="1112.9" y="487" width="194.6" height="42" rx="3"/>
+<circle class="bb-mark" cx="1169.8" cy="499.5" r="3"/>
+<text class="bb-kicker" x="1210.2" y="503" text-anchor="middle">PLAYBOOK</text>
+<text class="bb-node-title" x="1210.2" y="522" text-anchor="middle">Collect activity</text>
+</g>
+<g class="iso-tag map-item cat-teal" data-for="merges" pointer-events="none">
+<rect class="iso-tag-bg" x="506.7" y="537" width="194.6" height="42" rx="3"/>
+<circle class="bb-mark" cx="563.6" cy="549.5" r="3"/>
+<text class="bb-kicker" x="604" y="553" text-anchor="middle">PLAYBOOK</text>
+<text class="bb-node-title" x="604" y="572" text-anchor="middle">Reconcile merges</text>
+</g>
+<g class="iso-tag map-item cat-teal" data-for="sidecars" pointer-events="none">
+<rect class="iso-tag-bg" x="950.2" y="587" width="173.6" height="42" rx="3"/>
+<circle class="bb-mark" cx="996.6" cy="599.5" r="3"/>
+<text class="bb-kicker" x="1037" y="603" text-anchor="middle">PLAYBOOK</text>
+<text class="bb-node-title" x="1037" y="622" text-anchor="middle">Merge sidecars</text>
+</g>
+<g class="iso-tag map-item cat-teal" data-for="prcache" pointer-events="none">
+<rect class="iso-tag-bg" x="1372.7" y="637" width="194.6" height="42" rx="3"/>
+<circle class="bb-mark" cx="1429.6" cy="649.5" r="3"/>
+<text class="bb-kicker" x="1470" y="653" text-anchor="middle">PLAYBOOK</text>
+<text class="bb-node-title" x="1470" y="672" text-anchor="middle">Refresh PR cache</text>
+</g>
+<g class="iso-tag map-item cat-teal" data-for="panes" pointer-events="none">
+<rect class="iso-tag-bg" x="312.4" y="637" width="236.8" height="42" rx="3"/>
+<circle class="bb-mark" cx="390.4" cy="649.5" r="3"/>
+<text class="bb-kicker" x="430.8" y="653" text-anchor="middle">PLAYBOOK</text>
+<text class="bb-node-title" x="430.8" y="672" text-anchor="middle">Reconcile repo panes</text>
+</g>
+<g class="iso-tag map-item cat-teal" data-for="decisions" pointer-events="none">
+<rect class="iso-tag-bg" x="771.7" y="687" width="184.1" height="42" rx="3"/>
+<circle class="bb-mark" cx="823.4" cy="699.5" r="3"/>
+<text class="bb-kicker" x="863.8" y="703" text-anchor="middle">PLAYBOOK</text>
+<text class="bb-node-title" x="863.8" y="722" text-anchor="middle">Ready decisions</text>
+</g>
+<g class="iso-tag map-item cat-teal" data-for="responses" pointer-events="none">
+<rect class="iso-tag-bg" x="1183.7" y="737" width="226.3" height="42" rx="3"/>
+<circle class="bb-mark" cx="1256.4" cy="749.5" r="3"/>
+<text class="bb-kicker" x="1296.8" y="753" text-anchor="middle">PLAYBOOK</text>
+<text class="bb-node-title" x="1296.8" y="772" text-anchor="middle">Reconcile responses</text>
+</g>
+<g class="iso-tag map-item cat-teal" data-for="runner" pointer-events="none">
+<rect class="iso-tag-bg" x="186.6" y="737" width="141.9" height="42" rx="3"/>
+<circle class="bb-mark" cx="229.3" cy="749.5" r="3"/>
+<text class="bb-kicker" x="257.6" y="753" text-anchor="middle">SKILL</text>
+<text class="bb-node-title" x="257.6" y="772" text-anchor="middle">Hook runner</text>
+</g>
+<g class="iso-tag map-item cat-teal" data-for="repo" pointer-events="none">
+<rect class="iso-tag-bg" x="1648.3" y="787" width="163" height="42" rx="3"/>
+<circle class="bb-mark" cx="1689.4" cy="799.5" r="3"/>
+<text class="bb-kicker" x="1729.8" y="803" text-anchor="middle">PLAYBOOK</text>
+<text class="bb-node-title" x="1729.8" y="822" text-anchor="middle">Repo evidence</text>
+</g>
+<g class="iso-tag map-item cat-teal" data-for="priorities" pointer-events="none">
+<rect class="iso-tag-bg" x="572.2" y="787" width="236.8" height="42" rx="3"/>
+<circle class="bb-mark" cx="650.2" cy="799.5" r="3"/>
+<text class="bb-kicker" x="690.6" y="803" text-anchor="middle">PLAYBOOK</text>
+<text class="bb-node-title" x="690.6" y="822" text-anchor="middle">Reconcile priorities</text>
+</g>
+<g class="iso-tag map-item cat-teal" data-for="steps" pointer-events="none">
+<rect class="iso-tag-bg" x="1036.8" y="837" width="173.6" height="42" rx="3"/>
+<circle class="bb-mark" cx="1083.2" cy="849.5" r="3"/>
+<text class="bb-kicker" x="1123.6" y="853" text-anchor="middle">PLAYBOOK</text>
+<text class="bb-node-title" x="1123.6" y="872" text-anchor="middle">Steps evidence</text>
+</g>
+<g class="iso-tag map-item cat-teal" data-for="inflight" pointer-events="none">
+<rect class="iso-tag-bg" x="1448.8" y="887" width="215.7" height="42" rx="3"/>
+<circle class="bb-mark" cx="1516.2" cy="899.5" r="3"/>
+<text class="bb-kicker" x="1556.6" y="903" text-anchor="middle">PLAYBOOK</text>
+<text class="bb-node-title" x="1556.6" y="922" text-anchor="middle">Reconcile inflight</text>
+</g>
+<g class="iso-tag map-item cat-teal" data-for="ids" pointer-events="none">
+<rect class="iso-tag-bg" x="858.3" y="937" width="184.1" height="42" rx="3"/>
+<circle class="bb-mark" cx="910" cy="949.5" r="3"/>
+<text class="bb-kicker" x="950.4" y="953" text-anchor="middle">PLAYBOOK</text>
+<text class="bb-node-title" x="950.4" y="972" text-anchor="middle">Pin identifiers</text>
+</g>
+<g class="iso-tag map-item cat-teal" data-for="bot" pointer-events="none">
+<rect class="iso-tag-bg" x="1280.8" y="987" width="205.2" height="42" rx="3"/>
+<circle class="bb-mark" cx="1343" cy="999.5" r="3"/>
+<text class="bb-kicker" x="1383.4" y="1003" text-anchor="middle">PLAYBOOK</text>
+<text class="bb-node-title" x="1383.4" y="1022" text-anchor="middle">Apply bot reports</text>
+</g>
+<g class="iso-tag map-item cat-teal" data-for="fresh" pointer-events="none">
+<rect class="iso-tag-bg" x="1118.2" y="1087" width="184.1" height="42" rx="3"/>
+<circle class="bb-mark" cx="1169.8" cy="1099.5" r="3"/>
+<text class="bb-kicker" x="1210.2" y="1103" text-anchor="middle">PLAYBOOK</text>
+<text class="bb-node-title" x="1210.2" y="1122" text-anchor="middle">Check freshness</text>
+</g>
+<g class="bb-zone-group cat-teal">
+<text class="bb-zone-title iso-label-knockout" x="966" y="234" text-anchor="middle">Ordered pre-render hooks</text></g>
+<g class="bb-legend" aria-label="Legend"><path class="bb-rule" d="M 40 1406 H 2007"/><circle class="bb-mark cat-teal" cx="52" cy="1424" r="4"/><text class="bb-legend-text" x="64" y="1428">Ordered pre-render hooks</text></g>
+</svg>

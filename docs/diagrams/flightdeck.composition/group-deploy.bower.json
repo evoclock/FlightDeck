@@ -1,0 +1,101 @@
+{
+  "schema": "bowerbird/v1",
+  "categories": {
+    "sage": {
+      "label": "Publish entry points"
+    },
+    "teal": {
+      "label": "Ordered pre-render hooks"
+    },
+    "mustard": {
+      "label": "Collectors and reconciliation"
+    },
+    "mauve": {
+      "label": "Dashboard rendering"
+    },
+    "olive": {
+      "label": "Optional Worker bundle"
+    },
+    "slate": {
+      "label": "Continuous integration"
+    }
+  },
+  "traces": [],
+  "meta": {
+    "title": "Optional Worker bundle",
+    "subtitle": "Live repository composition at origin/main 69bf757",
+    "repository": {
+      "url": "https://github.com/evoclock/FlightDeck",
+      "ref": "main"
+    },
+    "lightFlatFill": "filled",
+    "inputSha": "69bf75736e1bf516ddd0df72e2b76d333e352a20"
+  },
+  "zones": [
+    {
+      "id": "deploy",
+      "title": "Optional Worker bundle",
+      "category": "olive"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "cloud",
+      "zone": "deploy",
+      "at": [
+        20,
+        0
+      ],
+      "type": "playbook",
+      "title": "Cloudflare publish",
+      "category": "olive",
+      "status": "implemented",
+      "lines": [
+        "Build a Worker bund"
+      ],
+      "details": "Build a Worker bundle and deploy only with validated local site settings.\n\nSource: [`scripts/publish_cloudflare.sh`](scripts/publish_cloudflare.sh)\n\n[Back to overview](../../.treehouse/flightdeck-de31a8/1/flightdeck/docs/diagrams/flightdeck.composition/overview.iso.html)"
+    },
+    {
+      "id": "site-builder",
+      "zone": "deploy",
+      "at": [
+        21,
+        0
+      ],
+      "type": "skill",
+      "title": "Worker builder",
+      "category": "olive",
+      "status": "implemented",
+      "lines": [
+        "Embed rendered HTML"
+      ],
+      "details": "Embed rendered HTML in a Cloudflare Worker bundle.\n\nSource: [`site/build.py`](site/build.py)\n\n[Back to overview](../../.treehouse/flightdeck-de31a8/1/flightdeck/docs/diagrams/flightdeck.composition/overview.iso.html)"
+    },
+    {
+      "id": "kv-upload",
+      "zone": "deploy",
+      "at": [
+        22,
+        0
+      ],
+      "type": "skill",
+      "title": "Arch uploader",
+      "category": "olive",
+      "status": "implemented",
+      "lines": [
+        "Upload changed arch"
+      ],
+      "details": "Upload changed architecture HTML views to configured KV.\n\nSource: [`scripts/upload_architecture_kv.py`](scripts/upload_architecture_kv.py)\n\n[Back to overview](../../.treehouse/flightdeck-de31a8/1/flightdeck/docs/diagrams/flightdeck.composition/overview.iso.html)"
+    }
+  ],
+  "edges": [
+    {
+      "from": "cloud",
+      "to": "site-builder"
+    },
+    {
+      "from": "cloud",
+      "to": "kv-upload"
+    }
+  ]
+}
