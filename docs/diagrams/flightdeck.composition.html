@@ -1,0 +1,1720 @@
+<!doctype html>
+<html lang="en" data-bowerbird-version="0.2.0" data-bowerbird-input-sha="69bf75736e1bf516ddd0df72e2b76d333e352a20">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="generator" content="bowerbird 0.2.0">
+<meta name="bowerbird-input-sha" content="69bf75736e1bf516ddd0df72e2b76d333e352a20">
+<title>FlightDeck composition</title>
+<style>
+:root{color-scheme:light}body{margin:2rem auto;max-width:1500px;padding:0 2rem;background:#fff;color:#17212b;font:16px/1.5 system-ui,sans-serif}button{cursor:pointer;background:white;border:1px solid #bbb;border-radius:5px;padding:.6rem;margin:.3rem}button:focus-visible,.bb-node:focus-visible{outline:3px solid #3569a0}svg{display:block;max-width:100%;height:auto}.map{overflow:auto}.panel[hidden]{display:none}.is-dimmed{opacity:.12}.bb-node,.bb-edge{transition:opacity .2s}.connections{display:flex;gap:2rem;flex-wrap:wrap}.connections li{min-width:140px}
+</style></head>
+<body><h1>FlightDeck composition</h1><p>Choose a group to open its isometric map. Select a workflow to follow its playbooks and skills in step order.</p><nav aria-label="Workflows"><button type="button" class="workflow" data-workflow="publish" data-chain="local runner demo-config demo-data renderer cloud site-builder kv-upload">Publish selector</button><button type="button" class="workflow" data-workflow="pre" data-chain="activity collector-activity prcache refresh-script repo repo-script cluster metrics-script spark-script sidecars sidecar-script responses accept-script response-script inflight inflight-script merges merge-script decisions decision-script steps step-script bot bot-script panes pane-script priorities priority-script ids pin-script fresh fresh-script">Pre-render sequence</button><button type="button" class="workflow" data-workflow="tip-ci" data-chain="ci-tests ci-demo renderer">Tip CI</button><button type="button" class="workflow" data-workflow="pr-ci" data-chain="pr-gate pr-lint">PR wording CI</button></nav><ol id="chain-order" aria-label="Workflow step order" hidden></ol><section id="overview"><h2>Overview</h2><p>Each group shows its component count and badges: B built, P partial, L planned.</p><div class="map"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1716 1249" width="1716" height="1249" role="group" aria-labelledby="bb-t">
+<title id="bb-t">FlightDeck composition</title>
+<style>
+text{font-family:Geist,"Geist Sans",ui-sans-serif,system-ui,-apple-system,"Segoe UI",Helvetica,Arial,sans-serif;font-variant-numeric:tabular-nums}
+.bb-title{font-size:36px;font-weight:300;letter-spacing:-.015em}
+.bb-subtitle{font-size:14px;font-weight:400}
+.bb-kicker-top{font-size:10.5px;font-weight:500;letter-spacing:2.6px}
+.bb-meta{font-size:11px;font-weight:400;letter-spacing:.03em}
+.bb-meter-big{font-size:42px;font-weight:300;letter-spacing:-.02em}
+.bb-meter-unit{font-size:17px;font-weight:300}
+.bb-meter-track{stroke-width:1;fill:none}
+.bb-meter-solid,.bb-meter-part{stroke-width:3;fill:none}
+.bb-meter-part{stroke-dasharray:2 3}
+.bb-rule{stroke-width:1;fill:none}
+.bb-zone{stroke-width:1}
+.bb-zone-kicker{font-size:10.5px;font-weight:500;letter-spacing:2.6px}
+.bb-zone-title{font-size:21px;font-weight:400;letter-spacing:-.005em}
+.bb-zone-sub{font-size:11.5px}
+.bb-node-box{stroke-width:1}
+.bb-node.status-planned .bb-node-box{stroke-dasharray:4 4}
+.bb-kicker{font-size:10.5px;font-weight:500;letter-spacing:2.4px}
+.bb-node-title{font-size:17px;font-weight:500;letter-spacing:-.005em}
+.bb-copy{font-size:13.5px;font-weight:400}
+.bb-hint{font-size:11.5px;font-weight:400;letter-spacing:.02em}
+.bb-status-text{font-size:9.5px;font-weight:600;letter-spacing:1.9px}
+.bb-dot{stroke-width:1.1;fill:none}
+.bb-edge{fill:none;stroke-width:1.25;stroke-linejoin:round;stroke-linecap:round}
+.bb-edge.control{stroke-dasharray:3 4}
+.bb-edge.failure{stroke-dasharray:.1 4.5;stroke-width:1.8}
+.bb-edge.is-planned{opacity:.4}
+.bb-label{font-size:11.5px;font-weight:500;letter-spacing:.02em;paint-order:stroke;stroke-width:6px;stroke-linejoin:round}
+.bb-legend-text{font-size:12px;font-weight:400}
+.bb-finding-text{font-size:9px;font-weight:600;letter-spacing:1.6px}
+.iso-face{stroke-width:.8;stroke-linejoin:round}
+.bb-node.status-planned .iso-face{fill:none;stroke-dasharray:4 4;stroke-width:1}
+.iso-hatch line{stroke-width:.8;opacity:.45}
+.iso-label-knockout{paint-order:stroke;stroke-width:6px;stroke-linejoin:round}
+.bb-canvas{fill:#fbf9f6}
+.bb-title,.bb-zone-title,.bb-node-title,.bb-meter-big,.bb-meter-unit{fill:#2f2a27}
+.bb-subtitle,.bb-copy,.bb-hint,.bb-legend-text,.bb-meta,.bb-kicker,.bb-zone-kicker,.bb-kicker-top,.bb-zone-sub{fill:#716961}
+.bb-rule,.bb-meter-track{stroke:#dcdad7}
+.bb-meter-solid{stroke:#2f2a27}
+.bb-meter-part{stroke:#716961}
+.bb-zone{fill:#f5f3f0;stroke:#dcdad7}
+.bb-node-box{fill:#fffdfa;stroke:#dcdad7}
+.bb-node.status-planned .bb-node-box{fill:none;stroke:#c2bfbc}
+.bb-node.status-planned .bb-node-title{fill:#716961}
+.bb-status-text{fill:#716961}
+.bb-status.is-implemented .bb-status-text{fill:#716961}
+.bb-dot{stroke:#716961}
+.bb-dot-fill{fill:#716961}
+.bb-status.is-implemented .bb-dot{stroke:#2f2a27}
+.bb-status.is-implemented .bb-dot-fill{fill:#2f2a27}
+.bb-edge.data{stroke:#888079}
+.bb-edge.control{stroke:#747c86}
+.bb-edge.failure{stroke:#9b4a36}
+.bb-arrow.data{fill:#888079}
+.bb-arrow.control{fill:#747c86}
+.bb-arrow.failure{fill:#9b4a36}
+.bb-label,.iso-label-knockout{stroke:#fbf9f6}
+.bb-label.data{fill:#716961}
+.bb-label.control{fill:#4c535c}
+.bb-label.failure{fill:#9b4a36}
+.bb-flow{stroke:#2f2a27;stroke-opacity:.55}
+.bb-finding-text,.bb-finding-inline{fill:#9b4a36}
+.bb-node.has-finding .bb-node-box{stroke:#9b4a36}
+.bb-pseudo-fill{fill:#2f2a27}
+.bb-pseudo-ring{fill:#fbf9f6;stroke:#2f2a27;stroke-width:1.3}
+.bb-pseudo-choice{fill:#fffdfa}
+.bb-node.is-selected .bb-node-box,.bb-node[tabindex]:focus .bb-node-box{stroke:#2f2a27}
+.cat-sage .bb-mark,.bb-mark.cat-sage{fill:#427f61}
+.cat-sage .bb-kicker,.cat-sage .bb-zone-kicker{fill:#477d61}
+.cat-sage .bb-node-box{fill:#eaefe9;stroke:#b7cdc0}
+.cat-sage.status-planned .bb-node-box{fill:none;stroke:#9fbcac}
+.bb-zone.cat-sage{fill:#f0f2ed;stroke:#c0d2c6}
+.cat-sage .iso-roof{fill:#afd5c2;stroke:#54a17b}
+.cat-sage .iso-left{fill:#8dc3a9;stroke:#54a17b}
+.cat-sage .iso-right{fill:#6fb492;stroke:#54a17b}
+.cat-sage.status-planned .iso-face{stroke:#3d8461}
+.cat-rust .bb-mark,.bb-mark.cat-rust{fill:#995d3f}
+.cat-rust .bb-kicker,.cat-rust .bb-zone-kicker{fill:#955e42}
+.cat-rust .bb-node-box{fill:#f4ebe5;stroke:#d8c0b3}
+.cat-rust.status-planned .bb-node-box{fill:none;stroke:#caab9b}
+.bb-zone.cat-rust{fill:#f5f0eb;stroke:#dcc7bb}
+.cat-rust .iso-roof{fill:#d6bbae;stroke:#a36d52}
+.cat-rust .iso-left{fill:#c59f8c;stroke:#a36d52}
+.cat-rust .iso-right{fill:#b6866d;stroke:#a36d52}
+.cat-rust.status-planned .iso-face{stroke:#b9531f}
+.cat-peach .bb-mark,.bb-mark.cat-peach{fill:#a76644}
+.cat-peach .bb-kicker,.cat-peach .bb-zone-kicker{fill:#a26647}
+.cat-peach .bb-node-box{fill:#f5ece6;stroke:#dec4b5}
+.cat-peach.status-planned .bb-node-box{fill:none;stroke:#d1b09d}
+.bb-zone.cat-peach{fill:#f6f0eb;stroke:#e0cabd}
+.cat-peach .iso-roof{fill:#d6bcae;stroke:#a36e52}
+.cat-peach .iso-left{fill:#c59f8c;stroke:#a36e52}
+.cat-peach .iso-right{fill:#b6866d;stroke:#a36e52}
+.cat-peach.status-planned .iso-face{stroke:#b4643a}
+.cat-mustard .bb-mark,.bb-mark.cat-mustard{fill:#7d6a33}
+.cat-mustard .bb-kicker,.cat-mustard .bb-zone-kicker{fill:#7c6a38}
+.cat-mustard .bb-node-box{fill:#f1ede4;stroke:#cec5ae}
+.cat-mustard.status-planned .bb-node-box{fill:none;stroke:#bcb295}
+.bb-zone.cat-mustard{fill:#f3f0ea;stroke:#d3cbb8}
+.cat-mustard .iso-roof{fill:#d6cbae;stroke:#a38e52}
+.cat-mustard .iso-left{fill:#c5b68c;stroke:#a38e52}
+.cat-mustard .iso-right{fill:#b6a36d;stroke:#a38e52}
+.cat-mustard.status-planned .iso-face{stroke:#8a7026}
+.cat-slate .bb-mark,.bb-mark.cat-slate{fill:#4a5c73}
+.cat-slate .bb-kicker,.cat-slate .bb-zone-kicker{fill:#4e5d71}
+.cat-slate .bb-node-box{fill:#ebebeb;stroke:#bac0c7}
+.cat-slate.status-planned .bb-node-box{fill:none;stroke:#a3abb5}
+.bb-zone.cat-slate{fill:#f0f0ee;stroke:#c2c7cc}
+.cat-slate .iso-roof{fill:#b5c1cf;stroke:#617894}
+.cat-slate .iso-left{fill:#96a7bb;stroke:#617894}
+.cat-slate .iso-right{fill:#7a8fa8;stroke:#617894}
+.cat-slate.status-planned .iso-face{stroke:#4f5d6e}
+.cat-mauve .bb-mark,.bb-mark.cat-mauve{fill:#7b4e6d}
+.cat-mauve .bb-kicker,.cat-mauve .bb-zone-kicker{fill:#7a516c}
+.cat-mauve .bb-node-box{fill:#f0eaea;stroke:#cdbbc4}
+.cat-mauve.status-planned .bb-node-box{fill:none;stroke:#bba4b2}
+.bb-zone.cat-mauve{fill:#f3efee;stroke:#d2c2ca}
+.cat-mauve .iso-roof{fill:#cfb5c7;stroke:#946184}
+.cat-mauve .iso-left{fill:#bb96af;stroke:#946184}
+.cat-mauve .iso-right{fill:#a87a9a;stroke:#946184}
+.cat-mauve.status-planned .iso-face{stroke:#76536b}
+.iso-shadow{fill:#3b2f26;fill-opacity:0.08}
+.iso-hatch line{stroke:#fbf9f6}
+.iso-tag-bg,.iso-label-bg{fill:#fbf9f6;fill-opacity:.9}
+.bb-label.plain{stroke:none}
+.bb-node:not([class*=cat-]) .iso-face{fill:#fffdfa;stroke:#dcdad7}</style>
+<defs><marker id="bb-arrow-data" viewBox="0 0 10 10" refX="8.6" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path class="bb-arrow data" d="M 0 1 L 10 5 L 0 9 z"/></marker><marker id="bb-arrow-control" viewBox="0 0 10 10" refX="8.6" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path class="bb-arrow control" d="M 0 1 L 10 5 L 0 9 z"/></marker><marker id="bb-arrow-failure" viewBox="0 0 10 10" refX="8.6" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path class="bb-arrow failure" d="M 0 1 L 10 5 L 0 9 z"/></marker></defs>
+<rect class="bb-canvas" x="0" y="0" width="1716" height="1249"/>
+<text class="bb-title" x="48" y="100">FlightDeck composition</text>
+<g class="bb-meter" aria-label="83% built"><text class="bb-kicker-top" x="1668" y="52" text-anchor="end">COMPLETION</text><text x="1668" y="96" text-anchor="end"><tspan class="bb-meter-big">83</tspan><tspan class="bb-meter-unit" dx="3">%</tspan></text><path class="bb-meter-track" d="M 1448 110 H 1668"/><path class="bb-meter-solid" d="M 1448 110 H 1631.3"/><path class="bb-meter-part" d="M 1631.3 110 H 1668"/><text class="bb-meta" x="1668" y="132" text-anchor="end">5 built · 1 partial · 0 planned</text></g>
+<polygon class="iso-shadow" points="172.6,235 380.4,355 267.8,420 60,300"/>
+<polygon class="iso-shadow" points="432.4,385 640.2,505 527.7,570 319.8,450"/>
+<polygon class="iso-shadow" points="692.2,535 900,655 787.5,720 579.6,600"/>
+<polygon class="iso-shadow" points="952,685 1159.9,805 1047.3,870 839.4,750"/>
+<polygon class="iso-shadow" points="1211.8,835 1419.7,955 1307.1,1020 1099.2,900"/>
+<polygon class="iso-shadow" points="1471.6,985 1679.5,1105 1566.9,1170 1359,1050"/>
+<g class="bb-node map-item status-implemented" data-id="entry" tabindex="0" role="button" aria-label="Open details for Publish entry points">
+<polygon class="iso-focus" points="48,255 160.6,190 368.4,310 368.4,348 255.8,413 48,293" fill="none" stroke="none"/>
+<polygon class="iso-face iso-left" points="48,255 255.8,375 255.8,413 48,293"/>
+<polygon class="iso-face iso-right" points="368.4,310 255.8,375 255.8,413 368.4,348"/>
+<polygon class="iso-face iso-roof" points="160.6,190 368.4,310 255.8,375 48,255"/>
+</g>
+<g class="bb-node map-item status-implemented" data-id="hooks" tabindex="0" role="button" aria-label="Open details for Ordered pre-render hooks">
+<polygon class="iso-focus" points="307.8,405 420.4,340 628.2,460 628.2,498 515.7,563 307.8,443" fill="none" stroke="none"/>
+<polygon class="iso-face iso-left" points="307.8,405 515.7,525 515.7,563 307.8,443"/>
+<polygon class="iso-face iso-right" points="628.2,460 515.7,525 515.7,563 628.2,498"/>
+<polygon class="iso-face iso-roof" points="420.4,340 628.2,460 515.7,525 307.8,405"/>
+</g>
+<g class="bb-node map-item status-implemented" data-id="sync" tabindex="0" role="button" aria-label="Open details for Collectors and reconciliation">
+<polygon class="iso-focus" points="567.6,555 680.2,490 888,610 888,648 775.5,713 567.6,593" fill="none" stroke="none"/>
+<polygon class="iso-face iso-left" points="567.6,555 775.5,675 775.5,713 567.6,593"/>
+<polygon class="iso-face iso-right" points="888,610 775.5,675 775.5,713 888,648"/>
+<polygon class="iso-face iso-roof" points="680.2,490 888,610 775.5,675 567.6,555"/>
+</g>
+<g class="bb-node map-item status-implemented" data-id="page" tabindex="0" role="button" aria-label="Open details for Dashboard rendering">
+<polygon class="iso-focus" points="827.4,705 940,640 1147.9,760 1147.9,798 1035.3,863 827.4,743" fill="none" stroke="none"/>
+<polygon class="iso-face iso-left" points="827.4,705 1035.3,825 1035.3,863 827.4,743"/>
+<polygon class="iso-face iso-right" points="1147.9,760 1035.3,825 1035.3,863 1147.9,798"/>
+<polygon class="iso-face iso-roof" points="940,640 1147.9,760 1035.3,825 827.4,705"/>
+</g>
+<g class="bb-node map-item status-implemented" data-id="deploy" tabindex="0" role="button" aria-label="Open details for Optional Worker bundle">
+<polygon class="iso-focus" points="1087.2,855 1199.8,790 1407.7,910 1407.7,948 1295.1,1013 1087.2,893" fill="none" stroke="none"/>
+<polygon class="iso-face iso-left" points="1087.2,855 1295.1,975 1295.1,1013 1087.2,893"/>
+<polygon class="iso-face iso-right" points="1407.7,910 1295.1,975 1295.1,1013 1407.7,948"/>
+<polygon class="iso-face iso-roof" points="1199.8,790 1407.7,910 1295.1,975 1087.2,855"/>
+</g>
+<g class="bb-node map-item status-partial" data-id="ci" tabindex="0" role="button" aria-label="Open details for Continuous integration">
+<polygon class="iso-focus" points="1347,1005 1459.6,940 1667.5,1060 1667.5,1098 1554.9,1163 1347,1043" fill="none" stroke="none"/>
+<polygon class="iso-face iso-left" points="1347,1005 1554.9,1125 1554.9,1163 1347,1043"/>
+<polygon class="iso-face iso-right" points="1667.5,1060 1554.9,1125 1554.9,1163 1667.5,1098"/>
+<polygon class="iso-face iso-roof" points="1459.6,940 1667.5,1060 1554.9,1125 1347,1005"/>
+<clipPath id="clip-ci"><polygon class="" points="1459.6,940 1667.5,1060 1554.9,1125 1347,1005"/></clipPath><g class="iso-hatch" clip-path="url(#clip-ci)"><line x1="1162" y1="1125" x2="1347" y2="940"/><line x1="1171" y1="1125" x2="1356" y2="940"/><line x1="1180" y1="1125" x2="1365" y2="940"/><line x1="1189" y1="1125" x2="1374" y2="940"/><line x1="1198" y1="1125" x2="1383" y2="940"/><line x1="1207" y1="1125" x2="1392" y2="940"/><line x1="1216" y1="1125" x2="1401" y2="940"/><line x1="1225" y1="1125" x2="1410" y2="940"/><line x1="1234" y1="1125" x2="1419" y2="940"/><line x1="1243" y1="1125" x2="1428" y2="940"/><line x1="1252" y1="1125" x2="1437" y2="940"/><line x1="1261" y1="1125" x2="1446" y2="940"/><line x1="1270" y1="1125" x2="1455" y2="940"/><line x1="1279" y1="1125" x2="1464" y2="940"/><line x1="1288" y1="1125" x2="1473" y2="940"/><line x1="1297" y1="1125" x2="1482" y2="940"/><line x1="1306" y1="1125" x2="1491" y2="940"/><line x1="1315" y1="1125" x2="1500" y2="940"/><line x1="1324" y1="1125" x2="1509" y2="940"/><line x1="1333" y1="1125" x2="1518" y2="940"/><line x1="1342" y1="1125" x2="1527" y2="940"/><line x1="1351" y1="1125" x2="1536" y2="940"/><line x1="1360" y1="1125" x2="1545" y2="940"/><line x1="1369" y1="1125" x2="1554" y2="940"/><line x1="1378" y1="1125" x2="1563" y2="940"/><line x1="1387" y1="1125" x2="1572" y2="940"/><line x1="1396" y1="1125" x2="1581" y2="940"/><line x1="1405" y1="1125" x2="1590" y2="940"/><line x1="1414" y1="1125" x2="1599" y2="940"/><line x1="1423" y1="1125" x2="1608" y2="940"/><line x1="1432" y1="1125" x2="1617" y2="940"/><line x1="1441" y1="1125" x2="1626" y2="940"/><line x1="1450" y1="1125" x2="1635" y2="940"/><line x1="1459" y1="1125" x2="1644" y2="940"/><line x1="1468" y1="1125" x2="1653" y2="940"/><line x1="1477" y1="1125" x2="1662" y2="940"/><line x1="1486" y1="1125" x2="1671" y2="940"/><line x1="1495" y1="1125" x2="1680" y2="940"/><line x1="1504" y1="1125" x2="1689" y2="940"/><line x1="1513" y1="1125" x2="1698" y2="940"/><line x1="1522" y1="1125" x2="1707" y2="940"/><line x1="1531" y1="1125" x2="1716" y2="940"/><line x1="1540" y1="1125" x2="1725" y2="940"/><line x1="1549" y1="1125" x2="1734" y2="940"/><line x1="1558" y1="1125" x2="1743" y2="940"/><line x1="1567" y1="1125" x2="1752" y2="940"/><line x1="1576" y1="1125" x2="1761" y2="940"/><line x1="1585" y1="1125" x2="1770" y2="940"/><line x1="1594" y1="1125" x2="1779" y2="940"/><line x1="1603" y1="1125" x2="1788" y2="940"/><line x1="1612" y1="1125" x2="1797" y2="940"/><line x1="1621" y1="1125" x2="1806" y2="940"/><line x1="1630" y1="1125" x2="1815" y2="940"/><line x1="1639" y1="1125" x2="1824" y2="940"/><line x1="1648" y1="1125" x2="1833" y2="940"/><line x1="1657" y1="1125" x2="1842" y2="940"/><line x1="1666" y1="1125" x2="1851" y2="940"/></g>
+</g>
+<g class="bb-edges">
+<path class="bb-edge control map-item" d="M 334.7 329.5 L 370.2 350 Q 374.5 352.5 378.8 350 L 416.1 328.5 Q 420.4 326 424.7 328.5 L 1193.8 772.5 Q 1198.1 775 1193.8 777.5 L 1134 812 Q 1129.7 814.5 1134 817 L 1143.5 822.5" marker-end="url(#bb-arrow-control)" data-from="entry" data-to="deploy"/>
+<path class="bb-edge control map-item" d="M 312.1 342.5 L 364.1 372.5" marker-end="url(#bb-arrow-control)" data-from="entry" data-to="hooks"/>
+<path class="bb-edge control map-item" d="M 289.6 355.5 L 325.1 376 Q 329.5 378.5 325.1 381 L 287.9 402.5 Q 283.6 405 287.9 407.5 L 797.1 701.5 Q 801.4 704 805.8 701.5 L 865.5 667 Q 869.9 664.5 874.2 667 L 883.7 672.5" marker-end="url(#bb-arrow-control)" data-from="entry" data-to="page"/>
+<path class="bb-edge control map-item" d="M 571.9 492.5 L 623.9 522.5" marker-end="url(#bb-arrow-control)" data-from="hooks" data-to="sync"/>
+<path class="bb-edge control map-item" d="M 1403.3 972.5 L 1367.8 952 Q 1363.5 949.5 1359.2 952 L 1299.4 986.5 Q 1295.1 989 1290.7 986.5 L 1041.3 842.5 Q 1037 840 1041.3 837.5 L 1101.1 803 Q 1105.4 800.5 1101.1 798 L 1091.6 792.5" marker-end="url(#bb-arrow-control)" data-from="ci" data-to="page"/>
+</g>
+<g class="iso-tag map-item" data-for="entry" pointer-events="none">
+<rect class="iso-tag-bg" x="89.8" y="256.5" width="236.8" height="42" rx="3"/>
+<text class="bb-kicker" x="208.2" y="272.5" text-anchor="middle">2 · B2 P0 L0 · BUILT</text>
+<text class="bb-node-title" x="208.2" y="291.5" text-anchor="middle">Publish entry points</text>
+</g>
+<g class="iso-tag map-item" data-for="hooks" pointer-events="none">
+<rect class="iso-tag-bg" x="328.5" y="406.5" width="279" height="42" rx="3"/>
+<text class="bb-kicker" x="468" y="422.5" text-anchor="middle">17 · B17 P0 L0 · BUILT</text>
+<text class="bb-node-title" x="468" y="441.5" text-anchor="middle">Ordered pre-render hooks</text>
+</g>
+<g class="iso-tag map-item" data-for="sync" pointer-events="none">
+<rect class="iso-tag-bg" x="562" y="556.5" width="331.7" height="42" rx="3"/>
+<text class="bb-kicker" x="727.8" y="572.5" text-anchor="middle">18 · B18 P0 L0 · BUILT</text>
+<text class="bb-node-title" x="727.8" y="591.5" text-anchor="middle">Collectors and reconciliation</text>
+</g>
+<g class="iso-tag map-item" data-for="page" pointer-events="none">
+<rect class="iso-tag-bg" x="874.5" y="706.5" width="226.3" height="42" rx="3"/>
+<text class="bb-kicker" x="987.6" y="722.5" text-anchor="middle">3 · B3 P0 L0 · BUILT</text>
+<text class="bb-node-title" x="987.6" y="741.5" text-anchor="middle">Dashboard rendering</text>
+</g>
+<g class="iso-tag map-item" data-for="deploy" pointer-events="none">
+<rect class="iso-tag-bg" x="1118.5" y="856.5" width="257.9" height="42" rx="3"/>
+<text class="bb-kicker" x="1247.4" y="872.5" text-anchor="middle">3 · B3 P0 L0 · BUILT</text>
+<text class="bb-node-title" x="1247.4" y="891.5" text-anchor="middle">Optional Worker bundle</text>
+</g>
+<g class="iso-tag map-item" data-for="ci" pointer-events="none">
+<rect class="iso-tag-bg" x="1378.3" y="1006.5" width="257.9" height="42" rx="3"/>
+<text class="bb-kicker" x="1507.3" y="1022.5" text-anchor="middle">7 · B6 P1 L0 · PARTIAL</text>
+<text class="bb-node-title" x="1507.3" y="1041.5" text-anchor="middle">Continuous integration</text>
+</g>
+<g class="bb-legend" aria-label="Legend"><path class="bb-rule" d="M 40 1197 H 1676"/><text class="bb-legend-text" x="48" y="1219">Built = solid</text><text class="bb-legend-text" x="148.225" y="1219">Partial = hatched roof</text><text class="bb-legend-text" x="305.375" y="1219">Planned = wireframe</text></g>
+</svg>
+</div></section><section class="panel" data-group="entry" hidden><button type="button" class="back">← Overview</button><h2>Publish entry points · built · 2 components</h2><div class="map"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 677 649" width="677" height="649" role="group" aria-labelledby="bb-t">
+<title id="bb-t">Publish entry points</title>
+<style>
+text{font-family:Geist,"Geist Sans",ui-sans-serif,system-ui,-apple-system,"Segoe UI",Helvetica,Arial,sans-serif;font-variant-numeric:tabular-nums}
+.bb-title{font-size:36px;font-weight:300;letter-spacing:-.015em}
+.bb-subtitle{font-size:14px;font-weight:400}
+.bb-kicker-top{font-size:10.5px;font-weight:500;letter-spacing:2.6px}
+.bb-meta{font-size:11px;font-weight:400;letter-spacing:.03em}
+.bb-meter-big{font-size:42px;font-weight:300;letter-spacing:-.02em}
+.bb-meter-unit{font-size:17px;font-weight:300}
+.bb-meter-track{stroke-width:1;fill:none}
+.bb-meter-solid,.bb-meter-part{stroke-width:3;fill:none}
+.bb-meter-part{stroke-dasharray:2 3}
+.bb-rule{stroke-width:1;fill:none}
+.bb-zone{stroke-width:1}
+.bb-zone-kicker{font-size:10.5px;font-weight:500;letter-spacing:2.6px}
+.bb-zone-title{font-size:21px;font-weight:400;letter-spacing:-.005em}
+.bb-zone-sub{font-size:11.5px}
+.bb-node-box{stroke-width:1}
+.bb-node.status-planned .bb-node-box{stroke-dasharray:4 4}
+.bb-kicker{font-size:10.5px;font-weight:500;letter-spacing:2.4px}
+.bb-node-title{font-size:17px;font-weight:500;letter-spacing:-.005em}
+.bb-copy{font-size:13.5px;font-weight:400}
+.bb-hint{font-size:11.5px;font-weight:400;letter-spacing:.02em}
+.bb-status-text{font-size:9.5px;font-weight:600;letter-spacing:1.9px}
+.bb-dot{stroke-width:1.1;fill:none}
+.bb-edge{fill:none;stroke-width:1.25;stroke-linejoin:round;stroke-linecap:round}
+.bb-edge.control{stroke-dasharray:3 4}
+.bb-edge.failure{stroke-dasharray:.1 4.5;stroke-width:1.8}
+.bb-edge.is-planned{opacity:.4}
+.bb-label{font-size:11.5px;font-weight:500;letter-spacing:.02em;paint-order:stroke;stroke-width:6px;stroke-linejoin:round}
+.bb-legend-text{font-size:12px;font-weight:400}
+.bb-finding-text{font-size:9px;font-weight:600;letter-spacing:1.6px}
+.iso-face{stroke-width:.8;stroke-linejoin:round}
+.bb-node.status-planned .iso-face{fill:none;stroke-dasharray:4 4;stroke-width:1}
+.iso-hatch line{stroke-width:.8;opacity:.45}
+.iso-label-knockout{paint-order:stroke;stroke-width:6px;stroke-linejoin:round}
+.bb-canvas{fill:#fbf9f6}
+.bb-title,.bb-zone-title,.bb-node-title,.bb-meter-big,.bb-meter-unit{fill:#2f2a27}
+.bb-subtitle,.bb-copy,.bb-hint,.bb-legend-text,.bb-meta,.bb-kicker,.bb-zone-kicker,.bb-kicker-top,.bb-zone-sub{fill:#716961}
+.bb-rule,.bb-meter-track{stroke:#dcdad7}
+.bb-meter-solid{stroke:#2f2a27}
+.bb-meter-part{stroke:#716961}
+.bb-zone{fill:#f5f3f0;stroke:#dcdad7}
+.bb-node-box{fill:#fffdfa;stroke:#dcdad7}
+.bb-node.status-planned .bb-node-box{fill:none;stroke:#c2bfbc}
+.bb-node.status-planned .bb-node-title{fill:#716961}
+.bb-status-text{fill:#716961}
+.bb-status.is-implemented .bb-status-text{fill:#716961}
+.bb-dot{stroke:#716961}
+.bb-dot-fill{fill:#716961}
+.bb-status.is-implemented .bb-dot{stroke:#2f2a27}
+.bb-status.is-implemented .bb-dot-fill{fill:#2f2a27}
+.bb-edge.data{stroke:#888079}
+.bb-edge.control{stroke:#747c86}
+.bb-edge.failure{stroke:#9b4a36}
+.bb-arrow.data{fill:#888079}
+.bb-arrow.control{fill:#747c86}
+.bb-arrow.failure{fill:#9b4a36}
+.bb-label,.iso-label-knockout{stroke:#fbf9f6}
+.bb-label.data{fill:#716961}
+.bb-label.control{fill:#4c535c}
+.bb-label.failure{fill:#9b4a36}
+.bb-flow{stroke:#2f2a27;stroke-opacity:.55}
+.bb-finding-text,.bb-finding-inline{fill:#9b4a36}
+.bb-node.has-finding .bb-node-box{stroke:#9b4a36}
+.bb-pseudo-fill{fill:#2f2a27}
+.bb-pseudo-ring{fill:#fbf9f6;stroke:#2f2a27;stroke-width:1.3}
+.bb-pseudo-choice{fill:#fffdfa}
+.bb-node.is-selected .bb-node-box,.bb-node[tabindex]:focus .bb-node-box{stroke:#2f2a27}
+.cat-sage .bb-mark,.bb-mark.cat-sage{fill:#427f61}
+.cat-sage .bb-kicker,.cat-sage .bb-zone-kicker{fill:#477d61}
+.cat-sage .bb-node-box{fill:#eaefe9;stroke:#b7cdc0}
+.cat-sage.status-planned .bb-node-box{fill:none;stroke:#9fbcac}
+.bb-zone.cat-sage{fill:#f0f2ed;stroke:#c0d2c6}
+.cat-sage .iso-roof{fill:#afd5c2;stroke:#54a17b}
+.cat-sage .iso-left{fill:#8dc3a9;stroke:#54a17b}
+.cat-sage .iso-right{fill:#6fb492;stroke:#54a17b}
+.cat-sage.status-planned .iso-face{stroke:#3d8461}
+.cat-rust .bb-mark,.bb-mark.cat-rust{fill:#995d3f}
+.cat-rust .bb-kicker,.cat-rust .bb-zone-kicker{fill:#955e42}
+.cat-rust .bb-node-box{fill:#f4ebe5;stroke:#d8c0b3}
+.cat-rust.status-planned .bb-node-box{fill:none;stroke:#caab9b}
+.bb-zone.cat-rust{fill:#f5f0eb;stroke:#dcc7bb}
+.cat-rust .iso-roof{fill:#d6bbae;stroke:#a36d52}
+.cat-rust .iso-left{fill:#c59f8c;stroke:#a36d52}
+.cat-rust .iso-right{fill:#b6866d;stroke:#a36d52}
+.cat-rust.status-planned .iso-face{stroke:#b9531f}
+.cat-peach .bb-mark,.bb-mark.cat-peach{fill:#a76644}
+.cat-peach .bb-kicker,.cat-peach .bb-zone-kicker{fill:#a26647}
+.cat-peach .bb-node-box{fill:#f5ece6;stroke:#dec4b5}
+.cat-peach.status-planned .bb-node-box{fill:none;stroke:#d1b09d}
+.bb-zone.cat-peach{fill:#f6f0eb;stroke:#e0cabd}
+.cat-peach .iso-roof{fill:#d6bcae;stroke:#a36e52}
+.cat-peach .iso-left{fill:#c59f8c;stroke:#a36e52}
+.cat-peach .iso-right{fill:#b6866d;stroke:#a36e52}
+.cat-peach.status-planned .iso-face{stroke:#b4643a}
+.cat-mustard .bb-mark,.bb-mark.cat-mustard{fill:#7d6a33}
+.cat-mustard .bb-kicker,.cat-mustard .bb-zone-kicker{fill:#7c6a38}
+.cat-mustard .bb-node-box{fill:#f1ede4;stroke:#cec5ae}
+.cat-mustard.status-planned .bb-node-box{fill:none;stroke:#bcb295}
+.bb-zone.cat-mustard{fill:#f3f0ea;stroke:#d3cbb8}
+.cat-mustard .iso-roof{fill:#d6cbae;stroke:#a38e52}
+.cat-mustard .iso-left{fill:#c5b68c;stroke:#a38e52}
+.cat-mustard .iso-right{fill:#b6a36d;stroke:#a38e52}
+.cat-mustard.status-planned .iso-face{stroke:#8a7026}
+.cat-slate .bb-mark,.bb-mark.cat-slate{fill:#4a5c73}
+.cat-slate .bb-kicker,.cat-slate .bb-zone-kicker{fill:#4e5d71}
+.cat-slate .bb-node-box{fill:#ebebeb;stroke:#bac0c7}
+.cat-slate.status-planned .bb-node-box{fill:none;stroke:#a3abb5}
+.bb-zone.cat-slate{fill:#f0f0ee;stroke:#c2c7cc}
+.cat-slate .iso-roof{fill:#b5c1cf;stroke:#617894}
+.cat-slate .iso-left{fill:#96a7bb;stroke:#617894}
+.cat-slate .iso-right{fill:#7a8fa8;stroke:#617894}
+.cat-slate.status-planned .iso-face{stroke:#4f5d6e}
+.cat-mauve .bb-mark,.bb-mark.cat-mauve{fill:#7b4e6d}
+.cat-mauve .bb-kicker,.cat-mauve .bb-zone-kicker{fill:#7a516c}
+.cat-mauve .bb-node-box{fill:#f0eaea;stroke:#cdbbc4}
+.cat-mauve.status-planned .bb-node-box{fill:none;stroke:#bba4b2}
+.bb-zone.cat-mauve{fill:#f3efee;stroke:#d2c2ca}
+.cat-mauve .iso-roof{fill:#cfb5c7;stroke:#946184}
+.cat-mauve .iso-left{fill:#bb96af;stroke:#946184}
+.cat-mauve .iso-right{fill:#a87a9a;stroke:#946184}
+.cat-mauve.status-planned .iso-face{stroke:#76536b}
+.iso-shadow{fill:#3b2f26;fill-opacity:0.08}
+.iso-hatch line{stroke:#fbf9f6}
+.iso-tag-bg,.iso-label-bg{fill:#fbf9f6;fill-opacity:.9}
+.bb-label.plain{stroke:none}
+.bb-node:not([class*=cat-]) .iso-face{fill:#fffdfa;stroke:#dcdad7}</style>
+<defs><marker id="bb-arrow-data" viewBox="0 0 10 10" refX="8.6" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path class="bb-arrow data" d="M 0 1 L 10 5 L 0 9 z"/></marker><marker id="bb-arrow-control" viewBox="0 0 10 10" refX="8.6" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path class="bb-arrow control" d="M 0 1 L 10 5 L 0 9 z"/></marker><marker id="bb-arrow-failure" viewBox="0 0 10 10" refX="8.6" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path class="bb-arrow failure" d="M 0 1 L 10 5 L 0 9 z"/></marker></defs>
+<rect class="bb-canvas" x="0" y="0" width="677" height="649"/>
+<text class="bb-title" x="48" y="100">Publish entry points</text>
+<g class="bb-meter" aria-label="100% built"><text class="bb-kicker-top" x="629" y="52" text-anchor="end">COMPLETION</text><text x="629" y="96" text-anchor="end"><tspan class="bb-meter-big">100</tspan><tspan class="bb-meter-unit" dx="3">%</tspan></text><path class="bb-meter-track" d="M 409 110 H 629"/><path class="bb-meter-solid" d="M 409 110 H 629"/><text class="bb-meta" x="629" y="132" text-anchor="end">2 built · 0 partial · 0 planned</text></g>
+<polygon class="iso-shadow" points="172.6,235 380.4,355 267.8,420 60,300"/>
+<polygon class="iso-shadow" points="432.4,385 640.2,505 527.7,570 319.8,450"/>
+<g class="bb-node map-item status-implemented" data-id="publish" tabindex="0" role="button" aria-label="Open details for Publish selector">
+<polygon class="iso-focus" points="48,255 160.6,190 368.4,310 368.4,348 255.8,413 48,293" fill="none" stroke="none"/>
+<polygon class="iso-face iso-left" points="48,255 255.8,375 255.8,413 48,293"/>
+<polygon class="iso-face iso-right" points="368.4,310 255.8,375 255.8,413 368.4,348"/>
+<polygon class="iso-face iso-roof" points="160.6,190 368.4,310 255.8,375 48,255"/>
+</g>
+<g class="bb-node map-item status-implemented" data-id="local" tabindex="0" role="button" aria-label="Open details for Local publish">
+<polygon class="iso-focus" points="307.8,405 420.4,340 628.2,460 628.2,498 515.7,563 307.8,443" fill="none" stroke="none"/>
+<polygon class="iso-face iso-left" points="307.8,405 515.7,525 515.7,563 307.8,443"/>
+<polygon class="iso-face iso-right" points="628.2,460 515.7,525 515.7,563 628.2,498"/>
+<polygon class="iso-face iso-roof" points="420.4,340 628.2,460 515.7,525 307.8,405"/>
+</g>
+<g class="bb-edges">
+<path class="bb-edge control map-item" d="M 312.1 342.5 L 364.1 372.5" marker-end="url(#bb-arrow-control)" data-from="publish" data-to="local"/>
+<g class="bb-edge-label map-item"><rect class="iso-label-bg" x="336.3" y="353.5" width="19.1" height="17" rx="3"/><text class="bb-label control plain" x="345.9" y="365.6" text-anchor="middle">1</text></g>
+</g>
+<g class="iso-tag map-item" data-for="publish" pointer-events="none">
+<rect class="iso-tag-bg" x="110.9" y="256.5" width="194.6" height="42" rx="3"/>
+<text class="bb-kicker" x="208.2" y="272.5" text-anchor="middle">WORKFLOW · BUILT</text>
+<text class="bb-node-title" x="208.2" y="291.5" text-anchor="middle">Publish selector</text>
+</g>
+<g class="iso-tag map-item" data-for="local" pointer-events="none">
+<rect class="iso-tag-bg" x="386.5" y="406.5" width="163" height="42" rx="3"/>
+<text class="bb-kicker" x="468" y="422.5" text-anchor="middle">PLAYBOOK · BUILT</text>
+<text class="bb-node-title" x="468" y="441.5" text-anchor="middle">Local publish</text>
+</g>
+<g class="bb-legend" aria-label="Legend"><path class="bb-rule" d="M 40 597 H 637"/><text class="bb-legend-text" x="48" y="619">Built = solid</text><text class="bb-legend-text" x="148.225" y="619">Partial = hatched roof</text><text class="bb-legend-text" x="305.375" y="619">Planned = wireframe</text></g>
+</svg>
+</div><ul class="purposes"><li><strong>Publish selector</strong> · Choose local build by default or opt-in Cloudflare deployment. · built</li><li><strong>Local publish</strong> · Run pre-render hooks, render the demo and copy its assets. · built</li></ul><ol class="connections"><li data-from="publish" data-to="local">publish → local · step 1</li><li data-from="publish" data-to="cloud">publish → cloud · step 2 · other group</li><li data-from="local" data-to="runner">local → runner · step 1 · other group</li><li data-from="local" data-to="demo-config">local → demo-config · step 2 · other group</li><li data-from="local" data-to="demo-data">local → demo-data · step 3 · other group</li><li data-from="local" data-to="renderer">local → renderer · step 4 · other group</li></ol></section>
+<section class="panel" data-group="hooks" hidden><button type="button" class="back">← Overview</button><h2>Ordered pre-render hooks · built · 17 components</h2><div class="map"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 4577 2902" width="4577" height="2902" role="group" aria-labelledby="bb-t">
+<title id="bb-t">Ordered pre-render hooks</title>
+<style>
+text{font-family:Geist,"Geist Sans",ui-sans-serif,system-ui,-apple-system,"Segoe UI",Helvetica,Arial,sans-serif;font-variant-numeric:tabular-nums}
+.bb-title{font-size:36px;font-weight:300;letter-spacing:-.015em}
+.bb-subtitle{font-size:14px;font-weight:400}
+.bb-kicker-top{font-size:10.5px;font-weight:500;letter-spacing:2.6px}
+.bb-meta{font-size:11px;font-weight:400;letter-spacing:.03em}
+.bb-meter-big{font-size:42px;font-weight:300;letter-spacing:-.02em}
+.bb-meter-unit{font-size:17px;font-weight:300}
+.bb-meter-track{stroke-width:1;fill:none}
+.bb-meter-solid,.bb-meter-part{stroke-width:3;fill:none}
+.bb-meter-part{stroke-dasharray:2 3}
+.bb-rule{stroke-width:1;fill:none}
+.bb-zone{stroke-width:1}
+.bb-zone-kicker{font-size:10.5px;font-weight:500;letter-spacing:2.6px}
+.bb-zone-title{font-size:21px;font-weight:400;letter-spacing:-.005em}
+.bb-zone-sub{font-size:11.5px}
+.bb-node-box{stroke-width:1}
+.bb-node.status-planned .bb-node-box{stroke-dasharray:4 4}
+.bb-kicker{font-size:10.5px;font-weight:500;letter-spacing:2.4px}
+.bb-node-title{font-size:17px;font-weight:500;letter-spacing:-.005em}
+.bb-copy{font-size:13.5px;font-weight:400}
+.bb-hint{font-size:11.5px;font-weight:400;letter-spacing:.02em}
+.bb-status-text{font-size:9.5px;font-weight:600;letter-spacing:1.9px}
+.bb-dot{stroke-width:1.1;fill:none}
+.bb-edge{fill:none;stroke-width:1.25;stroke-linejoin:round;stroke-linecap:round}
+.bb-edge.control{stroke-dasharray:3 4}
+.bb-edge.failure{stroke-dasharray:.1 4.5;stroke-width:1.8}
+.bb-edge.is-planned{opacity:.4}
+.bb-label{font-size:11.5px;font-weight:500;letter-spacing:.02em;paint-order:stroke;stroke-width:6px;stroke-linejoin:round}
+.bb-legend-text{font-size:12px;font-weight:400}
+.bb-finding-text{font-size:9px;font-weight:600;letter-spacing:1.6px}
+.iso-face{stroke-width:.8;stroke-linejoin:round}
+.bb-node.status-planned .iso-face{fill:none;stroke-dasharray:4 4;stroke-width:1}
+.iso-hatch line{stroke-width:.8;opacity:.45}
+.iso-label-knockout{paint-order:stroke;stroke-width:6px;stroke-linejoin:round}
+.bb-canvas{fill:#fbf9f6}
+.bb-title,.bb-zone-title,.bb-node-title,.bb-meter-big,.bb-meter-unit{fill:#2f2a27}
+.bb-subtitle,.bb-copy,.bb-hint,.bb-legend-text,.bb-meta,.bb-kicker,.bb-zone-kicker,.bb-kicker-top,.bb-zone-sub{fill:#716961}
+.bb-rule,.bb-meter-track{stroke:#dcdad7}
+.bb-meter-solid{stroke:#2f2a27}
+.bb-meter-part{stroke:#716961}
+.bb-zone{fill:#f5f3f0;stroke:#dcdad7}
+.bb-node-box{fill:#fffdfa;stroke:#dcdad7}
+.bb-node.status-planned .bb-node-box{fill:none;stroke:#c2bfbc}
+.bb-node.status-planned .bb-node-title{fill:#716961}
+.bb-status-text{fill:#716961}
+.bb-status.is-implemented .bb-status-text{fill:#716961}
+.bb-dot{stroke:#716961}
+.bb-dot-fill{fill:#716961}
+.bb-status.is-implemented .bb-dot{stroke:#2f2a27}
+.bb-status.is-implemented .bb-dot-fill{fill:#2f2a27}
+.bb-edge.data{stroke:#888079}
+.bb-edge.control{stroke:#747c86}
+.bb-edge.failure{stroke:#9b4a36}
+.bb-arrow.data{fill:#888079}
+.bb-arrow.control{fill:#747c86}
+.bb-arrow.failure{fill:#9b4a36}
+.bb-label,.iso-label-knockout{stroke:#fbf9f6}
+.bb-label.data{fill:#716961}
+.bb-label.control{fill:#4c535c}
+.bb-label.failure{fill:#9b4a36}
+.bb-flow{stroke:#2f2a27;stroke-opacity:.55}
+.bb-finding-text,.bb-finding-inline{fill:#9b4a36}
+.bb-node.has-finding .bb-node-box{stroke:#9b4a36}
+.bb-pseudo-fill{fill:#2f2a27}
+.bb-pseudo-ring{fill:#fbf9f6;stroke:#2f2a27;stroke-width:1.3}
+.bb-pseudo-choice{fill:#fffdfa}
+.bb-node.is-selected .bb-node-box,.bb-node[tabindex]:focus .bb-node-box{stroke:#2f2a27}
+.cat-sage .bb-mark,.bb-mark.cat-sage{fill:#427f61}
+.cat-sage .bb-kicker,.cat-sage .bb-zone-kicker{fill:#477d61}
+.cat-sage .bb-node-box{fill:#eaefe9;stroke:#b7cdc0}
+.cat-sage.status-planned .bb-node-box{fill:none;stroke:#9fbcac}
+.bb-zone.cat-sage{fill:#f0f2ed;stroke:#c0d2c6}
+.cat-sage .iso-roof{fill:#afd5c2;stroke:#54a17b}
+.cat-sage .iso-left{fill:#8dc3a9;stroke:#54a17b}
+.cat-sage .iso-right{fill:#6fb492;stroke:#54a17b}
+.cat-sage.status-planned .iso-face{stroke:#3d8461}
+.cat-rust .bb-mark,.bb-mark.cat-rust{fill:#995d3f}
+.cat-rust .bb-kicker,.cat-rust .bb-zone-kicker{fill:#955e42}
+.cat-rust .bb-node-box{fill:#f4ebe5;stroke:#d8c0b3}
+.cat-rust.status-planned .bb-node-box{fill:none;stroke:#caab9b}
+.bb-zone.cat-rust{fill:#f5f0eb;stroke:#dcc7bb}
+.cat-rust .iso-roof{fill:#d6bbae;stroke:#a36d52}
+.cat-rust .iso-left{fill:#c59f8c;stroke:#a36d52}
+.cat-rust .iso-right{fill:#b6866d;stroke:#a36d52}
+.cat-rust.status-planned .iso-face{stroke:#b9531f}
+.cat-peach .bb-mark,.bb-mark.cat-peach{fill:#a76644}
+.cat-peach .bb-kicker,.cat-peach .bb-zone-kicker{fill:#a26647}
+.cat-peach .bb-node-box{fill:#f5ece6;stroke:#dec4b5}
+.cat-peach.status-planned .bb-node-box{fill:none;stroke:#d1b09d}
+.bb-zone.cat-peach{fill:#f6f0eb;stroke:#e0cabd}
+.cat-peach .iso-roof{fill:#d6bcae;stroke:#a36e52}
+.cat-peach .iso-left{fill:#c59f8c;stroke:#a36e52}
+.cat-peach .iso-right{fill:#b6866d;stroke:#a36e52}
+.cat-peach.status-planned .iso-face{stroke:#b4643a}
+.cat-mustard .bb-mark,.bb-mark.cat-mustard{fill:#7d6a33}
+.cat-mustard .bb-kicker,.cat-mustard .bb-zone-kicker{fill:#7c6a38}
+.cat-mustard .bb-node-box{fill:#f1ede4;stroke:#cec5ae}
+.cat-mustard.status-planned .bb-node-box{fill:none;stroke:#bcb295}
+.bb-zone.cat-mustard{fill:#f3f0ea;stroke:#d3cbb8}
+.cat-mustard .iso-roof{fill:#d6cbae;stroke:#a38e52}
+.cat-mustard .iso-left{fill:#c5b68c;stroke:#a38e52}
+.cat-mustard .iso-right{fill:#b6a36d;stroke:#a38e52}
+.cat-mustard.status-planned .iso-face{stroke:#8a7026}
+.cat-slate .bb-mark,.bb-mark.cat-slate{fill:#4a5c73}
+.cat-slate .bb-kicker,.cat-slate .bb-zone-kicker{fill:#4e5d71}
+.cat-slate .bb-node-box{fill:#ebebeb;stroke:#bac0c7}
+.cat-slate.status-planned .bb-node-box{fill:none;stroke:#a3abb5}
+.bb-zone.cat-slate{fill:#f0f0ee;stroke:#c2c7cc}
+.cat-slate .iso-roof{fill:#b5c1cf;stroke:#617894}
+.cat-slate .iso-left{fill:#96a7bb;stroke:#617894}
+.cat-slate .iso-right{fill:#7a8fa8;stroke:#617894}
+.cat-slate.status-planned .iso-face{stroke:#4f5d6e}
+.cat-mauve .bb-mark,.bb-mark.cat-mauve{fill:#7b4e6d}
+.cat-mauve .bb-kicker,.cat-mauve .bb-zone-kicker{fill:#7a516c}
+.cat-mauve .bb-node-box{fill:#f0eaea;stroke:#cdbbc4}
+.cat-mauve.status-planned .bb-node-box{fill:none;stroke:#bba4b2}
+.bb-zone.cat-mauve{fill:#f3efee;stroke:#d2c2ca}
+.cat-mauve .iso-roof{fill:#cfb5c7;stroke:#946184}
+.cat-mauve .iso-left{fill:#bb96af;stroke:#946184}
+.cat-mauve .iso-right{fill:#a87a9a;stroke:#946184}
+.cat-mauve.status-planned .iso-face{stroke:#76536b}
+.iso-shadow{fill:#3b2f26;fill-opacity:0.08}
+.iso-hatch line{stroke:#fbf9f6}
+.iso-tag-bg,.iso-label-bg{fill:#fbf9f6;fill-opacity:.9}
+.bb-label.plain{stroke:none}
+.bb-node:not([class*=cat-]) .iso-face{fill:#fffdfa;stroke:#dcdad7}</style>
+<defs><marker id="bb-arrow-data" viewBox="0 0 10 10" refX="8.6" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path class="bb-arrow data" d="M 0 1 L 10 5 L 0 9 z"/></marker><marker id="bb-arrow-control" viewBox="0 0 10 10" refX="8.6" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path class="bb-arrow control" d="M 0 1 L 10 5 L 0 9 z"/></marker><marker id="bb-arrow-failure" viewBox="0 0 10 10" refX="8.6" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path class="bb-arrow failure" d="M 0 1 L 10 5 L 0 9 z"/></marker></defs>
+<rect class="bb-canvas" x="0" y="0" width="4577" height="2902"/>
+<text class="bb-title" x="48" y="100">Ordered pre-render hooks</text>
+<g class="bb-meter" aria-label="100% built"><text class="bb-kicker-top" x="4529" y="52" text-anchor="end">COMPLETION</text><text x="4529" y="96" text-anchor="end"><tspan class="bb-meter-big">100</tspan><tspan class="bb-meter-unit" dx="3">%</tspan></text><path class="bb-meter-track" d="M 4309 110 H 4529"/><path class="bb-meter-solid" d="M 4309 110 H 4529"/><text class="bb-meta" x="4529" y="132" text-anchor="end">17 built · 0 partial · 0 planned</text></g>
+<polygon class="iso-shadow" points="172.6,235 380.4,355 267.8,420 60,300"/>
+<polygon class="iso-shadow" points="432.6,385.1 640.5,505.1 527.9,570.1 320,450.1"/>
+<polygon class="iso-shadow" points="692.6,535.3 900.5,655.3 787.9,720.3 580.1,600.3"/>
+<polygon class="iso-shadow" points="952.7,685.4 1160.5,805.4 1047.9,870.4 840.1,750.4"/>
+<polygon class="iso-shadow" points="1212.7,835.5 1420.6,955.5 1308,1020.5 1100.1,900.5"/>
+<polygon class="iso-shadow" points="1472.7,985.7 1680.6,1105.6 1568,1170.6 1360.2,1050.6"/>
+<polygon class="iso-shadow" points="1732.8,1135.8 1940.6,1255.8 1828,1320.8 1620.2,1200.8"/>
+<polygon class="iso-shadow" points="1992.8,1285.9 2200.7,1405.9 2088.1,1470.9 1880.2,1350.9"/>
+<polygon class="iso-shadow" points="2252.8,1436 2460.7,1556 2348.1,1621 2140.3,1501"/>
+<polygon class="iso-shadow" points="2512.9,1586.2 2720.7,1706.2 2608.1,1771.2 2400.3,1651.2"/>
+<polygon class="iso-shadow" points="2772.9,1736.3 2980.8,1856.3 2868.2,1921.3 2660.3,1801.3"/>
+<polygon class="iso-shadow" points="3032.9,1886.4 3240.8,2006.4 3128.2,2071.4 2920.4,1951.4"/>
+<polygon class="iso-shadow" points="3293,2036.6 3500.8,2156.6 3388.2,2221.6 3180.4,2101.6"/>
+<polygon class="iso-shadow" points="3553,2186.7 3760.9,2306.7 3648.3,2371.7 3440.4,2251.7"/>
+<polygon class="iso-shadow" points="3813,2336.8 4020.9,2456.8 3908.3,2521.8 3700.5,2401.8"/>
+<polygon class="iso-shadow" points="4073.1,2486.9 4280.9,2606.9 4168.3,2671.9 3960.5,2551.9"/>
+<polygon class="iso-shadow" points="4333.1,2637.1 4541,2757.1 4428.4,2822.1 4220.5,2702.1"/>
+<g class="bb-node map-item status-implemented" data-id="pre" tabindex="0" role="button" aria-label="Open details for Pre-render sequence">
+<polygon class="iso-focus" points="48,255 160.6,190 368.4,310 368.4,348 255.8,413 48,293" fill="none" stroke="none"/>
+<polygon class="iso-face iso-left" points="48,255 255.8,375 255.8,413 48,293"/>
+<polygon class="iso-face iso-right" points="368.4,310 255.8,375 255.8,413 368.4,348"/>
+<polygon class="iso-face iso-roof" points="160.6,190 368.4,310 255.8,375 48,255"/>
+</g>
+<g class="bb-node map-item status-implemented" data-id="activity" tabindex="0" role="button" aria-label="Open details for Collect activity">
+<polygon class="iso-focus" points="308,405.1 420.6,340.1 628.5,460.1 628.5,498.1 515.9,563.1 308,443.1" fill="none" stroke="none"/>
+<polygon class="iso-face iso-left" points="308,405.1 515.9,525.1 515.9,563.1 308,443.1"/>
+<polygon class="iso-face iso-right" points="628.5,460.1 515.9,525.1 515.9,563.1 628.5,498.1"/>
+<polygon class="iso-face iso-roof" points="420.6,340.1 628.5,460.1 515.9,525.1 308,405.1"/>
+</g>
+<g class="bb-node map-item status-implemented" data-id="prcache" tabindex="0" role="button" aria-label="Open details for Refresh PR cache">
+<polygon class="iso-focus" points="568.1,555.3 680.6,490.3 888.5,610.3 888.5,648.3 775.9,713.3 568.1,593.3" fill="none" stroke="none"/>
+<polygon class="iso-face iso-left" points="568.1,555.3 775.9,675.3 775.9,713.3 568.1,593.3"/>
+<polygon class="iso-face iso-right" points="888.5,610.3 775.9,675.3 775.9,713.3 888.5,648.3"/>
+<polygon class="iso-face iso-roof" points="680.6,490.3 888.5,610.3 775.9,675.3 568.1,555.3"/>
+</g>
+<g class="bb-node map-item status-implemented" data-id="repo" tabindex="0" role="button" aria-label="Open details for Collect repo evidence">
+<polygon class="iso-focus" points="828.1,705.4 940.7,640.4 1148.5,760.4 1148.5,798.4 1035.9,863.4 828.1,743.4" fill="none" stroke="none"/>
+<polygon class="iso-face iso-left" points="828.1,705.4 1035.9,825.4 1035.9,863.4 828.1,743.4"/>
+<polygon class="iso-face iso-right" points="1148.5,760.4 1035.9,825.4 1035.9,863.4 1148.5,798.4"/>
+<polygon class="iso-face iso-roof" points="940.7,640.4 1148.5,760.4 1035.9,825.4 828.1,705.4"/>
+</g>
+<g class="bb-node map-item status-implemented" data-id="cluster" tabindex="0" role="button" aria-label="Open details for Collect cluster">
+<polygon class="iso-focus" points="1088.1,855.5 1200.7,790.5 1408.6,910.5 1408.6,948.5 1296,1013.5 1088.1,893.5" fill="none" stroke="none"/>
+<polygon class="iso-face iso-left" points="1088.1,855.5 1296,975.5 1296,1013.5 1088.1,893.5"/>
+<polygon class="iso-face iso-right" points="1408.6,910.5 1296,975.5 1296,1013.5 1408.6,948.5"/>
+<polygon class="iso-face iso-roof" points="1200.7,790.5 1408.6,910.5 1296,975.5 1088.1,855.5"/>
+</g>
+<g class="bb-node map-item status-implemented" data-id="sidecars" tabindex="0" role="button" aria-label="Open details for Merge sidecars">
+<polygon class="iso-focus" points="1348.2,1005.7 1460.7,940.7 1668.6,1060.6 1668.6,1098.6 1556,1163.6 1348.2,1043.6" fill="none" stroke="none"/>
+<polygon class="iso-face iso-left" points="1348.2,1005.7 1556,1125.6 1556,1163.6 1348.2,1043.6"/>
+<polygon class="iso-face iso-right" points="1668.6,1060.6 1556,1125.6 1556,1163.6 1668.6,1098.6"/>
+<polygon class="iso-face iso-roof" points="1460.7,940.7 1668.6,1060.6 1556,1125.6 1348.2,1005.7"/>
+</g>
+<g class="bb-node map-item status-implemented" data-id="responses" tabindex="0" role="button" aria-label="Open details for Reconcile responses">
+<polygon class="iso-focus" points="1608.2,1155.8 1720.8,1090.8 1928.6,1210.8 1928.6,1248.8 1816,1313.8 1608.2,1193.8" fill="none" stroke="none"/>
+<polygon class="iso-face iso-left" points="1608.2,1155.8 1816,1275.8 1816,1313.8 1608.2,1193.8"/>
+<polygon class="iso-face iso-right" points="1928.6,1210.8 1816,1275.8 1816,1313.8 1928.6,1248.8"/>
+<polygon class="iso-face iso-roof" points="1720.8,1090.8 1928.6,1210.8 1816,1275.8 1608.2,1155.8"/>
+</g>
+<g class="bb-node map-item status-implemented" data-id="inflight" tabindex="0" role="button" aria-label="Open details for Reconcile inflight">
+<polygon class="iso-focus" points="1868.2,1305.9 1980.8,1240.9 2188.7,1360.9 2188.7,1398.9 2076.1,1463.9 1868.2,1343.9" fill="none" stroke="none"/>
+<polygon class="iso-face iso-left" points="1868.2,1305.9 2076.1,1425.9 2076.1,1463.9 1868.2,1343.9"/>
+<polygon class="iso-face iso-right" points="2188.7,1360.9 2076.1,1425.9 2076.1,1463.9 2188.7,1398.9"/>
+<polygon class="iso-face iso-roof" points="1980.8,1240.9 2188.7,1360.9 2076.1,1425.9 1868.2,1305.9"/>
+</g>
+<g class="bb-node map-item status-implemented" data-id="merges" tabindex="0" role="button" aria-label="Open details for Reconcile merges">
+<polygon class="iso-focus" points="2128.3,1456 2240.8,1391 2448.7,1511 2448.7,1549 2336.1,1614 2128.3,1494" fill="none" stroke="none"/>
+<polygon class="iso-face iso-left" points="2128.3,1456 2336.1,1576 2336.1,1614 2128.3,1494"/>
+<polygon class="iso-face iso-right" points="2448.7,1511 2336.1,1576 2336.1,1614 2448.7,1549"/>
+<polygon class="iso-face iso-roof" points="2240.8,1391 2448.7,1511 2336.1,1576 2128.3,1456"/>
+</g>
+<g class="bb-node map-item status-implemented" data-id="decisions" tabindex="0" role="button" aria-label="Open details for Ready decisions">
+<polygon class="iso-focus" points="2388.3,1606.2 2500.9,1541.2 2708.7,1661.2 2708.7,1699.2 2596.1,1764.2 2388.3,1644.2" fill="none" stroke="none"/>
+<polygon class="iso-face iso-left" points="2388.3,1606.2 2596.1,1726.2 2596.1,1764.2 2388.3,1644.2"/>
+<polygon class="iso-face iso-right" points="2708.7,1661.2 2596.1,1726.2 2596.1,1764.2 2708.7,1699.2"/>
+<polygon class="iso-face iso-roof" points="2500.9,1541.2 2708.7,1661.2 2596.1,1726.2 2388.3,1606.2"/>
+</g>
+<g class="bb-node map-item status-implemented" data-id="steps" tabindex="0" role="button" aria-label="Open details for Steps evidence">
+<polygon class="iso-focus" points="2648.3,1756.3 2760.9,1691.3 2968.8,1811.3 2968.8,1849.3 2856.2,1914.3 2648.3,1794.3" fill="none" stroke="none"/>
+<polygon class="iso-face iso-left" points="2648.3,1756.3 2856.2,1876.3 2856.2,1914.3 2648.3,1794.3"/>
+<polygon class="iso-face iso-right" points="2968.8,1811.3 2856.2,1876.3 2856.2,1914.3 2968.8,1849.3"/>
+<polygon class="iso-face iso-roof" points="2760.9,1691.3 2968.8,1811.3 2856.2,1876.3 2648.3,1756.3"/>
+</g>
+<g class="bb-node map-item status-implemented" data-id="bot" tabindex="0" role="button" aria-label="Open details for Apply bot reports">
+<polygon class="iso-focus" points="2908.4,1906.4 3020.9,1841.4 3228.8,1961.4 3228.8,1999.4 3116.2,2064.4 2908.4,1944.4" fill="none" stroke="none"/>
+<polygon class="iso-face iso-left" points="2908.4,1906.4 3116.2,2026.4 3116.2,2064.4 2908.4,1944.4"/>
+<polygon class="iso-face iso-right" points="3228.8,1961.4 3116.2,2026.4 3116.2,2064.4 3228.8,1999.4"/>
+<polygon class="iso-face iso-roof" points="3020.9,1841.4 3228.8,1961.4 3116.2,2026.4 2908.4,1906.4"/>
+</g>
+<g class="bb-node map-item status-implemented" data-id="panes" tabindex="0" role="button" aria-label="Open details for Reconcile repo panes">
+<polygon class="iso-focus" points="3168.4,2056.6 3281,1991.6 3488.8,2111.6 3488.8,2149.6 3376.2,2214.6 3168.4,2094.6" fill="none" stroke="none"/>
+<polygon class="iso-face iso-left" points="3168.4,2056.6 3376.2,2176.6 3376.2,2214.6 3168.4,2094.6"/>
+<polygon class="iso-face iso-right" points="3488.8,2111.6 3376.2,2176.6 3376.2,2214.6 3488.8,2149.6"/>
+<polygon class="iso-face iso-roof" points="3281,1991.6 3488.8,2111.6 3376.2,2176.6 3168.4,2056.6"/>
+</g>
+<g class="bb-node map-item status-implemented" data-id="priorities" tabindex="0" role="button" aria-label="Open details for Reconcile priorities">
+<polygon class="iso-focus" points="3428.4,2206.7 3541,2141.7 3748.9,2261.7 3748.9,2299.7 3636.3,2364.7 3428.4,2244.7" fill="none" stroke="none"/>
+<polygon class="iso-face iso-left" points="3428.4,2206.7 3636.3,2326.7 3636.3,2364.7 3428.4,2244.7"/>
+<polygon class="iso-face iso-right" points="3748.9,2261.7 3636.3,2326.7 3636.3,2364.7 3748.9,2299.7"/>
+<polygon class="iso-face iso-roof" points="3541,2141.7 3748.9,2261.7 3636.3,2326.7 3428.4,2206.7"/>
+</g>
+<g class="bb-node map-item status-implemented" data-id="ids" tabindex="0" role="button" aria-label="Open details for Pin identifiers">
+<polygon class="iso-focus" points="3688.5,2356.8 3801,2291.8 4008.9,2411.8 4008.9,2449.8 3896.3,2514.8 3688.5,2394.8" fill="none" stroke="none"/>
+<polygon class="iso-face iso-left" points="3688.5,2356.8 3896.3,2476.8 3896.3,2514.8 3688.5,2394.8"/>
+<polygon class="iso-face iso-right" points="4008.9,2411.8 3896.3,2476.8 3896.3,2514.8 4008.9,2449.8"/>
+<polygon class="iso-face iso-roof" points="3801,2291.8 4008.9,2411.8 3896.3,2476.8 3688.5,2356.8"/>
+</g>
+<g class="bb-node map-item status-implemented" data-id="fresh" tabindex="0" role="button" aria-label="Open details for Check freshness">
+<polygon class="iso-focus" points="3948.5,2506.9 4061.1,2441.9 4268.9,2561.9 4268.9,2599.9 4156.3,2664.9 3948.5,2544.9" fill="none" stroke="none"/>
+<polygon class="iso-face iso-left" points="3948.5,2506.9 4156.3,2626.9 4156.3,2664.9 3948.5,2544.9"/>
+<polygon class="iso-face iso-right" points="4268.9,2561.9 4156.3,2626.9 4156.3,2664.9 4268.9,2599.9"/>
+<polygon class="iso-face iso-roof" points="4061.1,2441.9 4268.9,2561.9 4156.3,2626.9 3948.5,2506.9"/>
+</g>
+<g class="bb-node map-item status-implemented" data-id="runner" tabindex="0" role="button" aria-label="Open details for Hook runner">
+<polygon class="iso-focus" points="4208.5,2657.1 4321.1,2592.1 4529,2712.1 4529,2750.1 4416.4,2815.1 4208.5,2695.1" fill="none" stroke="none"/>
+<polygon class="iso-face iso-left" points="4208.5,2657.1 4416.4,2777.1 4416.4,2815.1 4208.5,2695.1"/>
+<polygon class="iso-face iso-right" points="4529,2712.1 4416.4,2777.1 4416.4,2815.1 4529,2750.1"/>
+<polygon class="iso-face iso-roof" points="4321.1,2592.1 4529,2712.1 4416.4,2777.1 4208.5,2657.1"/>
+</g>
+<g class="bb-edges">
+<path class="bb-edge control map-item" d="M 343.7 324.3 L 377.7 343.9 Q 382 346.4 377.7 348.9 L 354.8 362.1 Q 350.5 364.6 354.8 367.1 L 364.3 372.6" marker-end="url(#bb-arrow-control)" data-from="pre" data-to="activity"/>
+<path class="bb-edge control map-item" d="M 339.2 326.9 L 374.9 347.5 Q 379.2 350 383.6 347.5 L 416.3 328.6 Q 420.6 326.1 424.9 328.6 L 674.6 472.8 Q 678.9 475.3 674.6 477.8 L 614.8 512.3 Q 610.5 514.8 614.8 517.3 L 624.4 522.8" marker-end="url(#bb-arrow-control)" data-from="pre" data-to="prcache"/>
+<path class="bb-edge control map-item" d="M 334.7 329.5 L 370.4 350.1 Q 374.7 352.6 370.4 355.1 L 288.1 402.6 Q 283.8 405.1 288.1 407.6 L 797.8 701.9 Q 802.1 704.4 806.4 701.9 L 866.2 667.4 Q 870.5 664.9 874.9 667.4 L 884.4 672.9" marker-end="url(#bb-arrow-control)" data-from="pre" data-to="repo"/>
+<path class="bb-edge control map-item" d="M 330.2 332.1 L 365 352.2 Q 369.3 354.7 373.7 352.2 L 415.4 328.1 Q 419.8 325.6 424.1 328.1 L 1194.7 773 Q 1199 775.5 1194.7 778 L 1134.9 812.5 Q 1130.6 815 1134.9 817.5 L 1144.4 823" marker-end="url(#bb-arrow-control)" data-from="pre" data-to="cluster"/>
+<path class="bb-edge control map-item" d="M 325.6 334.7 L 360.5 354.8 Q 364.8 357.3 360.5 359.8 L 287.2 402.1 Q 282.9 404.6 287.2 407.1 L 1317.9 1002.2 Q 1322.2 1004.7 1326.5 1002.2 L 1386.3 967.7 Q 1390.6 965.2 1394.9 967.7 L 1404.5 973.2" marker-end="url(#bb-arrow-control)" data-from="pre" data-to="sidecars"/>
+<path class="bb-edge control map-item" d="M 321.1 337.3 L 342.9 349.9 Q 347.2 352.4 351.6 349.9 L 402.3 320.6 Q 406.6 318.1 411 320.6 L 1714.7 1073.3 Q 1719 1075.8 1714.7 1078.3 L 1655 1112.8 Q 1650.6 1115.3 1655 1117.8 L 1664.5 1123.3" marker-end="url(#bb-arrow-control)" data-from="pre" data-to="responses"/>
+<path class="bb-edge control map-item" d="M 316.6 339.9 L 338.4 352.5 Q 342.7 355 338.4 357.5 L 274.1 394.6 Q 269.8 397.1 274.1 399.6 L 1837.9 1302.4 Q 1842.2 1304.9 1846.6 1302.4 L 1906.3 1267.9 Q 1910.7 1265.4 1915 1267.9 L 1924.5 1273.4" marker-end="url(#bb-arrow-control)" data-from="pre" data-to="inflight"/>
+<path class="bb-edge control map-item" d="M 312.1 342.5 L 321.7 348 Q 326 350.5 330.3 348 L 390.1 313.5 Q 394.4 311 398.7 313.5 L 2234.8 1373.5 Q 2239.1 1376 2234.8 1378.5 L 2175 1413 Q 2170.7 1415.5 2175 1418 L 2184.6 1423.5" marker-end="url(#bb-arrow-control)" data-from="pre" data-to="merges"/>
+<path class="bb-edge control map-item" d="M 307.6 345.1 L 341.6 364.7 Q 346 367.2 341.6 369.7 L 286.4 401.6 Q 282.1 404.1 286.4 406.6 L 2358 1602.7 Q 2362.3 1605.2 2366.6 1602.7 L 2426.4 1568.2 Q 2430.7 1565.7 2435.1 1568.2 L 2444.6 1573.7" marker-end="url(#bb-arrow-control)" data-from="pre" data-to="decisions"/>
+<path class="bb-edge control map-item" d="M 303.1 347.7 L 312.7 353.2 Q 317 355.7 312.7 358.2 L 261.9 387.5 Q 257.6 390 261.9 392.5 L 511.5 536.6 Q 515.9 539.1 520.2 536.6 L 629.9 473.3 Q 634.3 470.8 638.6 473.3 L 657.9 484.4 Q 662.2 486.9 666.5 484.4 L 676.3 478.8 Q 680.6 476.3 685 478.8 L 2754.8 1673.8 Q 2759.2 1676.3 2754.8 1678.8 L 2695.1 1713.3 Q 2690.8 1715.8 2695.1 1718.3 L 2704.6 1723.8" marker-end="url(#bb-arrow-control)" data-from="pre" data-to="steps"/>
+<path class="bb-edge control map-item" d="M 298.6 350.3 L 311.4 357.6 Q 312.5 358.3 311.4 359 L 310.7 359.4 Q 310.2 359.6 309.8 359.4 L 309.8 359.4 Q 309.4 359.1 308.9 359.4 L 279.5 376.3 Q 275.2 378.8 279.5 381.3 L 297.9 392 Q 302.2 394.5 297.9 397 L 288.1 402.6 Q 283.8 405.1 288.1 407.6 L 2878 1902.9 Q 2882.4 1905.4 2886.7 1902.9 L 2946.5 1868.4 Q 2950.8 1865.9 2955.1 1868.4 L 2964.7 1873.9" marker-end="url(#bb-arrow-control)" data-from="pre" data-to="bot"/>
+<path class="bb-edge control map-item" d="M 294.1 352.9 L 306.9 360.3 Q 308 360.9 306.9 361.5 L 306.6 361.7 Q 305.7 362.2 304.9 361.7 L 304.9 361.7 Q 304 361.2 304.9 360.7 L 369.9 323.2 Q 374.2 320.7 378.6 323.2 L 397.8 334.3 Q 402.2 336.8 406.5 334.3 L 416.3 328.6 Q 420.6 326.1 424.9 328.6 L 3274.9 1974.1 Q 3279.2 1976.6 3274.9 1979.1 L 3215.2 2013.6 Q 3210.8 2016.1 3215.2 2018.6 L 3224.7 2024.1" marker-end="url(#bb-arrow-control)" data-from="pre" data-to="panes"/>
+<path class="bb-edge control map-item" d="M 289.6 355.5 L 325.4 376.1 Q 329.7 378.6 325.4 381.1 L 288.1 402.6 Q 283.8 405.1 288.1 407.6 L 3398.1 2203.2 Q 3402.4 2205.7 3406.8 2203.2 L 3466.5 2168.7 Q 3470.9 2166.2 3475.2 2168.7 L 3484.7 2174.2" marker-end="url(#bb-arrow-control)" data-from="pre" data-to="priorities"/>
+<path class="bb-edge control map-item" d="M 285.1 358.1 L 320.8 378.7 Q 325.2 381.2 320.8 383.7 L 288.1 402.6 Q 283.8 405.1 288.1 407.6 L 1031.6 836.9 Q 1035.9 839.4 1040.3 836.9 L 1150 773.5 Q 1154.3 771 1158.7 773.5 L 1177.9 784.7 Q 1182.3 787.2 1186.6 784.7 L 1196.4 779 Q 1200.7 776.5 1205 779 L 3795 2274.3 Q 3799.3 2276.8 3795 2279.3 L 3735.2 2313.8 Q 3730.9 2316.3 3735.2 2318.8 L 3744.8 2324.3" marker-end="url(#bb-arrow-control)" data-from="pre" data-to="ids"/>
+<path class="bb-edge control map-item" d="M 280.6 360.7 L 316.3 381.3 Q 320.7 383.8 316.3 386.3 L 288.1 402.6 Q 283.8 405.1 288.1 407.6 L 3918.2 2503.4 Q 3922.5 2505.9 3926.8 2503.4 L 3986.6 2468.9 Q 3990.9 2466.4 3995.3 2468.9 L 4004.8 2474.4" marker-end="url(#bb-arrow-control)" data-from="pre" data-to="fresh"/>
+<g class="bb-edge-label map-item"><rect class="iso-label-bg" x="349.9" y="361.3" width="19.1" height="17" rx="3"/><text class="bb-label control plain" x="359.5" y="373.4" text-anchor="middle">1</text></g>
+<g class="bb-edge-label map-item"><rect class="iso-label-bg" x="578.9" y="414.6" width="19.1" height="17" rx="3"/><text class="bb-label control plain" x="588.5" y="426.7" text-anchor="middle">2</text></g>
+<g class="bb-edge-label map-item"><rect class="iso-label-bg" x="826.8" y="676.1" width="19.1" height="17" rx="3"/><text class="bb-label control plain" x="836.3" y="688.2" text-anchor="middle">3</text></g>
+<g class="bb-edge-label map-item"><rect class="iso-label-bg" x="682.9" y="474.6" width="19.1" height="17" rx="3"/><text class="bb-label control plain" x="692.5" y="486.7" text-anchor="middle">4</text></g>
+<g class="bb-edge-label map-item"><rect class="iso-label-bg" x="1346.8" y="976.4" width="19.1" height="17" rx="3"/><text class="bb-label control plain" x="1356.4" y="988.5" text-anchor="middle">5</text></g>
+<g class="bb-edge-label map-item"><rect class="iso-label-bg" x="1250.1" y="802.1" width="19.1" height="17" rx="3"/><text class="bb-label control plain" x="1259.7" y="814.2" text-anchor="middle">6</text></g>
+<g class="bb-edge-label map-item"><rect class="iso-label-bg" x="810.6" y="706.3" width="19.1" height="17" rx="3"/><text class="bb-label control plain" x="820.2" y="718.4" text-anchor="middle">7</text></g>
+<g class="bb-edge-label map-item"><rect class="iso-label-bg" x="1307.2" y="835" width="19.1" height="17" rx="3"/><text class="bb-label control plain" x="1316.8" y="847.1" text-anchor="middle">8</text></g>
+<g class="bb-edge-label map-item"><rect class="iso-label-bg" x="2387" y="1576.9" width="19.1" height="17" rx="3"/><text class="bb-label control plain" x="2396.5" y="1589" text-anchor="middle">9</text></g>
+<g class="bb-edge-label map-item"><rect class="iso-label-bg" x="1395" y="887.8" width="26.3" height="17" rx="3"/><text class="bb-label control plain" x="1408.1" y="899.9" text-anchor="middle">10</text></g>
+<g class="bb-edge-label map-item"><rect class="iso-label-bg" x="2903.5" y="1877.2" width="26.3" height="17" rx="3"/><text class="bb-label control plain" x="2916.6" y="1889.3" text-anchor="middle">11</text></g>
+<g class="bb-edge-label map-item"><rect class="iso-label-bg" x="2265.6" y="1390.4" width="26.3" height="17" rx="3"/><text class="bb-label control plain" x="2278.7" y="1402.5" text-anchor="middle">12</text></g>
+<g class="bb-edge-label map-item"><rect class="iso-label-bg" x="3423.5" y="2177.4" width="26.3" height="17" rx="3"/><text class="bb-label control plain" x="3436.7" y="2189.5" text-anchor="middle">13</text></g>
+<g class="bb-edge-label map-item"><rect class="iso-label-bg" x="3526.3" y="2118.3" width="26.3" height="17" rx="3"/><text class="bb-label control plain" x="3539.5" y="2130.4" text-anchor="middle">14</text></g>
+<g class="bb-edge-label map-item"><rect class="iso-label-bg" x="3943.6" y="2477.7" width="26.3" height="17" rx="3"/><text class="bb-label control plain" x="3956.7" y="2489.8" text-anchor="middle">15</text></g>
+</g>
+<g class="iso-tag map-item" data-for="pre" pointer-events="none">
+<rect class="iso-tag-bg" x="95.1" y="256.5" width="226.3" height="42" rx="3"/>
+<text class="bb-kicker" x="208.2" y="272.5" text-anchor="middle">WORKFLOW · BUILT</text>
+<text class="bb-node-title" x="208.2" y="291.5" text-anchor="middle">Pre-render sequence</text>
+</g>
+<g class="iso-tag map-item" data-for="activity" pointer-events="none">
+<rect class="iso-tag-bg" x="370.9" y="406.6" width="194.6" height="42" rx="3"/>
+<text class="bb-kicker" x="468.2" y="422.6" text-anchor="middle">PLAYBOOK · BUILT</text>
+<text class="bb-node-title" x="468.2" y="441.6" text-anchor="middle">Collect activity</text>
+</g>
+<g class="iso-tag map-item" data-for="prcache" pointer-events="none">
+<rect class="iso-tag-bg" x="631" y="556.8" width="194.6" height="42" rx="3"/>
+<text class="bb-kicker" x="728.3" y="572.8" text-anchor="middle">PLAYBOOK · BUILT</text>
+<text class="bb-node-title" x="728.3" y="591.8" text-anchor="middle">Refresh PR cache</text>
+</g>
+<g class="iso-tag map-item" data-for="repo" pointer-events="none">
+<rect class="iso-tag-bg" x="864.6" y="706.9" width="247.3" height="42" rx="3"/>
+<text class="bb-kicker" x="988.3" y="722.9" text-anchor="middle">PLAYBOOK · BUILT</text>
+<text class="bb-node-title" x="988.3" y="741.9" text-anchor="middle">Collect repo evidence</text>
+</g>
+<g class="iso-tag map-item" data-for="cluster" pointer-events="none">
+<rect class="iso-tag-bg" x="1156.3" y="857" width="184.1" height="42" rx="3"/>
+<text class="bb-kicker" x="1248.3" y="873" text-anchor="middle">PLAYBOOK · BUILT</text>
+<text class="bb-node-title" x="1248.3" y="892" text-anchor="middle">Collect cluster</text>
+</g>
+<g class="iso-tag map-item" data-for="sidecars" pointer-events="none">
+<rect class="iso-tag-bg" x="1421.6" y="1007.1" width="173.6" height="42" rx="3"/>
+<text class="bb-kicker" x="1508.4" y="1023.1" text-anchor="middle">PLAYBOOK · BUILT</text>
+<text class="bb-node-title" x="1508.4" y="1042.1" text-anchor="middle">Merge sidecars</text>
+</g>
+<g class="iso-tag map-item" data-for="responses" pointer-events="none">
+<rect class="iso-tag-bg" x="1655.3" y="1157.3" width="226.3" height="42" rx="3"/>
+<text class="bb-kicker" x="1768.4" y="1173.3" text-anchor="middle">PLAYBOOK · BUILT</text>
+<text class="bb-node-title" x="1768.4" y="1192.3" text-anchor="middle">Reconcile responses</text>
+</g>
+<g class="iso-tag map-item" data-for="inflight" pointer-events="none">
+<rect class="iso-tag-bg" x="1920.6" y="1307.4" width="215.7" height="42" rx="3"/>
+<text class="bb-kicker" x="2028.4" y="1323.4" text-anchor="middle">PLAYBOOK · BUILT</text>
+<text class="bb-node-title" x="2028.4" y="1342.4" text-anchor="middle">Reconcile inflight</text>
+</g>
+<g class="iso-tag map-item" data-for="merges" pointer-events="none">
+<rect class="iso-tag-bg" x="2191.2" y="1457.5" width="194.6" height="42" rx="3"/>
+<text class="bb-kicker" x="2288.5" y="1473.5" text-anchor="middle">PLAYBOOK · BUILT</text>
+<text class="bb-node-title" x="2288.5" y="1492.5" text-anchor="middle">Reconcile merges</text>
+</g>
+<g class="iso-tag map-item" data-for="decisions" pointer-events="none">
+<rect class="iso-tag-bg" x="2456.5" y="1607.7" width="184.1" height="42" rx="3"/>
+<text class="bb-kicker" x="2548.5" y="1623.7" text-anchor="middle">PLAYBOOK · BUILT</text>
+<text class="bb-node-title" x="2548.5" y="1642.7" text-anchor="middle">Ready decisions</text>
+</g>
+<g class="iso-tag map-item" data-for="steps" pointer-events="none">
+<rect class="iso-tag-bg" x="2721.8" y="1757.8" width="173.6" height="42" rx="3"/>
+<text class="bb-kicker" x="2808.5" y="1773.8" text-anchor="middle">PLAYBOOK · BUILT</text>
+<text class="bb-node-title" x="2808.5" y="1792.8" text-anchor="middle">Steps evidence</text>
+</g>
+<g class="iso-tag map-item" data-for="bot" pointer-events="none">
+<rect class="iso-tag-bg" x="2966" y="1907.9" width="205.2" height="42" rx="3"/>
+<text class="bb-kicker" x="3068.6" y="1923.9" text-anchor="middle">PLAYBOOK · BUILT</text>
+<text class="bb-node-title" x="3068.6" y="1942.9" text-anchor="middle">Apply bot reports</text>
+</g>
+<g class="iso-tag map-item" data-for="panes" pointer-events="none">
+<rect class="iso-tag-bg" x="3210.2" y="2058.1" width="236.8" height="42" rx="3"/>
+<text class="bb-kicker" x="3328.6" y="2074.1" text-anchor="middle">PLAYBOOK · BUILT</text>
+<text class="bb-node-title" x="3328.6" y="2093.1" text-anchor="middle">Reconcile repo panes</text>
+</g>
+<g class="iso-tag map-item" data-for="priorities" pointer-events="none">
+<rect class="iso-tag-bg" x="3470.2" y="2208.2" width="236.8" height="42" rx="3"/>
+<text class="bb-kicker" x="3588.6" y="2224.2" text-anchor="middle">PLAYBOOK · BUILT</text>
+<text class="bb-node-title" x="3588.6" y="2243.2" text-anchor="middle">Reconcile priorities</text>
+</g>
+<g class="iso-tag map-item" data-for="ids" pointer-events="none">
+<rect class="iso-tag-bg" x="3756.6" y="2358.3" width="184.1" height="42" rx="3"/>
+<text class="bb-kicker" x="3848.7" y="2374.3" text-anchor="middle">PLAYBOOK · BUILT</text>
+<text class="bb-node-title" x="3848.7" y="2393.3" text-anchor="middle">Pin identifiers</text>
+</g>
+<g class="iso-tag map-item" data-for="fresh" pointer-events="none">
+<rect class="iso-tag-bg" x="4016.7" y="2508.4" width="184.1" height="42" rx="3"/>
+<text class="bb-kicker" x="4108.7" y="2524.4" text-anchor="middle">PLAYBOOK · BUILT</text>
+<text class="bb-node-title" x="4108.7" y="2543.4" text-anchor="middle">Check freshness</text>
+</g>
+<g class="iso-tag map-item" data-for="runner" pointer-events="none">
+<rect class="iso-tag-bg" x="4297.8" y="2658.6" width="141.9" height="42" rx="3"/>
+<text class="bb-kicker" x="4368.7" y="2674.6" text-anchor="middle">SKILL · BUILT</text>
+<text class="bb-node-title" x="4368.7" y="2693.6" text-anchor="middle">Hook runner</text>
+</g>
+<g class="bb-legend" aria-label="Legend"><path class="bb-rule" d="M 40 2850 H 4537"/><text class="bb-legend-text" x="48" y="2872">Built = solid</text><text class="bb-legend-text" x="148.225" y="2872">Partial = hatched roof</text><text class="bb-legend-text" x="305.375" y="2872">Planned = wireframe</text></g>
+</svg>
+</div><ul class="purposes"><li><strong>Pre-render sequence</strong> · Run executable hook files lexically and stop on a failing hook. · built</li><li><strong>Collect activity</strong> · Collect GitHub activity when an owner and instance data are available. · built</li><li><strong>Refresh PR cache</strong> · Refresh cached pull request facts for reconciliation. · built</li><li><strong>Collect repo evidence</strong> · Collect repository evidence without discarding the prior cache on failure. · built</li><li><strong>Collect cluster</strong> · Collect metrics or spark readings only when configured. · built</li><li><strong>Merge sidecars</strong> · Merge optional bot and response sidecar evidence before reconciliation. · built</li><li><strong>Reconcile responses</strong> · Ingest pending chat answers before reconciling response history. · built</li><li><strong>Reconcile inflight</strong> · Reconcile in-flight tracker state from evidence. · built</li><li><strong>Reconcile merges</strong> · Update merge lifecycle from cached pull request state. · built</li><li><strong>Ready decisions</strong> · Reconcile which decisions are ready from current evidence. · built</li><li><strong>Steps evidence</strong> · Reconcile human steps against recorded evidence. · built</li><li><strong>Apply bot reports</strong> · Apply collected bot reports to tracker state. · built</li><li><strong>Reconcile repo panes</strong> · Update repository-backed streams and priorities. · built</li><li><strong>Reconcile priorities</strong> · Reconcile priority items after repository panes. · built</li><li><strong>Pin identifiers</strong> · Pin stable tracker identifiers after reconciliation. · built</li><li><strong>Check freshness</strong> · Report stale evidence without blocking a publish. · built</li><li><strong>Hook runner</strong> · Execute pre-render hooks in lexical order and log evidence. · built</li></ul><ol class="connections"><li data-from="pre" data-to="activity">pre → activity · step 1</li><li data-from="pre" data-to="prcache">pre → prcache · step 2</li><li data-from="pre" data-to="repo">pre → repo · step 3</li><li data-from="pre" data-to="cluster">pre → cluster · step 4</li><li data-from="pre" data-to="sidecars">pre → sidecars · step 5</li><li data-from="pre" data-to="responses">pre → responses · step 6</li><li data-from="pre" data-to="inflight">pre → inflight · step 7</li><li data-from="pre" data-to="merges">pre → merges · step 8</li><li data-from="pre" data-to="decisions">pre → decisions · step 9</li><li data-from="pre" data-to="steps">pre → steps · step 10</li><li data-from="pre" data-to="bot">pre → bot · step 11</li><li data-from="pre" data-to="panes">pre → panes · step 12</li><li data-from="pre" data-to="priorities">pre → priorities · step 13</li><li data-from="pre" data-to="ids">pre → ids · step 14</li><li data-from="pre" data-to="fresh">pre → fresh · step 15</li><li data-from="activity" data-to="collector-activity">activity → collector-activity · step 1 · other group</li><li data-from="prcache" data-to="refresh-script">prcache → refresh-script · step 1 · other group</li><li data-from="repo" data-to="repo-script">repo → repo-script · step 1 · other group</li><li data-from="cluster" data-to="metrics-script">cluster → metrics-script · step 1 · other group</li><li data-from="cluster" data-to="spark-script">cluster → spark-script · step 2 · other group</li><li data-from="sidecars" data-to="sidecar-script">sidecars → sidecar-script · step 1 · other group</li><li data-from="responses" data-to="accept-script">responses → accept-script · step 1 · other group</li><li data-from="responses" data-to="response-script">responses → response-script · step 2 · other group</li><li data-from="inflight" data-to="inflight-script">inflight → inflight-script · step 1 · other group</li><li data-from="merges" data-to="merge-script">merges → merge-script · step 1 · other group</li><li data-from="decisions" data-to="decision-script">decisions → decision-script · step 1 · other group</li><li data-from="steps" data-to="step-script">steps → step-script · step 1 · other group</li><li data-from="bot" data-to="bot-script">bot → bot-script · step 1 · other group</li><li data-from="panes" data-to="pane-script">panes → pane-script · step 1 · other group</li><li data-from="priorities" data-to="priority-script">priorities → priority-script · step 1 · other group</li><li data-from="ids" data-to="pin-script">ids → pin-script · step 1 · other group</li><li data-from="fresh" data-to="fresh-script">fresh → fresh-script · step 1 · other group</li></ol></section>
+<section class="panel" data-group="sync" hidden><button type="button" class="back">← Overview</button><h2>Collectors and reconciliation · built · 18 components</h2><div class="map"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 4834 3049" width="4834" height="3049" role="group" aria-labelledby="bb-t">
+<title id="bb-t">Collectors and reconciliation</title>
+<style>
+text{font-family:Geist,"Geist Sans",ui-sans-serif,system-ui,-apple-system,"Segoe UI",Helvetica,Arial,sans-serif;font-variant-numeric:tabular-nums}
+.bb-title{font-size:36px;font-weight:300;letter-spacing:-.015em}
+.bb-subtitle{font-size:14px;font-weight:400}
+.bb-kicker-top{font-size:10.5px;font-weight:500;letter-spacing:2.6px}
+.bb-meta{font-size:11px;font-weight:400;letter-spacing:.03em}
+.bb-meter-big{font-size:42px;font-weight:300;letter-spacing:-.02em}
+.bb-meter-unit{font-size:17px;font-weight:300}
+.bb-meter-track{stroke-width:1;fill:none}
+.bb-meter-solid,.bb-meter-part{stroke-width:3;fill:none}
+.bb-meter-part{stroke-dasharray:2 3}
+.bb-rule{stroke-width:1;fill:none}
+.bb-zone{stroke-width:1}
+.bb-zone-kicker{font-size:10.5px;font-weight:500;letter-spacing:2.6px}
+.bb-zone-title{font-size:21px;font-weight:400;letter-spacing:-.005em}
+.bb-zone-sub{font-size:11.5px}
+.bb-node-box{stroke-width:1}
+.bb-node.status-planned .bb-node-box{stroke-dasharray:4 4}
+.bb-kicker{font-size:10.5px;font-weight:500;letter-spacing:2.4px}
+.bb-node-title{font-size:17px;font-weight:500;letter-spacing:-.005em}
+.bb-copy{font-size:13.5px;font-weight:400}
+.bb-hint{font-size:11.5px;font-weight:400;letter-spacing:.02em}
+.bb-status-text{font-size:9.5px;font-weight:600;letter-spacing:1.9px}
+.bb-dot{stroke-width:1.1;fill:none}
+.bb-edge{fill:none;stroke-width:1.25;stroke-linejoin:round;stroke-linecap:round}
+.bb-edge.control{stroke-dasharray:3 4}
+.bb-edge.failure{stroke-dasharray:.1 4.5;stroke-width:1.8}
+.bb-edge.is-planned{opacity:.4}
+.bb-label{font-size:11.5px;font-weight:500;letter-spacing:.02em;paint-order:stroke;stroke-width:6px;stroke-linejoin:round}
+.bb-legend-text{font-size:12px;font-weight:400}
+.bb-finding-text{font-size:9px;font-weight:600;letter-spacing:1.6px}
+.iso-face{stroke-width:.8;stroke-linejoin:round}
+.bb-node.status-planned .iso-face{fill:none;stroke-dasharray:4 4;stroke-width:1}
+.iso-hatch line{stroke-width:.8;opacity:.45}
+.iso-label-knockout{paint-order:stroke;stroke-width:6px;stroke-linejoin:round}
+.bb-canvas{fill:#fbf9f6}
+.bb-title,.bb-zone-title,.bb-node-title,.bb-meter-big,.bb-meter-unit{fill:#2f2a27}
+.bb-subtitle,.bb-copy,.bb-hint,.bb-legend-text,.bb-meta,.bb-kicker,.bb-zone-kicker,.bb-kicker-top,.bb-zone-sub{fill:#716961}
+.bb-rule,.bb-meter-track{stroke:#dcdad7}
+.bb-meter-solid{stroke:#2f2a27}
+.bb-meter-part{stroke:#716961}
+.bb-zone{fill:#f5f3f0;stroke:#dcdad7}
+.bb-node-box{fill:#fffdfa;stroke:#dcdad7}
+.bb-node.status-planned .bb-node-box{fill:none;stroke:#c2bfbc}
+.bb-node.status-planned .bb-node-title{fill:#716961}
+.bb-status-text{fill:#716961}
+.bb-status.is-implemented .bb-status-text{fill:#716961}
+.bb-dot{stroke:#716961}
+.bb-dot-fill{fill:#716961}
+.bb-status.is-implemented .bb-dot{stroke:#2f2a27}
+.bb-status.is-implemented .bb-dot-fill{fill:#2f2a27}
+.bb-edge.data{stroke:#888079}
+.bb-edge.control{stroke:#747c86}
+.bb-edge.failure{stroke:#9b4a36}
+.bb-arrow.data{fill:#888079}
+.bb-arrow.control{fill:#747c86}
+.bb-arrow.failure{fill:#9b4a36}
+.bb-label,.iso-label-knockout{stroke:#fbf9f6}
+.bb-label.data{fill:#716961}
+.bb-label.control{fill:#4c535c}
+.bb-label.failure{fill:#9b4a36}
+.bb-flow{stroke:#2f2a27;stroke-opacity:.55}
+.bb-finding-text,.bb-finding-inline{fill:#9b4a36}
+.bb-node.has-finding .bb-node-box{stroke:#9b4a36}
+.bb-pseudo-fill{fill:#2f2a27}
+.bb-pseudo-ring{fill:#fbf9f6;stroke:#2f2a27;stroke-width:1.3}
+.bb-pseudo-choice{fill:#fffdfa}
+.bb-node.is-selected .bb-node-box,.bb-node[tabindex]:focus .bb-node-box{stroke:#2f2a27}
+.cat-sage .bb-mark,.bb-mark.cat-sage{fill:#427f61}
+.cat-sage .bb-kicker,.cat-sage .bb-zone-kicker{fill:#477d61}
+.cat-sage .bb-node-box{fill:#eaefe9;stroke:#b7cdc0}
+.cat-sage.status-planned .bb-node-box{fill:none;stroke:#9fbcac}
+.bb-zone.cat-sage{fill:#f0f2ed;stroke:#c0d2c6}
+.cat-sage .iso-roof{fill:#afd5c2;stroke:#54a17b}
+.cat-sage .iso-left{fill:#8dc3a9;stroke:#54a17b}
+.cat-sage .iso-right{fill:#6fb492;stroke:#54a17b}
+.cat-sage.status-planned .iso-face{stroke:#3d8461}
+.cat-rust .bb-mark,.bb-mark.cat-rust{fill:#995d3f}
+.cat-rust .bb-kicker,.cat-rust .bb-zone-kicker{fill:#955e42}
+.cat-rust .bb-node-box{fill:#f4ebe5;stroke:#d8c0b3}
+.cat-rust.status-planned .bb-node-box{fill:none;stroke:#caab9b}
+.bb-zone.cat-rust{fill:#f5f0eb;stroke:#dcc7bb}
+.cat-rust .iso-roof{fill:#d6bbae;stroke:#a36d52}
+.cat-rust .iso-left{fill:#c59f8c;stroke:#a36d52}
+.cat-rust .iso-right{fill:#b6866d;stroke:#a36d52}
+.cat-rust.status-planned .iso-face{stroke:#b9531f}
+.cat-peach .bb-mark,.bb-mark.cat-peach{fill:#a76644}
+.cat-peach .bb-kicker,.cat-peach .bb-zone-kicker{fill:#a26647}
+.cat-peach .bb-node-box{fill:#f5ece6;stroke:#dec4b5}
+.cat-peach.status-planned .bb-node-box{fill:none;stroke:#d1b09d}
+.bb-zone.cat-peach{fill:#f6f0eb;stroke:#e0cabd}
+.cat-peach .iso-roof{fill:#d6bcae;stroke:#a36e52}
+.cat-peach .iso-left{fill:#c59f8c;stroke:#a36e52}
+.cat-peach .iso-right{fill:#b6866d;stroke:#a36e52}
+.cat-peach.status-planned .iso-face{stroke:#b4643a}
+.cat-mustard .bb-mark,.bb-mark.cat-mustard{fill:#7d6a33}
+.cat-mustard .bb-kicker,.cat-mustard .bb-zone-kicker{fill:#7c6a38}
+.cat-mustard .bb-node-box{fill:#f1ede4;stroke:#cec5ae}
+.cat-mustard.status-planned .bb-node-box{fill:none;stroke:#bcb295}
+.bb-zone.cat-mustard{fill:#f3f0ea;stroke:#d3cbb8}
+.cat-mustard .iso-roof{fill:#d6cbae;stroke:#a38e52}
+.cat-mustard .iso-left{fill:#c5b68c;stroke:#a38e52}
+.cat-mustard .iso-right{fill:#b6a36d;stroke:#a38e52}
+.cat-mustard.status-planned .iso-face{stroke:#8a7026}
+.cat-slate .bb-mark,.bb-mark.cat-slate{fill:#4a5c73}
+.cat-slate .bb-kicker,.cat-slate .bb-zone-kicker{fill:#4e5d71}
+.cat-slate .bb-node-box{fill:#ebebeb;stroke:#bac0c7}
+.cat-slate.status-planned .bb-node-box{fill:none;stroke:#a3abb5}
+.bb-zone.cat-slate{fill:#f0f0ee;stroke:#c2c7cc}
+.cat-slate .iso-roof{fill:#b5c1cf;stroke:#617894}
+.cat-slate .iso-left{fill:#96a7bb;stroke:#617894}
+.cat-slate .iso-right{fill:#7a8fa8;stroke:#617894}
+.cat-slate.status-planned .iso-face{stroke:#4f5d6e}
+.cat-mauve .bb-mark,.bb-mark.cat-mauve{fill:#7b4e6d}
+.cat-mauve .bb-kicker,.cat-mauve .bb-zone-kicker{fill:#7a516c}
+.cat-mauve .bb-node-box{fill:#f0eaea;stroke:#cdbbc4}
+.cat-mauve.status-planned .bb-node-box{fill:none;stroke:#bba4b2}
+.bb-zone.cat-mauve{fill:#f3efee;stroke:#d2c2ca}
+.cat-mauve .iso-roof{fill:#cfb5c7;stroke:#946184}
+.cat-mauve .iso-left{fill:#bb96af;stroke:#946184}
+.cat-mauve .iso-right{fill:#a87a9a;stroke:#946184}
+.cat-mauve.status-planned .iso-face{stroke:#76536b}
+.iso-shadow{fill:#3b2f26;fill-opacity:0.08}
+.iso-hatch line{stroke:#fbf9f6}
+.iso-tag-bg,.iso-label-bg{fill:#fbf9f6;fill-opacity:.9}
+.bb-label.plain{stroke:none}
+.bb-node:not([class*=cat-]) .iso-face{fill:#fffdfa;stroke:#dcdad7}</style>
+<defs><marker id="bb-arrow-data" viewBox="0 0 10 10" refX="8.6" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path class="bb-arrow data" d="M 0 1 L 10 5 L 0 9 z"/></marker><marker id="bb-arrow-control" viewBox="0 0 10 10" refX="8.6" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path class="bb-arrow control" d="M 0 1 L 10 5 L 0 9 z"/></marker><marker id="bb-arrow-failure" viewBox="0 0 10 10" refX="8.6" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path class="bb-arrow failure" d="M 0 1 L 10 5 L 0 9 z"/></marker></defs>
+<rect class="bb-canvas" x="0" y="0" width="4834" height="3049"/>
+<text class="bb-title" x="48" y="100">Collectors and reconciliation</text>
+<g class="bb-meter" aria-label="100% built"><text class="bb-kicker-top" x="4786" y="52" text-anchor="end">COMPLETION</text><text x="4786" y="96" text-anchor="end"><tspan class="bb-meter-big">100</tspan><tspan class="bb-meter-unit" dx="3">%</tspan></text><path class="bb-meter-track" d="M 4566 110 H 4786"/><path class="bb-meter-solid" d="M 4566 110 H 4786"/><text class="bb-meta" x="4786" y="132" text-anchor="end">18 built · 0 partial · 0 planned</text></g>
+<polygon class="iso-shadow" points="172.6,235 380.4,355 267.8,420 60,300"/>
+<polygon class="iso-shadow" points="432.4,385 640.2,505 527.7,570 319.8,450"/>
+<polygon class="iso-shadow" points="692.2,535 900,655 787.5,720 579.6,600"/>
+<polygon class="iso-shadow" points="952,685 1159.9,805 1047.3,870 839.4,750"/>
+<polygon class="iso-shadow" points="1211.8,835 1419.7,955 1307.1,1020 1099.2,900"/>
+<polygon class="iso-shadow" points="1471.6,985 1679.5,1105 1566.9,1170 1359,1050"/>
+<polygon class="iso-shadow" points="1731.4,1135 1939.3,1255 1826.7,1320 1618.8,1200"/>
+<polygon class="iso-shadow" points="1991.2,1285 2199.1,1405 2086.5,1470 1878.7,1350"/>
+<polygon class="iso-shadow" points="2251,1435 2458.9,1555 2346.3,1620 2138.5,1500"/>
+<polygon class="iso-shadow" points="2510.9,1585 2718.7,1705 2606.1,1770 2398.3,1650"/>
+<polygon class="iso-shadow" points="2770.7,1735 2978.5,1855 2865.9,1920 2658.1,1800"/>
+<polygon class="iso-shadow" points="3030.5,1885 3238.3,2005 3125.7,2070 2917.9,1950"/>
+<polygon class="iso-shadow" points="3290.3,2035 3498.1,2155 3385.5,2220 3177.7,2100"/>
+<polygon class="iso-shadow" points="3550.1,2185 3757.9,2305 3645.3,2370 3437.5,2250"/>
+<polygon class="iso-shadow" points="3809.9,2335 4017.7,2455 3905.2,2520 3697.3,2400"/>
+<polygon class="iso-shadow" points="4069.7,2485 4277.5,2605 4165,2670 3957.1,2550"/>
+<polygon class="iso-shadow" points="4329.5,2635 4537.4,2755 4424.8,2820 4216.9,2700"/>
+<polygon class="iso-shadow" points="4589.3,2785 4797.2,2905 4684.6,2970 4476.7,2850"/>
+<g class="bb-node map-item status-implemented" data-id="collector-activity" tabindex="0" role="button" aria-label="Open details for Activity collector">
+<polygon class="iso-focus" points="48,255 160.6,190 368.4,310 368.4,348 255.8,413 48,293" fill="none" stroke="none"/>
+<polygon class="iso-face iso-left" points="48,255 255.8,375 255.8,413 48,293"/>
+<polygon class="iso-face iso-right" points="368.4,310 255.8,375 255.8,413 368.4,348"/>
+<polygon class="iso-face iso-roof" points="160.6,190 368.4,310 255.8,375 48,255"/>
+</g>
+<g class="bb-node map-item status-implemented" data-id="refresh-script" tabindex="0" role="button" aria-label="Open details for PR cache script">
+<polygon class="iso-focus" points="307.8,405 420.4,340 628.2,460 628.2,498 515.7,563 307.8,443" fill="none" stroke="none"/>
+<polygon class="iso-face iso-left" points="307.8,405 515.7,525 515.7,563 307.8,443"/>
+<polygon class="iso-face iso-right" points="628.2,460 515.7,525 515.7,563 628.2,498"/>
+<polygon class="iso-face iso-roof" points="420.4,340 628.2,460 515.7,525 307.8,405"/>
+</g>
+<g class="bb-node map-item status-implemented" data-id="repo-script" tabindex="0" role="button" aria-label="Open details for Repository collector">
+<polygon class="iso-focus" points="567.6,555 680.2,490 888,610 888,648 775.5,713 567.6,593" fill="none" stroke="none"/>
+<polygon class="iso-face iso-left" points="567.6,555 775.5,675 775.5,713 567.6,593"/>
+<polygon class="iso-face iso-right" points="888,610 775.5,675 775.5,713 888,648"/>
+<polygon class="iso-face iso-roof" points="680.2,490 888,610 775.5,675 567.6,555"/>
+</g>
+<g class="bb-node map-item status-implemented" data-id="metrics-script" tabindex="0" role="button" aria-label="Open details for Metrics collector">
+<polygon class="iso-focus" points="827.4,705 940,640 1147.9,760 1147.9,798 1035.3,863 827.4,743" fill="none" stroke="none"/>
+<polygon class="iso-face iso-left" points="827.4,705 1035.3,825 1035.3,863 827.4,743"/>
+<polygon class="iso-face iso-right" points="1147.9,760 1035.3,825 1035.3,863 1147.9,798"/>
+<polygon class="iso-face iso-roof" points="940,640 1147.9,760 1035.3,825 827.4,705"/>
+</g>
+<g class="bb-node map-item status-implemented" data-id="spark-script" tabindex="0" role="button" aria-label="Open details for Spark collector">
+<polygon class="iso-focus" points="1087.2,855 1199.8,790 1407.7,910 1407.7,948 1295.1,1013 1087.2,893" fill="none" stroke="none"/>
+<polygon class="iso-face iso-left" points="1087.2,855 1295.1,975 1295.1,1013 1087.2,893"/>
+<polygon class="iso-face iso-right" points="1407.7,910 1295.1,975 1295.1,1013 1407.7,948"/>
+<polygon class="iso-face iso-roof" points="1199.8,790 1407.7,910 1295.1,975 1087.2,855"/>
+</g>
+<g class="bb-node map-item status-implemented" data-id="sidecar-script" tabindex="0" role="button" aria-label="Open details for Sidecar merger">
+<polygon class="iso-focus" points="1347,1005 1459.6,940 1667.5,1060 1667.5,1098 1554.9,1163 1347,1043" fill="none" stroke="none"/>
+<polygon class="iso-face iso-left" points="1347,1005 1554.9,1125 1554.9,1163 1347,1043"/>
+<polygon class="iso-face iso-right" points="1667.5,1060 1554.9,1125 1554.9,1163 1667.5,1098"/>
+<polygon class="iso-face iso-roof" points="1459.6,940 1667.5,1060 1554.9,1125 1347,1005"/>
+</g>
+<g class="bb-node map-item status-implemented" data-id="accept-script" tabindex="0" role="button" aria-label="Open details for Pending answer ingest">
+<polygon class="iso-focus" points="1606.8,1155 1719.4,1090 1927.3,1210 1927.3,1248 1814.7,1313 1606.8,1193" fill="none" stroke="none"/>
+<polygon class="iso-face iso-left" points="1606.8,1155 1814.7,1275 1814.7,1313 1606.8,1193"/>
+<polygon class="iso-face iso-right" points="1927.3,1210 1814.7,1275 1814.7,1313 1927.3,1248"/>
+<polygon class="iso-face iso-roof" points="1719.4,1090 1927.3,1210 1814.7,1275 1606.8,1155"/>
+</g>
+<g class="bb-node map-item status-implemented" data-id="response-script" tabindex="0" role="button" aria-label="Open details for Response reconciler">
+<polygon class="iso-focus" points="1866.7,1305 1979.2,1240 2187.1,1360 2187.1,1398 2074.5,1463 1866.7,1343" fill="none" stroke="none"/>
+<polygon class="iso-face iso-left" points="1866.7,1305 2074.5,1425 2074.5,1463 1866.7,1343"/>
+<polygon class="iso-face iso-right" points="2187.1,1360 2074.5,1425 2074.5,1463 2187.1,1398"/>
+<polygon class="iso-face iso-roof" points="1979.2,1240 2187.1,1360 2074.5,1425 1866.7,1305"/>
+</g>
+<g class="bb-node map-item status-implemented" data-id="inflight-script" tabindex="0" role="button" aria-label="Open details for Inflight reconciler">
+<polygon class="iso-focus" points="2126.5,1455 2239,1390 2446.9,1510 2446.9,1548 2334.3,1613 2126.5,1493" fill="none" stroke="none"/>
+<polygon class="iso-face iso-left" points="2126.5,1455 2334.3,1575 2334.3,1613 2126.5,1493"/>
+<polygon class="iso-face iso-right" points="2446.9,1510 2334.3,1575 2334.3,1613 2446.9,1548"/>
+<polygon class="iso-face iso-roof" points="2239,1390 2446.9,1510 2334.3,1575 2126.5,1455"/>
+</g>
+<g class="bb-node map-item status-implemented" data-id="merge-script" tabindex="0" role="button" aria-label="Open details for Merge reconciler">
+<polygon class="iso-focus" points="2386.3,1605 2498.9,1540 2706.7,1660 2706.7,1698 2594.1,1763 2386.3,1643" fill="none" stroke="none"/>
+<polygon class="iso-face iso-left" points="2386.3,1605 2594.1,1725 2594.1,1763 2386.3,1643"/>
+<polygon class="iso-face iso-right" points="2706.7,1660 2594.1,1725 2594.1,1763 2706.7,1698"/>
+<polygon class="iso-face iso-roof" points="2498.9,1540 2706.7,1660 2594.1,1725 2386.3,1605"/>
+</g>
+<g class="bb-node map-item status-implemented" data-id="decision-script" tabindex="0" role="button" aria-label="Open details for Decision reconciler">
+<polygon class="iso-focus" points="2646.1,1755 2758.7,1690 2966.5,1810 2966.5,1848 2853.9,1913 2646.1,1793" fill="none" stroke="none"/>
+<polygon class="iso-face iso-left" points="2646.1,1755 2853.9,1875 2853.9,1913 2646.1,1793"/>
+<polygon class="iso-face iso-right" points="2966.5,1810 2853.9,1875 2853.9,1913 2966.5,1848"/>
+<polygon class="iso-face iso-roof" points="2758.7,1690 2966.5,1810 2853.9,1875 2646.1,1755"/>
+</g>
+<g class="bb-node map-item status-implemented" data-id="step-script" tabindex="0" role="button" aria-label="Open details for Step reconciler">
+<polygon class="iso-focus" points="2905.9,1905 3018.5,1840 3226.3,1960 3226.3,1998 3113.7,2063 2905.9,1943" fill="none" stroke="none"/>
+<polygon class="iso-face iso-left" points="2905.9,1905 3113.7,2025 3113.7,2063 2905.9,1943"/>
+<polygon class="iso-face iso-right" points="3226.3,1960 3113.7,2025 3113.7,2063 3226.3,1998"/>
+<polygon class="iso-face iso-roof" points="3018.5,1840 3226.3,1960 3113.7,2025 2905.9,1905"/>
+</g>
+<g class="bb-node map-item status-implemented" data-id="bot-script" tabindex="0" role="button" aria-label="Open details for Bot report applier">
+<polygon class="iso-focus" points="3165.7,2055 3278.3,1990 3486.1,2110 3486.1,2148 3373.5,2213 3165.7,2093" fill="none" stroke="none"/>
+<polygon class="iso-face iso-left" points="3165.7,2055 3373.5,2175 3373.5,2213 3165.7,2093"/>
+<polygon class="iso-face iso-right" points="3486.1,2110 3373.5,2175 3373.5,2213 3486.1,2148"/>
+<polygon class="iso-face iso-roof" points="3278.3,1990 3486.1,2110 3373.5,2175 3165.7,2055"/>
+</g>
+<g class="bb-node map-item status-implemented" data-id="pane-script" tabindex="0" role="button" aria-label="Open details for Pane reconciler">
+<polygon class="iso-focus" points="3425.5,2205 3538.1,2140 3745.9,2260 3745.9,2298 3633.3,2363 3425.5,2243" fill="none" stroke="none"/>
+<polygon class="iso-face iso-left" points="3425.5,2205 3633.3,2325 3633.3,2363 3425.5,2243"/>
+<polygon class="iso-face iso-right" points="3745.9,2260 3633.3,2325 3633.3,2363 3745.9,2298"/>
+<polygon class="iso-face iso-roof" points="3538.1,2140 3745.9,2260 3633.3,2325 3425.5,2205"/>
+</g>
+<g class="bb-node map-item status-implemented" data-id="priority-script" tabindex="0" role="button" aria-label="Open details for Priority reconciler">
+<polygon class="iso-focus" points="3685.3,2355 3797.9,2290 4005.7,2410 4005.7,2448 3893.2,2513 3685.3,2393" fill="none" stroke="none"/>
+<polygon class="iso-face iso-left" points="3685.3,2355 3893.2,2475 3893.2,2513 3685.3,2393"/>
+<polygon class="iso-face iso-right" points="4005.7,2410 3893.2,2475 3893.2,2513 4005.7,2448"/>
+<polygon class="iso-face iso-roof" points="3797.9,2290 4005.7,2410 3893.2,2475 3685.3,2355"/>
+</g>
+<g class="bb-node map-item status-implemented" data-id="pin-script" tabindex="0" role="button" aria-label="Open details for Identifier pinner">
+<polygon class="iso-focus" points="3945.1,2505 4057.7,2440 4265.5,2560 4265.5,2598 4153,2663 3945.1,2543" fill="none" stroke="none"/>
+<polygon class="iso-face iso-left" points="3945.1,2505 4153,2625 4153,2663 3945.1,2543"/>
+<polygon class="iso-face iso-right" points="4265.5,2560 4153,2625 4153,2663 4265.5,2598"/>
+<polygon class="iso-face iso-roof" points="4057.7,2440 4265.5,2560 4153,2625 3945.1,2505"/>
+</g>
+<g class="bb-node map-item status-implemented" data-id="fresh-script" tabindex="0" role="button" aria-label="Open details for Freshness checker">
+<polygon class="iso-focus" points="4204.9,2655 4317.5,2590 4525.4,2710 4525.4,2748 4412.8,2813 4204.9,2693" fill="none" stroke="none"/>
+<polygon class="iso-face iso-left" points="4204.9,2655 4412.8,2775 4412.8,2813 4204.9,2693"/>
+<polygon class="iso-face iso-right" points="4525.4,2710 4412.8,2775 4412.8,2813 4525.4,2748"/>
+<polygon class="iso-face iso-roof" points="4317.5,2590 4525.4,2710 4412.8,2775 4204.9,2655"/>
+</g>
+<g class="bb-node map-item status-implemented" data-id="evidence-script" tabindex="0" role="button" aria-label="Open details for Evidence log">
+<polygon class="iso-focus" points="4464.7,2805 4577.3,2740 4785.2,2860 4785.2,2898 4672.6,2963 4464.7,2843" fill="none" stroke="none"/>
+<polygon class="iso-face iso-left" points="4464.7,2805 4672.6,2925 4672.6,2963 4464.7,2843"/>
+<polygon class="iso-face iso-right" points="4785.2,2860 4672.6,2925 4672.6,2963 4785.2,2898"/>
+<polygon class="iso-face iso-roof" points="4577.3,2740 4785.2,2860 4672.6,2925 4464.7,2805"/>
+</g>
+<g class="bb-edges">
+</g>
+<g class="iso-tag map-item" data-for="collector-activity" pointer-events="none">
+<rect class="iso-tag-bg" x="100.4" y="256.5" width="215.7" height="42" rx="3"/>
+<text class="bb-kicker" x="208.2" y="272.5" text-anchor="middle">SKILL · BUILT</text>
+<text class="bb-node-title" x="208.2" y="291.5" text-anchor="middle">Activity collector</text>
+</g>
+<g class="iso-tag map-item" data-for="refresh-script" pointer-events="none">
+<rect class="iso-tag-bg" x="376" y="406.5" width="184.1" height="42" rx="3"/>
+<text class="bb-kicker" x="468" y="422.5" text-anchor="middle">SKILL · BUILT</text>
+<text class="bb-node-title" x="468" y="441.5" text-anchor="middle">PR cache script</text>
+</g>
+<g class="iso-tag map-item" data-for="repo-script" pointer-events="none">
+<rect class="iso-tag-bg" x="609.4" y="556.5" width="236.8" height="42" rx="3"/>
+<text class="bb-kicker" x="727.8" y="572.5" text-anchor="middle">SKILL · BUILT</text>
+<text class="bb-node-title" x="727.8" y="591.5" text-anchor="middle">Repository collector</text>
+</g>
+<g class="iso-tag map-item" data-for="metrics-script" pointer-events="none">
+<rect class="iso-tag-bg" x="885" y="706.5" width="205.2" height="42" rx="3"/>
+<text class="bb-kicker" x="987.6" y="722.5" text-anchor="middle">SKILL · BUILT</text>
+<text class="bb-node-title" x="987.6" y="741.5" text-anchor="middle">Metrics collector</text>
+</g>
+<g class="iso-tag map-item" data-for="spark-script" pointer-events="none">
+<rect class="iso-tag-bg" x="1155.4" y="856.5" width="184.1" height="42" rx="3"/>
+<text class="bb-kicker" x="1247.4" y="872.5" text-anchor="middle">SKILL · BUILT</text>
+<text class="bb-node-title" x="1247.4" y="891.5" text-anchor="middle">Spark collector</text>
+</g>
+<g class="iso-tag map-item" data-for="sidecar-script" pointer-events="none">
+<rect class="iso-tag-bg" x="1420.5" y="1006.5" width="173.6" height="42" rx="3"/>
+<text class="bb-kicker" x="1507.3" y="1022.5" text-anchor="middle">SKILL · BUILT</text>
+<text class="bb-node-title" x="1507.3" y="1041.5" text-anchor="middle">Sidecar merger</text>
+</g>
+<g class="iso-tag map-item" data-for="accept-script" pointer-events="none">
+<rect class="iso-tag-bg" x="1643.4" y="1156.5" width="247.3" height="42" rx="3"/>
+<text class="bb-kicker" x="1767.1" y="1172.5" text-anchor="middle">SKILL · BUILT</text>
+<text class="bb-node-title" x="1767.1" y="1191.5" text-anchor="middle">Pending answer ingest</text>
+</g>
+<g class="iso-tag map-item" data-for="response-script" pointer-events="none">
+<rect class="iso-tag-bg" x="1913.7" y="1306.5" width="226.3" height="42" rx="3"/>
+<text class="bb-kicker" x="2026.9" y="1322.5" text-anchor="middle">SKILL · BUILT</text>
+<text class="bb-node-title" x="2026.9" y="1341.5" text-anchor="middle">Response reconciler</text>
+</g>
+<g class="iso-tag map-item" data-for="inflight-script" pointer-events="none">
+<rect class="iso-tag-bg" x="2173.5" y="1456.5" width="226.3" height="42" rx="3"/>
+<text class="bb-kicker" x="2286.7" y="1472.5" text-anchor="middle">SKILL · BUILT</text>
+<text class="bb-node-title" x="2286.7" y="1491.5" text-anchor="middle">Inflight reconciler</text>
+</g>
+<g class="iso-tag map-item" data-for="merge-script" pointer-events="none">
+<rect class="iso-tag-bg" x="2449.2" y="1606.5" width="194.6" height="42" rx="3"/>
+<text class="bb-kicker" x="2546.5" y="1622.5" text-anchor="middle">SKILL · BUILT</text>
+<text class="bb-node-title" x="2546.5" y="1641.5" text-anchor="middle">Merge reconciler</text>
+</g>
+<g class="iso-tag map-item" data-for="decision-script" pointer-events="none">
+<rect class="iso-tag-bg" x="2693.2" y="1756.5" width="226.3" height="42" rx="3"/>
+<text class="bb-kicker" x="2806.3" y="1772.5" text-anchor="middle">SKILL · BUILT</text>
+<text class="bb-node-title" x="2806.3" y="1791.5" text-anchor="middle">Decision reconciler</text>
+</g>
+<g class="iso-tag map-item" data-for="step-script" pointer-events="none">
+<rect class="iso-tag-bg" x="2974" y="1906.5" width="184.1" height="42" rx="3"/>
+<text class="bb-kicker" x="3066.1" y="1922.5" text-anchor="middle">SKILL · BUILT</text>
+<text class="bb-node-title" x="3066.1" y="1941.5" text-anchor="middle">Step reconciler</text>
+</g>
+<g class="iso-tag map-item" data-for="bot-script" pointer-events="none">
+<rect class="iso-tag-bg" x="3218" y="2056.5" width="215.7" height="42" rx="3"/>
+<text class="bb-kicker" x="3325.9" y="2072.5" text-anchor="middle">SKILL · BUILT</text>
+<text class="bb-node-title" x="3325.9" y="2091.5" text-anchor="middle">Bot report applier</text>
+</g>
+<g class="iso-tag map-item" data-for="pane-script" pointer-events="none">
+<rect class="iso-tag-bg" x="3493.7" y="2206.5" width="184.1" height="42" rx="3"/>
+<text class="bb-kicker" x="3585.7" y="2222.5" text-anchor="middle">SKILL · BUILT</text>
+<text class="bb-node-title" x="3585.7" y="2241.5" text-anchor="middle">Pane reconciler</text>
+</g>
+<g class="iso-tag map-item" data-for="priority-script" pointer-events="none">
+<rect class="iso-tag-bg" x="3732.4" y="2356.5" width="226.3" height="42" rx="3"/>
+<text class="bb-kicker" x="3845.5" y="2372.5" text-anchor="middle">SKILL · BUILT</text>
+<text class="bb-node-title" x="3845.5" y="2391.5" text-anchor="middle">Priority reconciler</text>
+</g>
+<g class="iso-tag map-item" data-for="pin-script" pointer-events="none">
+<rect class="iso-tag-bg" x="4002.7" y="2506.5" width="205.2" height="42" rx="3"/>
+<text class="bb-kicker" x="4105.3" y="2522.5" text-anchor="middle">SKILL · BUILT</text>
+<text class="bb-node-title" x="4105.3" y="2541.5" text-anchor="middle">Identifier pinner</text>
+</g>
+<g class="iso-tag map-item" data-for="fresh-script" pointer-events="none">
+<rect class="iso-tag-bg" x="4262.5" y="2656.5" width="205.2" height="42" rx="3"/>
+<text class="bb-kicker" x="4365.1" y="2672.5" text-anchor="middle">SKILL · BUILT</text>
+<text class="bb-node-title" x="4365.1" y="2691.5" text-anchor="middle">Freshness checker</text>
+</g>
+<g class="iso-tag map-item" data-for="evidence-script" pointer-events="none">
+<rect class="iso-tag-bg" x="4548.7" y="2806.5" width="152.5" height="42" rx="3"/>
+<text class="bb-kicker" x="4624.9" y="2822.5" text-anchor="middle">SKILL · BUILT</text>
+<text class="bb-node-title" x="4624.9" y="2841.5" text-anchor="middle">Evidence log</text>
+</g>
+<g class="bb-legend" aria-label="Legend"><path class="bb-rule" d="M 40 2997 H 4794"/><text class="bb-legend-text" x="48" y="3019">Built = solid</text><text class="bb-legend-text" x="148.225" y="3019">Partial = hatched roof</text><text class="bb-legend-text" x="305.375" y="3019">Planned = wireframe</text></g>
+</svg>
+</div><ul class="purposes"><li><strong>Activity collector</strong> · Write hourly and weekly GitHub activity to instance data. · built</li><li><strong>PR cache script</strong> · Fetch and normalize pull request cache entries. · built</li><li><strong>Repository collector</strong> · Collect recent repository commits and branch coverage. · built</li><li><strong>Metrics collector</strong> · Sample local CPU, memory and disk metrics. · built</li><li><strong>Spark collector</strong> · Copy configured spark readings into instance data. · built</li><li><strong>Sidecar merger</strong> · Read optional sidecar files into evidence caches. · built</li><li><strong>Pending answer ingest</strong> · Ingest pending recorded chat answers before reconciliation. · built</li><li><strong>Response reconciler</strong> · Reconcile response records into tracker decisions. · built</li><li><strong>Inflight reconciler</strong> · Update in-flight state from cached evidence. · built</li><li><strong>Merge reconciler</strong> · Update the merge queue lifecycle. · built</li><li><strong>Decision reconciler</strong> · Derive ready decisions from current checks and PR heads. · built</li><li><strong>Step reconciler</strong> · Derive human checklist steps from repository evidence. · built</li><li><strong>Bot report applier</strong> · Apply bot report updates to tracker rows. · built</li><li><strong>Pane reconciler</strong> · Reconcile streams and priorities from repository facts. · built</li><li><strong>Priority reconciler</strong> · Reconcile priority state after pane updates. · built</li><li><strong>Identifier pinner</strong> · Assign persistent identifiers to tracker entries. · built</li><li><strong>Freshness checker</strong> · Diagnose age and gaps in collected evidence. · built</li><li><strong>Evidence log</strong> · Log tracker evidence counts after ordered hooks. · built</li></ul><ol class="connections"></ol></section>
+<section class="panel" data-group="page" hidden><button type="button" class="back">← Overview</button><h2>Dashboard rendering · built · 3 components</h2><div class="map"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 937 799" width="937" height="799" role="group" aria-labelledby="bb-t">
+<title id="bb-t">Dashboard rendering</title>
+<style>
+text{font-family:Geist,"Geist Sans",ui-sans-serif,system-ui,-apple-system,"Segoe UI",Helvetica,Arial,sans-serif;font-variant-numeric:tabular-nums}
+.bb-title{font-size:36px;font-weight:300;letter-spacing:-.015em}
+.bb-subtitle{font-size:14px;font-weight:400}
+.bb-kicker-top{font-size:10.5px;font-weight:500;letter-spacing:2.6px}
+.bb-meta{font-size:11px;font-weight:400;letter-spacing:.03em}
+.bb-meter-big{font-size:42px;font-weight:300;letter-spacing:-.02em}
+.bb-meter-unit{font-size:17px;font-weight:300}
+.bb-meter-track{stroke-width:1;fill:none}
+.bb-meter-solid,.bb-meter-part{stroke-width:3;fill:none}
+.bb-meter-part{stroke-dasharray:2 3}
+.bb-rule{stroke-width:1;fill:none}
+.bb-zone{stroke-width:1}
+.bb-zone-kicker{font-size:10.5px;font-weight:500;letter-spacing:2.6px}
+.bb-zone-title{font-size:21px;font-weight:400;letter-spacing:-.005em}
+.bb-zone-sub{font-size:11.5px}
+.bb-node-box{stroke-width:1}
+.bb-node.status-planned .bb-node-box{stroke-dasharray:4 4}
+.bb-kicker{font-size:10.5px;font-weight:500;letter-spacing:2.4px}
+.bb-node-title{font-size:17px;font-weight:500;letter-spacing:-.005em}
+.bb-copy{font-size:13.5px;font-weight:400}
+.bb-hint{font-size:11.5px;font-weight:400;letter-spacing:.02em}
+.bb-status-text{font-size:9.5px;font-weight:600;letter-spacing:1.9px}
+.bb-dot{stroke-width:1.1;fill:none}
+.bb-edge{fill:none;stroke-width:1.25;stroke-linejoin:round;stroke-linecap:round}
+.bb-edge.control{stroke-dasharray:3 4}
+.bb-edge.failure{stroke-dasharray:.1 4.5;stroke-width:1.8}
+.bb-edge.is-planned{opacity:.4}
+.bb-label{font-size:11.5px;font-weight:500;letter-spacing:.02em;paint-order:stroke;stroke-width:6px;stroke-linejoin:round}
+.bb-legend-text{font-size:12px;font-weight:400}
+.bb-finding-text{font-size:9px;font-weight:600;letter-spacing:1.6px}
+.iso-face{stroke-width:.8;stroke-linejoin:round}
+.bb-node.status-planned .iso-face{fill:none;stroke-dasharray:4 4;stroke-width:1}
+.iso-hatch line{stroke-width:.8;opacity:.45}
+.iso-label-knockout{paint-order:stroke;stroke-width:6px;stroke-linejoin:round}
+.bb-canvas{fill:#fbf9f6}
+.bb-title,.bb-zone-title,.bb-node-title,.bb-meter-big,.bb-meter-unit{fill:#2f2a27}
+.bb-subtitle,.bb-copy,.bb-hint,.bb-legend-text,.bb-meta,.bb-kicker,.bb-zone-kicker,.bb-kicker-top,.bb-zone-sub{fill:#716961}
+.bb-rule,.bb-meter-track{stroke:#dcdad7}
+.bb-meter-solid{stroke:#2f2a27}
+.bb-meter-part{stroke:#716961}
+.bb-zone{fill:#f5f3f0;stroke:#dcdad7}
+.bb-node-box{fill:#fffdfa;stroke:#dcdad7}
+.bb-node.status-planned .bb-node-box{fill:none;stroke:#c2bfbc}
+.bb-node.status-planned .bb-node-title{fill:#716961}
+.bb-status-text{fill:#716961}
+.bb-status.is-implemented .bb-status-text{fill:#716961}
+.bb-dot{stroke:#716961}
+.bb-dot-fill{fill:#716961}
+.bb-status.is-implemented .bb-dot{stroke:#2f2a27}
+.bb-status.is-implemented .bb-dot-fill{fill:#2f2a27}
+.bb-edge.data{stroke:#888079}
+.bb-edge.control{stroke:#747c86}
+.bb-edge.failure{stroke:#9b4a36}
+.bb-arrow.data{fill:#888079}
+.bb-arrow.control{fill:#747c86}
+.bb-arrow.failure{fill:#9b4a36}
+.bb-label,.iso-label-knockout{stroke:#fbf9f6}
+.bb-label.data{fill:#716961}
+.bb-label.control{fill:#4c535c}
+.bb-label.failure{fill:#9b4a36}
+.bb-flow{stroke:#2f2a27;stroke-opacity:.55}
+.bb-finding-text,.bb-finding-inline{fill:#9b4a36}
+.bb-node.has-finding .bb-node-box{stroke:#9b4a36}
+.bb-pseudo-fill{fill:#2f2a27}
+.bb-pseudo-ring{fill:#fbf9f6;stroke:#2f2a27;stroke-width:1.3}
+.bb-pseudo-choice{fill:#fffdfa}
+.bb-node.is-selected .bb-node-box,.bb-node[tabindex]:focus .bb-node-box{stroke:#2f2a27}
+.cat-sage .bb-mark,.bb-mark.cat-sage{fill:#427f61}
+.cat-sage .bb-kicker,.cat-sage .bb-zone-kicker{fill:#477d61}
+.cat-sage .bb-node-box{fill:#eaefe9;stroke:#b7cdc0}
+.cat-sage.status-planned .bb-node-box{fill:none;stroke:#9fbcac}
+.bb-zone.cat-sage{fill:#f0f2ed;stroke:#c0d2c6}
+.cat-sage .iso-roof{fill:#afd5c2;stroke:#54a17b}
+.cat-sage .iso-left{fill:#8dc3a9;stroke:#54a17b}
+.cat-sage .iso-right{fill:#6fb492;stroke:#54a17b}
+.cat-sage.status-planned .iso-face{stroke:#3d8461}
+.cat-rust .bb-mark,.bb-mark.cat-rust{fill:#995d3f}
+.cat-rust .bb-kicker,.cat-rust .bb-zone-kicker{fill:#955e42}
+.cat-rust .bb-node-box{fill:#f4ebe5;stroke:#d8c0b3}
+.cat-rust.status-planned .bb-node-box{fill:none;stroke:#caab9b}
+.bb-zone.cat-rust{fill:#f5f0eb;stroke:#dcc7bb}
+.cat-rust .iso-roof{fill:#d6bbae;stroke:#a36d52}
+.cat-rust .iso-left{fill:#c59f8c;stroke:#a36d52}
+.cat-rust .iso-right{fill:#b6866d;stroke:#a36d52}
+.cat-rust.status-planned .iso-face{stroke:#b9531f}
+.cat-peach .bb-mark,.bb-mark.cat-peach{fill:#a76644}
+.cat-peach .bb-kicker,.cat-peach .bb-zone-kicker{fill:#a26647}
+.cat-peach .bb-node-box{fill:#f5ece6;stroke:#dec4b5}
+.cat-peach.status-planned .bb-node-box{fill:none;stroke:#d1b09d}
+.bb-zone.cat-peach{fill:#f6f0eb;stroke:#e0cabd}
+.cat-peach .iso-roof{fill:#d6bcae;stroke:#a36e52}
+.cat-peach .iso-left{fill:#c59f8c;stroke:#a36e52}
+.cat-peach .iso-right{fill:#b6866d;stroke:#a36e52}
+.cat-peach.status-planned .iso-face{stroke:#b4643a}
+.cat-mustard .bb-mark,.bb-mark.cat-mustard{fill:#7d6a33}
+.cat-mustard .bb-kicker,.cat-mustard .bb-zone-kicker{fill:#7c6a38}
+.cat-mustard .bb-node-box{fill:#f1ede4;stroke:#cec5ae}
+.cat-mustard.status-planned .bb-node-box{fill:none;stroke:#bcb295}
+.bb-zone.cat-mustard{fill:#f3f0ea;stroke:#d3cbb8}
+.cat-mustard .iso-roof{fill:#d6cbae;stroke:#a38e52}
+.cat-mustard .iso-left{fill:#c5b68c;stroke:#a38e52}
+.cat-mustard .iso-right{fill:#b6a36d;stroke:#a38e52}
+.cat-mustard.status-planned .iso-face{stroke:#8a7026}
+.cat-slate .bb-mark,.bb-mark.cat-slate{fill:#4a5c73}
+.cat-slate .bb-kicker,.cat-slate .bb-zone-kicker{fill:#4e5d71}
+.cat-slate .bb-node-box{fill:#ebebeb;stroke:#bac0c7}
+.cat-slate.status-planned .bb-node-box{fill:none;stroke:#a3abb5}
+.bb-zone.cat-slate{fill:#f0f0ee;stroke:#c2c7cc}
+.cat-slate .iso-roof{fill:#b5c1cf;stroke:#617894}
+.cat-slate .iso-left{fill:#96a7bb;stroke:#617894}
+.cat-slate .iso-right{fill:#7a8fa8;stroke:#617894}
+.cat-slate.status-planned .iso-face{stroke:#4f5d6e}
+.cat-mauve .bb-mark,.bb-mark.cat-mauve{fill:#7b4e6d}
+.cat-mauve .bb-kicker,.cat-mauve .bb-zone-kicker{fill:#7a516c}
+.cat-mauve .bb-node-box{fill:#f0eaea;stroke:#cdbbc4}
+.cat-mauve.status-planned .bb-node-box{fill:none;stroke:#bba4b2}
+.bb-zone.cat-mauve{fill:#f3efee;stroke:#d2c2ca}
+.cat-mauve .iso-roof{fill:#cfb5c7;stroke:#946184}
+.cat-mauve .iso-left{fill:#bb96af;stroke:#946184}
+.cat-mauve .iso-right{fill:#a87a9a;stroke:#946184}
+.cat-mauve.status-planned .iso-face{stroke:#76536b}
+.iso-shadow{fill:#3b2f26;fill-opacity:0.08}
+.iso-hatch line{stroke:#fbf9f6}
+.iso-tag-bg,.iso-label-bg{fill:#fbf9f6;fill-opacity:.9}
+.bb-label.plain{stroke:none}
+.bb-node:not([class*=cat-]) .iso-face{fill:#fffdfa;stroke:#dcdad7}</style>
+<defs><marker id="bb-arrow-data" viewBox="0 0 10 10" refX="8.6" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path class="bb-arrow data" d="M 0 1 L 10 5 L 0 9 z"/></marker><marker id="bb-arrow-control" viewBox="0 0 10 10" refX="8.6" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path class="bb-arrow control" d="M 0 1 L 10 5 L 0 9 z"/></marker><marker id="bb-arrow-failure" viewBox="0 0 10 10" refX="8.6" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path class="bb-arrow failure" d="M 0 1 L 10 5 L 0 9 z"/></marker></defs>
+<rect class="bb-canvas" x="0" y="0" width="937" height="799"/>
+<text class="bb-title" x="48" y="100">Dashboard rendering</text>
+<g class="bb-meter" aria-label="100% built"><text class="bb-kicker-top" x="889" y="52" text-anchor="end">COMPLETION</text><text x="889" y="96" text-anchor="end"><tspan class="bb-meter-big">100</tspan><tspan class="bb-meter-unit" dx="3">%</tspan></text><path class="bb-meter-track" d="M 669 110 H 889"/><path class="bb-meter-solid" d="M 669 110 H 889"/><text class="bb-meta" x="889" y="132" text-anchor="end">3 built · 0 partial · 0 planned</text></g>
+<polygon class="iso-shadow" points="172.6,235 380.4,355 267.8,420 60,300"/>
+<polygon class="iso-shadow" points="432.4,385 640.2,505 527.7,570 319.8,450"/>
+<polygon class="iso-shadow" points="692.2,535 900,655 787.5,720 579.6,600"/>
+<g class="bb-node map-item status-implemented" data-id="renderer" tabindex="0" role="button" aria-label="Open details for HTML renderer">
+<polygon class="iso-focus" points="48,255 160.6,190 368.4,310 368.4,348 255.8,413 48,293" fill="none" stroke="none"/>
+<polygon class="iso-face iso-left" points="48,255 255.8,375 255.8,413 48,293"/>
+<polygon class="iso-face iso-right" points="368.4,310 255.8,375 255.8,413 368.4,348"/>
+<polygon class="iso-face iso-roof" points="160.6,190 368.4,310 255.8,375 48,255"/>
+</g>
+<g class="bb-node map-item status-implemented" data-id="demo-config" tabindex="0" role="button" aria-label="Open details for Demo config">
+<polygon class="iso-focus" points="307.8,405 420.4,340 628.2,460 628.2,498 515.7,563 307.8,443" fill="none" stroke="none"/>
+<polygon class="iso-face iso-left" points="307.8,405 515.7,525 515.7,563 307.8,443"/>
+<polygon class="iso-face iso-right" points="628.2,460 515.7,525 515.7,563 628.2,498"/>
+<polygon class="iso-face iso-roof" points="420.4,340 628.2,460 515.7,525 307.8,405"/>
+</g>
+<g class="bb-node map-item status-implemented" data-id="demo-data" tabindex="0" role="button" aria-label="Open details for Demo data">
+<polygon class="iso-focus" points="567.6,555 680.2,490 888,610 888,648 775.5,713 567.6,593" fill="none" stroke="none"/>
+<polygon class="iso-face iso-left" points="567.6,555 775.5,675 775.5,713 567.6,593"/>
+<polygon class="iso-face iso-right" points="888,610 775.5,675 775.5,713 888,648"/>
+<polygon class="iso-face iso-roof" points="680.2,490 888,610 775.5,675 567.6,555"/>
+</g>
+<g class="bb-edges">
+</g>
+<g class="iso-tag map-item" data-for="renderer" pointer-events="none">
+<rect class="iso-tag-bg" x="126.7" y="256.5" width="163" height="42" rx="3"/>
+<text class="bb-kicker" x="208.2" y="272.5" text-anchor="middle">SKILL · BUILT</text>
+<text class="bb-node-title" x="208.2" y="291.5" text-anchor="middle">HTML renderer</text>
+</g>
+<g class="iso-tag map-item" data-for="demo-config" pointer-events="none">
+<rect class="iso-tag-bg" x="397.1" y="406.5" width="141.9" height="42" rx="3"/>
+<text class="bb-kicker" x="468" y="422.5" text-anchor="middle">SKILL · BUILT</text>
+<text class="bb-node-title" x="468" y="441.5" text-anchor="middle">Demo config</text>
+</g>
+<g class="iso-tag map-item" data-for="demo-data" pointer-events="none">
+<rect class="iso-tag-bg" x="662.2" y="556.5" width="131.3" height="42" rx="3"/>
+<text class="bb-kicker" x="727.8" y="572.5" text-anchor="middle">SKILL · BUILT</text>
+<text class="bb-node-title" x="727.8" y="591.5" text-anchor="middle">Demo data</text>
+</g>
+<g class="bb-legend" aria-label="Legend"><path class="bb-rule" d="M 40 747 H 897"/><text class="bb-legend-text" x="48" y="769">Built = solid</text><text class="bb-legend-text" x="148.225" y="769">Partial = hatched roof</text><text class="bb-legend-text" x="305.375" y="769">Planned = wireframe</text></g>
+</svg>
+</div><ul class="purposes"><li><strong>HTML renderer</strong> · Assemble configured widgets into a standalone dashboard page. · built</li><li><strong>Demo config</strong> · Select the fixed dashboard slots for the public demo. · built</li><li><strong>Demo data</strong> · Provide static example tracker values without live collection. · built</li></ul><ol class="connections"></ol></section>
+<section class="panel" data-group="deploy" hidden><button type="button" class="back">← Overview</button><h2>Optional Worker bundle · built · 3 components</h2><div class="map"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 937 799" width="937" height="799" role="group" aria-labelledby="bb-t">
+<title id="bb-t">Optional Worker bundle</title>
+<style>
+text{font-family:Geist,"Geist Sans",ui-sans-serif,system-ui,-apple-system,"Segoe UI",Helvetica,Arial,sans-serif;font-variant-numeric:tabular-nums}
+.bb-title{font-size:36px;font-weight:300;letter-spacing:-.015em}
+.bb-subtitle{font-size:14px;font-weight:400}
+.bb-kicker-top{font-size:10.5px;font-weight:500;letter-spacing:2.6px}
+.bb-meta{font-size:11px;font-weight:400;letter-spacing:.03em}
+.bb-meter-big{font-size:42px;font-weight:300;letter-spacing:-.02em}
+.bb-meter-unit{font-size:17px;font-weight:300}
+.bb-meter-track{stroke-width:1;fill:none}
+.bb-meter-solid,.bb-meter-part{stroke-width:3;fill:none}
+.bb-meter-part{stroke-dasharray:2 3}
+.bb-rule{stroke-width:1;fill:none}
+.bb-zone{stroke-width:1}
+.bb-zone-kicker{font-size:10.5px;font-weight:500;letter-spacing:2.6px}
+.bb-zone-title{font-size:21px;font-weight:400;letter-spacing:-.005em}
+.bb-zone-sub{font-size:11.5px}
+.bb-node-box{stroke-width:1}
+.bb-node.status-planned .bb-node-box{stroke-dasharray:4 4}
+.bb-kicker{font-size:10.5px;font-weight:500;letter-spacing:2.4px}
+.bb-node-title{font-size:17px;font-weight:500;letter-spacing:-.005em}
+.bb-copy{font-size:13.5px;font-weight:400}
+.bb-hint{font-size:11.5px;font-weight:400;letter-spacing:.02em}
+.bb-status-text{font-size:9.5px;font-weight:600;letter-spacing:1.9px}
+.bb-dot{stroke-width:1.1;fill:none}
+.bb-edge{fill:none;stroke-width:1.25;stroke-linejoin:round;stroke-linecap:round}
+.bb-edge.control{stroke-dasharray:3 4}
+.bb-edge.failure{stroke-dasharray:.1 4.5;stroke-width:1.8}
+.bb-edge.is-planned{opacity:.4}
+.bb-label{font-size:11.5px;font-weight:500;letter-spacing:.02em;paint-order:stroke;stroke-width:6px;stroke-linejoin:round}
+.bb-legend-text{font-size:12px;font-weight:400}
+.bb-finding-text{font-size:9px;font-weight:600;letter-spacing:1.6px}
+.iso-face{stroke-width:.8;stroke-linejoin:round}
+.bb-node.status-planned .iso-face{fill:none;stroke-dasharray:4 4;stroke-width:1}
+.iso-hatch line{stroke-width:.8;opacity:.45}
+.iso-label-knockout{paint-order:stroke;stroke-width:6px;stroke-linejoin:round}
+.bb-canvas{fill:#fbf9f6}
+.bb-title,.bb-zone-title,.bb-node-title,.bb-meter-big,.bb-meter-unit{fill:#2f2a27}
+.bb-subtitle,.bb-copy,.bb-hint,.bb-legend-text,.bb-meta,.bb-kicker,.bb-zone-kicker,.bb-kicker-top,.bb-zone-sub{fill:#716961}
+.bb-rule,.bb-meter-track{stroke:#dcdad7}
+.bb-meter-solid{stroke:#2f2a27}
+.bb-meter-part{stroke:#716961}
+.bb-zone{fill:#f5f3f0;stroke:#dcdad7}
+.bb-node-box{fill:#fffdfa;stroke:#dcdad7}
+.bb-node.status-planned .bb-node-box{fill:none;stroke:#c2bfbc}
+.bb-node.status-planned .bb-node-title{fill:#716961}
+.bb-status-text{fill:#716961}
+.bb-status.is-implemented .bb-status-text{fill:#716961}
+.bb-dot{stroke:#716961}
+.bb-dot-fill{fill:#716961}
+.bb-status.is-implemented .bb-dot{stroke:#2f2a27}
+.bb-status.is-implemented .bb-dot-fill{fill:#2f2a27}
+.bb-edge.data{stroke:#888079}
+.bb-edge.control{stroke:#747c86}
+.bb-edge.failure{stroke:#9b4a36}
+.bb-arrow.data{fill:#888079}
+.bb-arrow.control{fill:#747c86}
+.bb-arrow.failure{fill:#9b4a36}
+.bb-label,.iso-label-knockout{stroke:#fbf9f6}
+.bb-label.data{fill:#716961}
+.bb-label.control{fill:#4c535c}
+.bb-label.failure{fill:#9b4a36}
+.bb-flow{stroke:#2f2a27;stroke-opacity:.55}
+.bb-finding-text,.bb-finding-inline{fill:#9b4a36}
+.bb-node.has-finding .bb-node-box{stroke:#9b4a36}
+.bb-pseudo-fill{fill:#2f2a27}
+.bb-pseudo-ring{fill:#fbf9f6;stroke:#2f2a27;stroke-width:1.3}
+.bb-pseudo-choice{fill:#fffdfa}
+.bb-node.is-selected .bb-node-box,.bb-node[tabindex]:focus .bb-node-box{stroke:#2f2a27}
+.cat-sage .bb-mark,.bb-mark.cat-sage{fill:#427f61}
+.cat-sage .bb-kicker,.cat-sage .bb-zone-kicker{fill:#477d61}
+.cat-sage .bb-node-box{fill:#eaefe9;stroke:#b7cdc0}
+.cat-sage.status-planned .bb-node-box{fill:none;stroke:#9fbcac}
+.bb-zone.cat-sage{fill:#f0f2ed;stroke:#c0d2c6}
+.cat-sage .iso-roof{fill:#afd5c2;stroke:#54a17b}
+.cat-sage .iso-left{fill:#8dc3a9;stroke:#54a17b}
+.cat-sage .iso-right{fill:#6fb492;stroke:#54a17b}
+.cat-sage.status-planned .iso-face{stroke:#3d8461}
+.cat-rust .bb-mark,.bb-mark.cat-rust{fill:#995d3f}
+.cat-rust .bb-kicker,.cat-rust .bb-zone-kicker{fill:#955e42}
+.cat-rust .bb-node-box{fill:#f4ebe5;stroke:#d8c0b3}
+.cat-rust.status-planned .bb-node-box{fill:none;stroke:#caab9b}
+.bb-zone.cat-rust{fill:#f5f0eb;stroke:#dcc7bb}
+.cat-rust .iso-roof{fill:#d6bbae;stroke:#a36d52}
+.cat-rust .iso-left{fill:#c59f8c;stroke:#a36d52}
+.cat-rust .iso-right{fill:#b6866d;stroke:#a36d52}
+.cat-rust.status-planned .iso-face{stroke:#b9531f}
+.cat-peach .bb-mark,.bb-mark.cat-peach{fill:#a76644}
+.cat-peach .bb-kicker,.cat-peach .bb-zone-kicker{fill:#a26647}
+.cat-peach .bb-node-box{fill:#f5ece6;stroke:#dec4b5}
+.cat-peach.status-planned .bb-node-box{fill:none;stroke:#d1b09d}
+.bb-zone.cat-peach{fill:#f6f0eb;stroke:#e0cabd}
+.cat-peach .iso-roof{fill:#d6bcae;stroke:#a36e52}
+.cat-peach .iso-left{fill:#c59f8c;stroke:#a36e52}
+.cat-peach .iso-right{fill:#b6866d;stroke:#a36e52}
+.cat-peach.status-planned .iso-face{stroke:#b4643a}
+.cat-mustard .bb-mark,.bb-mark.cat-mustard{fill:#7d6a33}
+.cat-mustard .bb-kicker,.cat-mustard .bb-zone-kicker{fill:#7c6a38}
+.cat-mustard .bb-node-box{fill:#f1ede4;stroke:#cec5ae}
+.cat-mustard.status-planned .bb-node-box{fill:none;stroke:#bcb295}
+.bb-zone.cat-mustard{fill:#f3f0ea;stroke:#d3cbb8}
+.cat-mustard .iso-roof{fill:#d6cbae;stroke:#a38e52}
+.cat-mustard .iso-left{fill:#c5b68c;stroke:#a38e52}
+.cat-mustard .iso-right{fill:#b6a36d;stroke:#a38e52}
+.cat-mustard.status-planned .iso-face{stroke:#8a7026}
+.cat-slate .bb-mark,.bb-mark.cat-slate{fill:#4a5c73}
+.cat-slate .bb-kicker,.cat-slate .bb-zone-kicker{fill:#4e5d71}
+.cat-slate .bb-node-box{fill:#ebebeb;stroke:#bac0c7}
+.cat-slate.status-planned .bb-node-box{fill:none;stroke:#a3abb5}
+.bb-zone.cat-slate{fill:#f0f0ee;stroke:#c2c7cc}
+.cat-slate .iso-roof{fill:#b5c1cf;stroke:#617894}
+.cat-slate .iso-left{fill:#96a7bb;stroke:#617894}
+.cat-slate .iso-right{fill:#7a8fa8;stroke:#617894}
+.cat-slate.status-planned .iso-face{stroke:#4f5d6e}
+.cat-mauve .bb-mark,.bb-mark.cat-mauve{fill:#7b4e6d}
+.cat-mauve .bb-kicker,.cat-mauve .bb-zone-kicker{fill:#7a516c}
+.cat-mauve .bb-node-box{fill:#f0eaea;stroke:#cdbbc4}
+.cat-mauve.status-planned .bb-node-box{fill:none;stroke:#bba4b2}
+.bb-zone.cat-mauve{fill:#f3efee;stroke:#d2c2ca}
+.cat-mauve .iso-roof{fill:#cfb5c7;stroke:#946184}
+.cat-mauve .iso-left{fill:#bb96af;stroke:#946184}
+.cat-mauve .iso-right{fill:#a87a9a;stroke:#946184}
+.cat-mauve.status-planned .iso-face{stroke:#76536b}
+.iso-shadow{fill:#3b2f26;fill-opacity:0.08}
+.iso-hatch line{stroke:#fbf9f6}
+.iso-tag-bg,.iso-label-bg{fill:#fbf9f6;fill-opacity:.9}
+.bb-label.plain{stroke:none}
+.bb-node:not([class*=cat-]) .iso-face{fill:#fffdfa;stroke:#dcdad7}</style>
+<defs><marker id="bb-arrow-data" viewBox="0 0 10 10" refX="8.6" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path class="bb-arrow data" d="M 0 1 L 10 5 L 0 9 z"/></marker><marker id="bb-arrow-control" viewBox="0 0 10 10" refX="8.6" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path class="bb-arrow control" d="M 0 1 L 10 5 L 0 9 z"/></marker><marker id="bb-arrow-failure" viewBox="0 0 10 10" refX="8.6" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path class="bb-arrow failure" d="M 0 1 L 10 5 L 0 9 z"/></marker></defs>
+<rect class="bb-canvas" x="0" y="0" width="937" height="799"/>
+<text class="bb-title" x="48" y="100">Optional Worker bundle</text>
+<g class="bb-meter" aria-label="100% built"><text class="bb-kicker-top" x="889" y="52" text-anchor="end">COMPLETION</text><text x="889" y="96" text-anchor="end"><tspan class="bb-meter-big">100</tspan><tspan class="bb-meter-unit" dx="3">%</tspan></text><path class="bb-meter-track" d="M 669 110 H 889"/><path class="bb-meter-solid" d="M 669 110 H 889"/><text class="bb-meta" x="889" y="132" text-anchor="end">3 built · 0 partial · 0 planned</text></g>
+<polygon class="iso-shadow" points="172.6,235 380.4,355 267.8,420 60,300"/>
+<polygon class="iso-shadow" points="432.4,385 640.2,505 527.7,570 319.8,450"/>
+<polygon class="iso-shadow" points="692.2,535 900,655 787.5,720 579.6,600"/>
+<g class="bb-node map-item status-implemented" data-id="cloud" tabindex="0" role="button" aria-label="Open details for Cloudflare publish">
+<polygon class="iso-focus" points="48,255 160.6,190 368.4,310 368.4,348 255.8,413 48,293" fill="none" stroke="none"/>
+<polygon class="iso-face iso-left" points="48,255 255.8,375 255.8,413 48,293"/>
+<polygon class="iso-face iso-right" points="368.4,310 255.8,375 255.8,413 368.4,348"/>
+<polygon class="iso-face iso-roof" points="160.6,190 368.4,310 255.8,375 48,255"/>
+</g>
+<g class="bb-node map-item status-implemented" data-id="site-builder" tabindex="0" role="button" aria-label="Open details for Worker builder">
+<polygon class="iso-focus" points="307.8,405 420.4,340 628.2,460 628.2,498 515.7,563 307.8,443" fill="none" stroke="none"/>
+<polygon class="iso-face iso-left" points="307.8,405 515.7,525 515.7,563 307.8,443"/>
+<polygon class="iso-face iso-right" points="628.2,460 515.7,525 515.7,563 628.2,498"/>
+<polygon class="iso-face iso-roof" points="420.4,340 628.2,460 515.7,525 307.8,405"/>
+</g>
+<g class="bb-node map-item status-implemented" data-id="kv-upload" tabindex="0" role="button" aria-label="Open details for Architecture uploader">
+<polygon class="iso-focus" points="567.6,555 680.2,490 888,610 888,648 775.5,713 567.6,593" fill="none" stroke="none"/>
+<polygon class="iso-face iso-left" points="567.6,555 775.5,675 775.5,713 567.6,593"/>
+<polygon class="iso-face iso-right" points="888,610 775.5,675 775.5,713 888,648"/>
+<polygon class="iso-face iso-roof" points="680.2,490 888,610 775.5,675 567.6,555"/>
+</g>
+<g class="bb-edges">
+<path class="bb-edge control map-item" d="M 329 332.8 L 362.8 352.3 Q 367.1 354.8 362.8 357.3 L 354.6 362 Q 350.2 364.5 354.6 367 L 364.1 372.5" marker-end="url(#bb-arrow-control)" data-from="cloud" data-to="site-builder"/>
+<path class="bb-edge control map-item" d="M 295.3 352.3 L 330.8 372.8 Q 335.1 375.3 330.8 377.8 L 287.9 402.5 Q 283.6 405 287.9 407.5 L 537.3 551.5 Q 541.6 554 546 551.5 L 605.7 517 Q 610.1 514.5 614.4 517 L 623.9 522.5" marker-end="url(#bb-arrow-control)" data-from="cloud" data-to="kv-upload"/>
+<g class="bb-edge-label map-item"><rect class="iso-label-bg" x="353.8" y="344.1" width="19.1" height="17" rx="3"/><text class="bb-label control plain" x="363.3" y="356.2" text-anchor="middle">1</text></g>
+<g class="bb-edge-label map-item"><rect class="iso-label-bg" x="566.3" y="525.8" width="19.1" height="17" rx="3"/><text class="bb-label control plain" x="575.8" y="537.9" text-anchor="middle">2</text></g>
+</g>
+<g class="iso-tag map-item" data-for="cloud" pointer-events="none">
+<rect class="iso-tag-bg" x="100.4" y="256.5" width="215.7" height="42" rx="3"/>
+<text class="bb-kicker" x="208.2" y="272.5" text-anchor="middle">PLAYBOOK · BUILT</text>
+<text class="bb-node-title" x="208.2" y="291.5" text-anchor="middle">Cloudflare publish</text>
+</g>
+<g class="iso-tag map-item" data-for="site-builder" pointer-events="none">
+<rect class="iso-tag-bg" x="381.2" y="406.5" width="173.6" height="42" rx="3"/>
+<text class="bb-kicker" x="468" y="422.5" text-anchor="middle">SKILL · BUILT</text>
+<text class="bb-node-title" x="468" y="441.5" text-anchor="middle">Worker builder</text>
+</g>
+<g class="iso-tag map-item" data-for="kv-upload" pointer-events="none">
+<rect class="iso-tag-bg" x="604.2" y="556.5" width="247.3" height="42" rx="3"/>
+<text class="bb-kicker" x="727.8" y="572.5" text-anchor="middle">SKILL · BUILT</text>
+<text class="bb-node-title" x="727.8" y="591.5" text-anchor="middle">Architecture uploader</text>
+</g>
+<g class="bb-legend" aria-label="Legend"><path class="bb-rule" d="M 40 747 H 897"/><text class="bb-legend-text" x="48" y="769">Built = solid</text><text class="bb-legend-text" x="148.225" y="769">Partial = hatched roof</text><text class="bb-legend-text" x="305.375" y="769">Planned = wireframe</text></g>
+</svg>
+</div><ul class="purposes"><li><strong>Cloudflare publish</strong> · Build a Worker bundle and deploy only with validated local site settings. · built</li><li><strong>Worker builder</strong> · Embed rendered HTML in a Cloudflare Worker bundle. · built</li><li><strong>Architecture uploader</strong> · Upload changed architecture HTML views to configured KV. · built</li></ul><ol class="connections"><li data-from="cloud" data-to="site-builder">cloud → site-builder · step 1</li><li data-from="cloud" data-to="kv-upload">cloud → kv-upload · step 2</li></ol></section>
+<section class="panel" data-group="ci" hidden><button type="button" class="back">← Overview</button><h2>Continuous integration · partial · 7 components</h2><div class="map"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1976 1399" width="1976" height="1399" role="group" aria-labelledby="bb-t">
+<title id="bb-t">Continuous integration</title>
+<style>
+text{font-family:Geist,"Geist Sans",ui-sans-serif,system-ui,-apple-system,"Segoe UI",Helvetica,Arial,sans-serif;font-variant-numeric:tabular-nums}
+.bb-title{font-size:36px;font-weight:300;letter-spacing:-.015em}
+.bb-subtitle{font-size:14px;font-weight:400}
+.bb-kicker-top{font-size:10.5px;font-weight:500;letter-spacing:2.6px}
+.bb-meta{font-size:11px;font-weight:400;letter-spacing:.03em}
+.bb-meter-big{font-size:42px;font-weight:300;letter-spacing:-.02em}
+.bb-meter-unit{font-size:17px;font-weight:300}
+.bb-meter-track{stroke-width:1;fill:none}
+.bb-meter-solid,.bb-meter-part{stroke-width:3;fill:none}
+.bb-meter-part{stroke-dasharray:2 3}
+.bb-rule{stroke-width:1;fill:none}
+.bb-zone{stroke-width:1}
+.bb-zone-kicker{font-size:10.5px;font-weight:500;letter-spacing:2.6px}
+.bb-zone-title{font-size:21px;font-weight:400;letter-spacing:-.005em}
+.bb-zone-sub{font-size:11.5px}
+.bb-node-box{stroke-width:1}
+.bb-node.status-planned .bb-node-box{stroke-dasharray:4 4}
+.bb-kicker{font-size:10.5px;font-weight:500;letter-spacing:2.4px}
+.bb-node-title{font-size:17px;font-weight:500;letter-spacing:-.005em}
+.bb-copy{font-size:13.5px;font-weight:400}
+.bb-hint{font-size:11.5px;font-weight:400;letter-spacing:.02em}
+.bb-status-text{font-size:9.5px;font-weight:600;letter-spacing:1.9px}
+.bb-dot{stroke-width:1.1;fill:none}
+.bb-edge{fill:none;stroke-width:1.25;stroke-linejoin:round;stroke-linecap:round}
+.bb-edge.control{stroke-dasharray:3 4}
+.bb-edge.failure{stroke-dasharray:.1 4.5;stroke-width:1.8}
+.bb-edge.is-planned{opacity:.4}
+.bb-label{font-size:11.5px;font-weight:500;letter-spacing:.02em;paint-order:stroke;stroke-width:6px;stroke-linejoin:round}
+.bb-legend-text{font-size:12px;font-weight:400}
+.bb-finding-text{font-size:9px;font-weight:600;letter-spacing:1.6px}
+.iso-face{stroke-width:.8;stroke-linejoin:round}
+.bb-node.status-planned .iso-face{fill:none;stroke-dasharray:4 4;stroke-width:1}
+.iso-hatch line{stroke-width:.8;opacity:.45}
+.iso-label-knockout{paint-order:stroke;stroke-width:6px;stroke-linejoin:round}
+.bb-canvas{fill:#fbf9f6}
+.bb-title,.bb-zone-title,.bb-node-title,.bb-meter-big,.bb-meter-unit{fill:#2f2a27}
+.bb-subtitle,.bb-copy,.bb-hint,.bb-legend-text,.bb-meta,.bb-kicker,.bb-zone-kicker,.bb-kicker-top,.bb-zone-sub{fill:#716961}
+.bb-rule,.bb-meter-track{stroke:#dcdad7}
+.bb-meter-solid{stroke:#2f2a27}
+.bb-meter-part{stroke:#716961}
+.bb-zone{fill:#f5f3f0;stroke:#dcdad7}
+.bb-node-box{fill:#fffdfa;stroke:#dcdad7}
+.bb-node.status-planned .bb-node-box{fill:none;stroke:#c2bfbc}
+.bb-node.status-planned .bb-node-title{fill:#716961}
+.bb-status-text{fill:#716961}
+.bb-status.is-implemented .bb-status-text{fill:#716961}
+.bb-dot{stroke:#716961}
+.bb-dot-fill{fill:#716961}
+.bb-status.is-implemented .bb-dot{stroke:#2f2a27}
+.bb-status.is-implemented .bb-dot-fill{fill:#2f2a27}
+.bb-edge.data{stroke:#888079}
+.bb-edge.control{stroke:#747c86}
+.bb-edge.failure{stroke:#9b4a36}
+.bb-arrow.data{fill:#888079}
+.bb-arrow.control{fill:#747c86}
+.bb-arrow.failure{fill:#9b4a36}
+.bb-label,.iso-label-knockout{stroke:#fbf9f6}
+.bb-label.data{fill:#716961}
+.bb-label.control{fill:#4c535c}
+.bb-label.failure{fill:#9b4a36}
+.bb-flow{stroke:#2f2a27;stroke-opacity:.55}
+.bb-finding-text,.bb-finding-inline{fill:#9b4a36}
+.bb-node.has-finding .bb-node-box{stroke:#9b4a36}
+.bb-pseudo-fill{fill:#2f2a27}
+.bb-pseudo-ring{fill:#fbf9f6;stroke:#2f2a27;stroke-width:1.3}
+.bb-pseudo-choice{fill:#fffdfa}
+.bb-node.is-selected .bb-node-box,.bb-node[tabindex]:focus .bb-node-box{stroke:#2f2a27}
+.cat-sage .bb-mark,.bb-mark.cat-sage{fill:#427f61}
+.cat-sage .bb-kicker,.cat-sage .bb-zone-kicker{fill:#477d61}
+.cat-sage .bb-node-box{fill:#eaefe9;stroke:#b7cdc0}
+.cat-sage.status-planned .bb-node-box{fill:none;stroke:#9fbcac}
+.bb-zone.cat-sage{fill:#f0f2ed;stroke:#c0d2c6}
+.cat-sage .iso-roof{fill:#afd5c2;stroke:#54a17b}
+.cat-sage .iso-left{fill:#8dc3a9;stroke:#54a17b}
+.cat-sage .iso-right{fill:#6fb492;stroke:#54a17b}
+.cat-sage.status-planned .iso-face{stroke:#3d8461}
+.cat-rust .bb-mark,.bb-mark.cat-rust{fill:#995d3f}
+.cat-rust .bb-kicker,.cat-rust .bb-zone-kicker{fill:#955e42}
+.cat-rust .bb-node-box{fill:#f4ebe5;stroke:#d8c0b3}
+.cat-rust.status-planned .bb-node-box{fill:none;stroke:#caab9b}
+.bb-zone.cat-rust{fill:#f5f0eb;stroke:#dcc7bb}
+.cat-rust .iso-roof{fill:#d6bbae;stroke:#a36d52}
+.cat-rust .iso-left{fill:#c59f8c;stroke:#a36d52}
+.cat-rust .iso-right{fill:#b6866d;stroke:#a36d52}
+.cat-rust.status-planned .iso-face{stroke:#b9531f}
+.cat-peach .bb-mark,.bb-mark.cat-peach{fill:#a76644}
+.cat-peach .bb-kicker,.cat-peach .bb-zone-kicker{fill:#a26647}
+.cat-peach .bb-node-box{fill:#f5ece6;stroke:#dec4b5}
+.cat-peach.status-planned .bb-node-box{fill:none;stroke:#d1b09d}
+.bb-zone.cat-peach{fill:#f6f0eb;stroke:#e0cabd}
+.cat-peach .iso-roof{fill:#d6bcae;stroke:#a36e52}
+.cat-peach .iso-left{fill:#c59f8c;stroke:#a36e52}
+.cat-peach .iso-right{fill:#b6866d;stroke:#a36e52}
+.cat-peach.status-planned .iso-face{stroke:#b4643a}
+.cat-mustard .bb-mark,.bb-mark.cat-mustard{fill:#7d6a33}
+.cat-mustard .bb-kicker,.cat-mustard .bb-zone-kicker{fill:#7c6a38}
+.cat-mustard .bb-node-box{fill:#f1ede4;stroke:#cec5ae}
+.cat-mustard.status-planned .bb-node-box{fill:none;stroke:#bcb295}
+.bb-zone.cat-mustard{fill:#f3f0ea;stroke:#d3cbb8}
+.cat-mustard .iso-roof{fill:#d6cbae;stroke:#a38e52}
+.cat-mustard .iso-left{fill:#c5b68c;stroke:#a38e52}
+.cat-mustard .iso-right{fill:#b6a36d;stroke:#a38e52}
+.cat-mustard.status-planned .iso-face{stroke:#8a7026}
+.cat-slate .bb-mark,.bb-mark.cat-slate{fill:#4a5c73}
+.cat-slate .bb-kicker,.cat-slate .bb-zone-kicker{fill:#4e5d71}
+.cat-slate .bb-node-box{fill:#ebebeb;stroke:#bac0c7}
+.cat-slate.status-planned .bb-node-box{fill:none;stroke:#a3abb5}
+.bb-zone.cat-slate{fill:#f0f0ee;stroke:#c2c7cc}
+.cat-slate .iso-roof{fill:#b5c1cf;stroke:#617894}
+.cat-slate .iso-left{fill:#96a7bb;stroke:#617894}
+.cat-slate .iso-right{fill:#7a8fa8;stroke:#617894}
+.cat-slate.status-planned .iso-face{stroke:#4f5d6e}
+.cat-mauve .bb-mark,.bb-mark.cat-mauve{fill:#7b4e6d}
+.cat-mauve .bb-kicker,.cat-mauve .bb-zone-kicker{fill:#7a516c}
+.cat-mauve .bb-node-box{fill:#f0eaea;stroke:#cdbbc4}
+.cat-mauve.status-planned .bb-node-box{fill:none;stroke:#bba4b2}
+.bb-zone.cat-mauve{fill:#f3efee;stroke:#d2c2ca}
+.cat-mauve .iso-roof{fill:#cfb5c7;stroke:#946184}
+.cat-mauve .iso-left{fill:#bb96af;stroke:#946184}
+.cat-mauve .iso-right{fill:#a87a9a;stroke:#946184}
+.cat-mauve.status-planned .iso-face{stroke:#76536b}
+.iso-shadow{fill:#3b2f26;fill-opacity:0.08}
+.iso-hatch line{stroke:#fbf9f6}
+.iso-tag-bg,.iso-label-bg{fill:#fbf9f6;fill-opacity:.9}
+.bb-label.plain{stroke:none}
+.bb-node:not([class*=cat-]) .iso-face{fill:#fffdfa;stroke:#dcdad7}</style>
+<defs><marker id="bb-arrow-data" viewBox="0 0 10 10" refX="8.6" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path class="bb-arrow data" d="M 0 1 L 10 5 L 0 9 z"/></marker><marker id="bb-arrow-control" viewBox="0 0 10 10" refX="8.6" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path class="bb-arrow control" d="M 0 1 L 10 5 L 0 9 z"/></marker><marker id="bb-arrow-failure" viewBox="0 0 10 10" refX="8.6" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path class="bb-arrow failure" d="M 0 1 L 10 5 L 0 9 z"/></marker></defs>
+<rect class="bb-canvas" x="0" y="0" width="1976" height="1399"/>
+<text class="bb-title" x="48" y="100">Continuous integration</text>
+<g class="bb-meter" aria-label="86% built"><text class="bb-kicker-top" x="1928" y="52" text-anchor="end">COMPLETION</text><text x="1928" y="96" text-anchor="end"><tspan class="bb-meter-big">86</tspan><tspan class="bb-meter-unit" dx="3">%</tspan></text><path class="bb-meter-track" d="M 1708 110 H 1928"/><path class="bb-meter-solid" d="M 1708 110 H 1896.6"/><path class="bb-meter-part" d="M 1896.6 110 H 1928"/><text class="bb-meta" x="1928" y="132" text-anchor="end">6 built · 1 partial · 0 planned</text></g>
+<polygon class="iso-shadow" points="172.6,235 380.4,355 267.8,420 60,300"/>
+<polygon class="iso-shadow" points="432.4,385 640.2,505 527.7,570 319.8,450"/>
+<polygon class="iso-shadow" points="692.2,535 900,655 787.5,720 579.6,600"/>
+<polygon class="iso-shadow" points="952,685 1159.9,805 1047.3,870 839.4,750"/>
+<polygon class="iso-shadow" points="1211.8,835 1419.7,955 1307.1,1020 1099.2,900"/>
+<polygon class="iso-shadow" points="1471.6,985 1679.5,1105 1566.9,1170 1359,1050"/>
+<polygon class="iso-shadow" points="1731.4,1135 1939.3,1255 1826.7,1320 1618.8,1200"/>
+<g class="bb-node map-item status-implemented" data-id="tip-ci" tabindex="0" role="button" aria-label="Open details for Tip CI">
+<polygon class="iso-focus" points="48,255 160.6,190 368.4,310 368.4,348 255.8,413 48,293" fill="none" stroke="none"/>
+<polygon class="iso-face iso-left" points="48,255 255.8,375 255.8,413 48,293"/>
+<polygon class="iso-face iso-right" points="368.4,310 255.8,375 255.8,413 368.4,348"/>
+<polygon class="iso-face iso-roof" points="160.6,190 368.4,310 255.8,375 48,255"/>
+</g>
+<g class="bb-node map-item status-implemented" data-id="ci-tests" tabindex="0" role="button" aria-label="Open details for Unit test gate">
+<polygon class="iso-focus" points="307.8,405 420.4,340 628.2,460 628.2,498 515.7,563 307.8,443" fill="none" stroke="none"/>
+<polygon class="iso-face iso-left" points="307.8,405 515.7,525 515.7,563 307.8,443"/>
+<polygon class="iso-face iso-right" points="628.2,460 515.7,525 515.7,563 628.2,498"/>
+<polygon class="iso-face iso-roof" points="420.4,340 628.2,460 515.7,525 307.8,405"/>
+</g>
+<g class="bb-node map-item status-implemented" data-id="ci-demo" tabindex="0" role="button" aria-label="Open details for Demo render gate">
+<polygon class="iso-focus" points="567.6,555 680.2,490 888,610 888,648 775.5,713 567.6,593" fill="none" stroke="none"/>
+<polygon class="iso-face iso-left" points="567.6,555 775.5,675 775.5,713 567.6,593"/>
+<polygon class="iso-face iso-right" points="888,610 775.5,675 775.5,713 888,648"/>
+<polygon class="iso-face iso-roof" points="680.2,490 888,610 775.5,675 567.6,555"/>
+</g>
+<g class="bb-node map-item status-implemented" data-id="pr-ci" tabindex="0" role="button" aria-label="Open details for PR wording CI">
+<polygon class="iso-focus" points="827.4,705 940,640 1147.9,760 1147.9,798 1035.3,863 827.4,743" fill="none" stroke="none"/>
+<polygon class="iso-face iso-left" points="827.4,705 1035.3,825 1035.3,863 827.4,743"/>
+<polygon class="iso-face iso-right" points="1147.9,760 1035.3,825 1035.3,863 1147.9,798"/>
+<polygon class="iso-face iso-roof" points="940,640 1147.9,760 1035.3,825 827.4,705"/>
+</g>
+<g class="bb-node map-item status-implemented" data-id="pr-gate" tabindex="0" role="button" aria-label="Open details for Wording gate">
+<polygon class="iso-focus" points="1087.2,855 1199.8,790 1407.7,910 1407.7,948 1295.1,1013 1087.2,893" fill="none" stroke="none"/>
+<polygon class="iso-face iso-left" points="1087.2,855 1295.1,975 1295.1,1013 1087.2,893"/>
+<polygon class="iso-face iso-right" points="1407.7,910 1295.1,975 1295.1,1013 1407.7,948"/>
+<polygon class="iso-face iso-roof" points="1199.8,790 1407.7,910 1295.1,975 1087.2,855"/>
+</g>
+<g class="bb-node map-item status-implemented" data-id="pr-lint" tabindex="0" role="button" aria-label="Open details for PR wording linter">
+<polygon class="iso-focus" points="1347,1005 1459.6,940 1667.5,1060 1667.5,1098 1554.9,1163 1347,1043" fill="none" stroke="none"/>
+<polygon class="iso-face iso-left" points="1347,1005 1554.9,1125 1554.9,1163 1347,1043"/>
+<polygon class="iso-face iso-right" points="1667.5,1060 1554.9,1125 1554.9,1163 1667.5,1098"/>
+<polygon class="iso-face iso-roof" points="1459.6,940 1667.5,1060 1554.9,1125 1347,1005"/>
+</g>
+<g class="bb-node map-item status-partial" data-id="legacy-ci" tabindex="0" role="button" aria-label="Open details for Buildkite placeholder">
+<polygon class="iso-focus" points="1606.8,1155 1719.4,1090 1927.3,1210 1927.3,1248 1814.7,1313 1606.8,1193" fill="none" stroke="none"/>
+<polygon class="iso-face iso-left" points="1606.8,1155 1814.7,1275 1814.7,1313 1606.8,1193"/>
+<polygon class="iso-face iso-right" points="1927.3,1210 1814.7,1275 1814.7,1313 1927.3,1248"/>
+<polygon class="iso-face iso-roof" points="1719.4,1090 1927.3,1210 1814.7,1275 1606.8,1155"/>
+<clipPath id="clip-legacy-ci"><polygon class="" points="1719.4,1090 1927.3,1210 1814.7,1275 1606.8,1155"/></clipPath><g class="iso-hatch" clip-path="url(#clip-legacy-ci)"><line x1="1421.8" y1="1275" x2="1606.8" y2="1090"/><line x1="1430.8" y1="1275" x2="1615.8" y2="1090"/><line x1="1439.8" y1="1275" x2="1624.8" y2="1090"/><line x1="1448.8" y1="1275" x2="1633.8" y2="1090"/><line x1="1457.8" y1="1275" x2="1642.8" y2="1090"/><line x1="1466.8" y1="1275" x2="1651.8" y2="1090"/><line x1="1475.8" y1="1275" x2="1660.8" y2="1090"/><line x1="1484.8" y1="1275" x2="1669.8" y2="1090"/><line x1="1493.8" y1="1275" x2="1678.8" y2="1090"/><line x1="1502.8" y1="1275" x2="1687.8" y2="1090"/><line x1="1511.8" y1="1275" x2="1696.8" y2="1090"/><line x1="1520.8" y1="1275" x2="1705.8" y2="1090"/><line x1="1529.8" y1="1275" x2="1714.8" y2="1090"/><line x1="1538.8" y1="1275" x2="1723.8" y2="1090"/><line x1="1547.8" y1="1275" x2="1732.8" y2="1090"/><line x1="1556.8" y1="1275" x2="1741.8" y2="1090"/><line x1="1565.8" y1="1275" x2="1750.8" y2="1090"/><line x1="1574.8" y1="1275" x2="1759.8" y2="1090"/><line x1="1583.8" y1="1275" x2="1768.8" y2="1090"/><line x1="1592.8" y1="1275" x2="1777.8" y2="1090"/><line x1="1601.8" y1="1275" x2="1786.8" y2="1090"/><line x1="1610.8" y1="1275" x2="1795.8" y2="1090"/><line x1="1619.8" y1="1275" x2="1804.8" y2="1090"/><line x1="1628.8" y1="1275" x2="1813.8" y2="1090"/><line x1="1637.8" y1="1275" x2="1822.8" y2="1090"/><line x1="1646.8" y1="1275" x2="1831.8" y2="1090"/><line x1="1655.8" y1="1275" x2="1840.8" y2="1090"/><line x1="1664.8" y1="1275" x2="1849.8" y2="1090"/><line x1="1673.8" y1="1275" x2="1858.8" y2="1090"/><line x1="1682.8" y1="1275" x2="1867.8" y2="1090"/><line x1="1691.8" y1="1275" x2="1876.8" y2="1090"/><line x1="1700.8" y1="1275" x2="1885.8" y2="1090"/><line x1="1709.8" y1="1275" x2="1894.8" y2="1090"/><line x1="1718.8" y1="1275" x2="1903.8" y2="1090"/><line x1="1727.8" y1="1275" x2="1912.8" y2="1090"/><line x1="1736.8" y1="1275" x2="1921.8" y2="1090"/><line x1="1745.8" y1="1275" x2="1930.8" y2="1090"/><line x1="1754.8" y1="1275" x2="1939.8" y2="1090"/><line x1="1763.8" y1="1275" x2="1948.8" y2="1090"/><line x1="1772.8" y1="1275" x2="1957.8" y2="1090"/><line x1="1781.8" y1="1275" x2="1966.8" y2="1090"/><line x1="1790.8" y1="1275" x2="1975.8" y2="1090"/><line x1="1799.8" y1="1275" x2="1984.8" y2="1090"/><line x1="1808.8" y1="1275" x2="1993.8" y2="1090"/><line x1="1817.8" y1="1275" x2="2002.8" y2="1090"/><line x1="1826.8" y1="1275" x2="2011.8" y2="1090"/><line x1="1835.8" y1="1275" x2="2020.8" y2="1090"/><line x1="1844.8" y1="1275" x2="2029.8" y2="1090"/><line x1="1853.8" y1="1275" x2="2038.8" y2="1090"/><line x1="1862.8" y1="1275" x2="2047.8" y2="1090"/><line x1="1871.8" y1="1275" x2="2056.8" y2="1090"/><line x1="1880.8" y1="1275" x2="2065.8" y2="1090"/><line x1="1889.8" y1="1275" x2="2074.8" y2="1090"/><line x1="1898.8" y1="1275" x2="2083.8" y2="1090"/><line x1="1907.8" y1="1275" x2="2092.8" y2="1090"/><line x1="1916.8" y1="1275" x2="2101.8" y2="1090"/><line x1="1925.8" y1="1275" x2="2110.8" y2="1090"/></g>
+</g>
+<g class="bb-edges">
+<path class="bb-edge control map-item" d="M 329 332.8 L 362.8 352.3 Q 367.1 354.8 362.8 357.3 L 354.6 362 Q 350.2 364.5 354.6 367 L 364.1 372.5" marker-end="url(#bb-arrow-control)" data-from="tip-ci" data-to="ci-tests"/>
+<path class="bb-edge control map-item" d="M 295.3 352.3 L 330.8 372.8 Q 335.1 375.3 330.8 377.8 L 287.9 402.5 Q 283.6 405 287.9 407.5 L 537.3 551.5 Q 541.6 554 546 551.5 L 605.7 517 Q 610.1 514.5 614.4 517 L 623.9 522.5" marker-end="url(#bb-arrow-control)" data-from="tip-ci" data-to="ci-demo"/>
+<path class="bb-edge control map-item" d="M 1091.6 792.5 L 1143.5 822.5" marker-end="url(#bb-arrow-control)" data-from="pr-ci" data-to="pr-gate"/>
+<path class="bb-edge control map-item" d="M 1351.4 942.5 L 1403.3 972.5" marker-end="url(#bb-arrow-control)" data-from="pr-gate" data-to="pr-lint"/>
+<g class="bb-edge-label map-item"><rect class="iso-label-bg" x="353.8" y="344.1" width="19.1" height="17" rx="3"/><text class="bb-label control plain" x="363.3" y="356.2" text-anchor="middle">1</text></g>
+<g class="bb-edge-label map-item"><rect class="iso-label-bg" x="566.3" y="525.8" width="19.1" height="17" rx="3"/><text class="bb-label control plain" x="575.8" y="537.9" text-anchor="middle">2</text></g>
+<g class="bb-edge-label map-item"><rect class="iso-label-bg" x="1115.8" y="803.5" width="19.1" height="17" rx="3"/><text class="bb-label control plain" x="1125.3" y="815.6" text-anchor="middle">1</text></g>
+<g class="bb-edge-label map-item"><rect class="iso-label-bg" x="1375.6" y="953.5" width="19.1" height="17" rx="3"/><text class="bb-label control plain" x="1385.1" y="965.6" text-anchor="middle">1</text></g>
+</g>
+<g class="iso-tag map-item" data-for="tip-ci" pointer-events="none">
+<rect class="iso-tag-bg" x="130.4" y="256.5" width="155.6" height="42" rx="3"/>
+<text class="bb-kicker" x="208.2" y="272.5" text-anchor="middle">WORKFLOW · BUILT</text>
+<text class="bb-node-title" x="208.2" y="291.5" text-anchor="middle">Tip CI</text>
+</g>
+<g class="iso-tag map-item" data-for="ci-tests" pointer-events="none">
+<rect class="iso-tag-bg" x="381.2" y="406.5" width="173.6" height="42" rx="3"/>
+<text class="bb-kicker" x="468" y="422.5" text-anchor="middle">PLAYBOOK · BUILT</text>
+<text class="bb-node-title" x="468" y="441.5" text-anchor="middle">Unit test gate</text>
+</g>
+<g class="iso-tag map-item" data-for="ci-demo" pointer-events="none">
+<rect class="iso-tag-bg" x="630.5" y="556.5" width="194.6" height="42" rx="3"/>
+<text class="bb-kicker" x="727.8" y="572.5" text-anchor="middle">PLAYBOOK · BUILT</text>
+<text class="bb-node-title" x="727.8" y="591.5" text-anchor="middle">Demo render gate</text>
+</g>
+<g class="iso-tag map-item" data-for="pr-ci" pointer-events="none">
+<rect class="iso-tag-bg" x="906.1" y="706.5" width="163" height="42" rx="3"/>
+<text class="bb-kicker" x="987.6" y="722.5" text-anchor="middle">WORKFLOW · BUILT</text>
+<text class="bb-node-title" x="987.6" y="741.5" text-anchor="middle">PR wording CI</text>
+</g>
+<g class="iso-tag map-item" data-for="pr-gate" pointer-events="none">
+<rect class="iso-tag-bg" x="1169.6" y="856.5" width="155.6" height="42" rx="3"/>
+<text class="bb-kicker" x="1247.4" y="872.5" text-anchor="middle">PLAYBOOK · BUILT</text>
+<text class="bb-node-title" x="1247.4" y="891.5" text-anchor="middle">Wording gate</text>
+</g>
+<g class="iso-tag map-item" data-for="pr-lint" pointer-events="none">
+<rect class="iso-tag-bg" x="1404.7" y="1006.5" width="205.2" height="42" rx="3"/>
+<text class="bb-kicker" x="1507.3" y="1022.5" text-anchor="middle">SKILL · BUILT</text>
+<text class="bb-node-title" x="1507.3" y="1041.5" text-anchor="middle">PR wording linter</text>
+</g>
+<g class="iso-tag map-item" data-for="legacy-ci" pointer-events="none">
+<rect class="iso-tag-bg" x="1643.4" y="1156.5" width="247.3" height="42" rx="3"/>
+<text class="bb-kicker" x="1767.1" y="1172.5" text-anchor="middle">SKILL · PARTIAL</text>
+<text class="bb-node-title" x="1767.1" y="1191.5" text-anchor="middle">Buildkite placeholder</text>
+</g>
+<g class="bb-legend" aria-label="Legend"><path class="bb-rule" d="M 40 1347 H 1936"/><text class="bb-legend-text" x="48" y="1369">Built = solid</text><text class="bb-legend-text" x="148.225" y="1369">Partial = hatched roof</text><text class="bb-legend-text" x="305.375" y="1369">Planned = wireframe</text></g>
+</svg>
+</div><ul class="purposes"><li><strong>Tip CI</strong> · Run unit tests and demo render on main pushes and pull requests. · built</li><li><strong>Unit test gate</strong> · Discover and execute the Python test suite. · built</li><li><strong>Demo render gate</strong> · Render the demo HTML in CI after tests. · built</li><li><strong>PR wording CI</strong> · Lint draft and ready PR wording against the trusted base. · built</li><li><strong>Wording gate</strong> · Check PR title and body against the wording policy. · built</li><li><strong>PR wording linter</strong> · Validate first-person PR sections and concise language. · built</li><li><strong>Buildkite placeholder</strong> · Retain a deprecated no-op pipeline that points to Tip CI. · partial</li></ul><ol class="connections"><li data-from="tip-ci" data-to="ci-tests">tip-ci → ci-tests · step 1</li><li data-from="tip-ci" data-to="ci-demo">tip-ci → ci-demo · step 2</li><li data-from="pr-ci" data-to="pr-gate">pr-ci → pr-gate · step 1</li><li data-from="pr-gate" data-to="pr-lint">pr-gate → pr-lint · step 1</li><li data-from="ci-demo" data-to="renderer">ci-demo → renderer · step 1 · other group</li></ol></section>
+<script>
+const chains = {"publish":["local","runner","demo-config","demo-data","renderer","cloud","site-builder","kv-upload"],"pre":["activity","collector-activity","prcache","refresh-script","repo","repo-script","cluster","metrics-script","spark-script","sidecars","sidecar-script","responses","accept-script","response-script","inflight","inflight-script","merges","merge-script","decisions","decision-script","steps","step-script","bot","bot-script","panes","pane-script","priorities","priority-script","ids","pin-script","fresh","fresh-script"],"tip-ci":["ci-tests","ci-demo","renderer"],"pr-ci":["pr-gate","pr-lint"]};
+const panels = document.querySelectorAll(".panel");
+function openGroup(id) {
+  document.getElementById("overview").hidden = true;
+  for (const panel of panels) { panel.hidden = panel.dataset.group !== id; if (panel.dataset.group === id) panel.hidden = false; }
+}
+function highlightWorkflow(id) {
+  const chain = [id, ...chains[id]];
+  for (const node of document.querySelectorAll(".panel .bb-node")) node.classList.toggle("is-dimmed", !chain.includes(node.dataset.id));
+  for (const edge of document.querySelectorAll(".panel .bb-edge")) edge.classList.toggle("is-dimmed", !chain.includes(edge.dataset.from) || !chain.includes(edge.dataset.to));
+  document.querySelectorAll(".workflow").forEach((button) => button.setAttribute("aria-pressed", String(button.dataset.workflow === id)));
+  document.getElementById('overview').hidden = true;
+  for (const panel of panels) panel.hidden = ![...panel.querySelectorAll('.bb-node[data-id]')].some((node) => chain.includes(node.dataset.id));
+  const order = document.getElementById('chain-order'); order.replaceChildren(); order.hidden = false;
+  for (const component of chain) { const li = document.createElement('li'); li.textContent = component; order.append(li); }
+}
+document.querySelectorAll('#overview .bb-node[data-id]').forEach((node) => { node.setAttribute('role','button'); node.setAttribute('tabindex','0'); const action = () => openGroup(node.dataset.id); node.addEventListener('click',action); node.addEventListener('keydown',(e) => { if(e.key === 'Enter' || e.key === ' ') { e.preventDefault(); action(); } }); });
+document.querySelectorAll('.back').forEach((button) => button.addEventListener('click',() => { panels.forEach((panel) => { panel.hidden = true; }); document.getElementById('overview').hidden = false; document.getElementById('chain-order').hidden = true; document.querySelectorAll('.is-dimmed').forEach((el) => el.classList.remove('is-dimmed')); }));
+document.querySelectorAll('.workflow').forEach((button) => button.addEventListener('click',() => highlightWorkflow(button.dataset.workflow)));
+document.querySelectorAll('.panel .bb-node[data-id]').forEach((node) => { const id = node.dataset.id; if(chains[id]) node.addEventListener('click', () => highlightWorkflow(id)); });
+</script></body></html>
