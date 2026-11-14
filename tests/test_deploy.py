@@ -190,8 +190,9 @@ class ArchitectureUploadTests(unittest.TestCase):
             flat = source / 'rendered' / 'flat' / 'sample.html'
             iso.parent.mkdir(parents=True)
             flat.parent.mkdir(parents=True)
-            iso.write_text('first', encoding='utf-8')
-            flat.write_text('flat', encoding='utf-8')
+            legacy = lambda text: f'<html><head><meta name="generator" content="bowerbird"></head><body>{text}</body></html>'
+            iso.write_text(legacy('first'), encoding='utf-8')
+            flat.write_text(legacy('flat'), encoding='utf-8')
             data = base / 'data.json'
             data.write_text(json.dumps({'projects': {'tabs': [{'id': 'sample', 'diagram': 'architecture/sample.bower.json'}]}}), encoding='utf-8')
             cfg = base / 'site.json'
@@ -206,10 +207,10 @@ class ArchitectureUploadTests(unittest.TestCase):
                 self.assertEqual(runner.call_count, 2)
                 self.assertIn('architecture/sample/flat.html', runner.call_args.args[0].full_url)
                 self.assertEqual(runner.call_args.args[0].get_header('Authorization'), 'Bearer test-token')
-                self.assertEqual((dist / 'assets' / 'architecture' / 'sample' / 'iso.html').read_text(), 'first')
+                self.assertEqual((dist / 'assets' / 'architecture' / 'sample' / 'iso.html').read_text(), legacy('first'))
                 module.upload(source, dist, cfg, data)
                 self.assertEqual(runner.call_count, 2)
-                iso.write_text('second', encoding='utf-8')
+                iso.write_text(legacy('second'), encoding='utf-8')
                 module.upload(source, dist, cfg, data)
                 self.assertEqual(runner.call_count, 3)
                 data.write_text(json.dumps({'projects': {'tabs': []}}), encoding='utf-8')

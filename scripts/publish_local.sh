@@ -20,6 +20,10 @@ python3 -m flightdeck.render \
   "$ROOT/examples/demo/config.json" \
   "$ROOT/examples/demo/data.json" \
   "$OUT/index.html"
-rm -rf "$OUT/assets"
-cp -R "$ROOT/examples/demo/assets" "$OUT/assets"
+python3 - "$ROOT/examples/demo/assets" "$OUT/assets" <<'PY'
+import sys
+from flightdeck.architecture_provenance import copy_assets
+
+copy_assets(sys.argv[1], sys.argv[2])
+PY
 echo "Local build at $OUT"
