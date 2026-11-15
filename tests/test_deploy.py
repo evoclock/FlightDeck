@@ -198,17 +198,17 @@ class ArchitectureUploadTests(unittest.TestCase):
             cfg = base / 'site.json'
             cfg.write_text(json.dumps({'architecture_kv_id': 'test-namespace', 'account_id': 'test-account'}), encoding='utf-8')
             dist = base / 'dist'
-            with patch.dict(module.os.environ, {'CLOUDFLARE_API_TOKEN': 'test-token'}), patch.object(module, 'urlopen') as runner:
+            with patch.dict(module.os.environ, {'CLOUDFLARE_API_TOKEN': 'test-token', 'CREW_TRACKER_CACHE': str(base / 'cache')}), patch.object(module, 'urlopen') as runner:
                 runner.side_effect = lambda *a, **kw: io.BytesIO(b'{"success":true}')
                 module.upload(source, dist, cfg, data, dry_run=True)
-                self.assertFalse((dist / 'architecture-kv-manifest.json').exists())
+                self.assertFalse((base / 'cache' / 'architecture-kv-hashes.json').exists())
                 runner.assert_not_called()
                 module.upload(source, dist, cfg, data)
                 self.assertEqual(runner.call_count, 2)
                 self.assertIn('architecture/sample/flat.html', runner.call_args.args[0].full_url)
                 self.assertEqual(runner.call_args.args[0].get_header('Authorization'), 'Bearer test-token')
                 self.assertEqual((dist / 'assets' / 'architecture' / 'sample' / 'iso.html').read_text(), legacy('first'))
-                module.upload(source, dist, cfg, data)
+                module.upload(source, base / 'fresh-dist', cfg, data)
                 self.assertEqual(runner.call_count, 2)
                 iso.write_text(legacy('second'), encoding='utf-8')
                 module.upload(source, dist, cfg, data)
@@ -219,6 +219,54 @@ class ArchitectureUploadTests(unittest.TestCase):
                 cfg.write_text('{}', encoding='utf-8')
                 module.upload(source, dist, cfg, data)
                 self.assertEqual(runner.call_count, 3)
+
+    def test_cache_override_and_failed_put_retry(self):
+        import importlib.util
+        import io
+        from contextlib import redirect_stdout
+        from unittest.mock import patch
+        spec = importlib.util.spec_from_file_location('architecture_upload', ROOT / 'scripts' / 'upload_architecture_kv.py')
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        with tempfile.TemporaryDirectory() as tmp:
+            base = Path(tmp)
+            source = base / 'source'
+            for view in ('iso', 'flat'):
+                page = source / 'rendered' / view / 'sample.html'
+                page.parent.mkdir(parents=True)
+                page.write_text('<html><meta name=generator content=bowerbird></html>')
+            data = base / 'data.json'
+            data.write_text(json.dumps({'projects': {'tabs': [{'id': 'sample', 'diagram': 'sample.bower.json'}]}}))
+            cfg = base / 'site.json'
+            cfg.write_text(json.dumps({'architecture_kv_id': 'test-namespace', 'account_id': 'test-account'}))
+            cache = base / 'shared-cache'
+            explicit = base / 'override' / 'manifest.json'
+            output = io.StringIO()
+            with patch.dict(module.os.environ, {'CLOUDFLARE_API_TOKEN': 'test-token', 'CREW_TRACKER_CACHE': str(cache)}), patch.object(module, 'urlopen') as runner, redirect_stdout(output):
+                runner.side_effect = [io.BytesIO(b'{"success":true}'), io.BytesIO(b'{"success":false}'),
+                                      io.BytesIO(b'{"success":true}'), io.BytesIO(b'{"success":true}'),
+                                      io.BytesIO(b'{"success":true}')]
+                self.assertEqual(module.upload(source, base / 'dist', cfg, data), 1)
+                self.assertEqual(len(json.loads((cache / 'architecture-kv-hashes.json').read_text())['hashes']), 1)
+                self.assertEqual(module.upload(source, base / 'fresh', cfg, data), 0)
+                self.assertEqual(runner.call_count, 3)
+                self.assertEqual(module.upload(source, base / 'fresh', cfg, data), 0)
+                self.assertEqual(runner.call_count, 3)
+                with patch('sys.argv', ['upload_architecture_kv.py', '--source', str(source), '--dist', str(base / 'fresh'), '--site', str(cfg), '--data', str(data), '--manifest', str(explicit)]):
+                    self.assertEqual(module.main(), 0)
+                self.assertTrue(explicit.is_file())
+                self.assertEqual(runner.call_count, 5)
+                self.assertEqual(module.upload(source, base / 'fresh', cfg, data, manifest=explicit), 0)
+                self.assertEqual(runner.call_count, 5)
+                runner.side_effect = lambda *args, **kwargs: io.BytesIO(b'{"success":true}')
+                with patch.object(module, '__file__', str(base / 'scripts' / 'upload_architecture_kv.py')):
+                    module.os.environ.pop('CREW_TRACKER_CACHE')
+                    self.assertEqual(module.upload(source, base / 'fresh', cfg, data), 0)
+                self.assertTrue((base / '.cache' / 'architecture-kv-hashes.json').is_file())
+                self.assertEqual(runner.call_count, 7)
+            self.assertIn('architecture KV: 2 changed keys, 1 failed', output.getvalue())
+            self.assertIn('architecture KV: 1 changed keys, 0 failed', output.getvalue())
+            self.assertIn('architecture KV: 0 changed keys, 0 failed', output.getvalue())
 
 
 class PartialReceiptTests(unittest.TestCase):
