@@ -14,7 +14,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from flightdeck.architecture_provenance import publishable
 
 
-def upload(source, dist, config, data, dry_run=False):
+def upload(source, dist, config, data, dry_run=False, manifest=None):
     cfg = json.loads(Path(config).read_text(encoding='utf-8'))
     namespace = cfg.get('architecture_kv_id')
     if not namespace:
@@ -24,7 +24,9 @@ def upload(source, dist, config, data, dry_run=False):
         raise SystemExit('Refusing to upload to a placeholder architecture_kv_id')
     source = Path(source)
     staged = Path(dist) / 'assets' / 'architecture'
-    manifest = Path(dist) / 'architecture-kv-manifest.json'
+    manifest = Path(manifest) if manifest is not None else Path(
+        os.environ.get('CREW_TRACKER_CACHE', Path(__file__).resolve().parents[1] / '.cache')
+    ) / 'architecture-kv-hashes.json'
     previous = json.loads(manifest.read_text(encoding='utf-8')) if manifest.exists() else {}
     # A manifest from a different namespace cannot suppress uploads to this one.
     if previous.get('namespace') != namespace:
@@ -35,6 +37,7 @@ def upload(source, dist, config, data, dry_run=False):
         return 0
     token = os.environ.get('CLOUDFLARE_API_TOKEN') if not dry_run else None
     tabs = json.loads(Path(data).read_text(encoding='utf-8')).get('projects', {}).get('tabs', [])
+    changed = failed = 0
     for tab in tabs:
         if not tab.get('diagram'):
             continue
@@ -53,6 +56,7 @@ def upload(source, dist, config, data, dry_run=False):
             digest = hashlib.sha256(content).hexdigest()
             if hashes.get(key) == digest:
                 continue
+            changed += 1
             print(('Would upload ' if dry_run else 'Uploading ') + key)
             if dry_run:
                 continue
@@ -67,15 +71,24 @@ def upload(source, dist, config, data, dry_run=False):
                 'Authorization': 'Bearer ' + token,
                 'Content-Type': 'text/html; charset=utf-8',
             })
-            with urlopen(request, timeout=30) as response:
-                result = json.load(response)
-            if not result.get('success'):
-                raise SystemExit(f'Architecture KV upload failed for {key}')
+            try:
+                with urlopen(request, timeout=30) as response:
+                    result = json.load(response)
+                if not result.get('success'):
+                    failed += 1
+                    print(f'Architecture KV upload failed for {key}', file=sys.stderr)
+                    continue
+            except (OSError, ValueError) as exc:
+                failed += 1
+                print(f'Architecture KV upload failed for {key}: {exc}', file=sys.stderr)
+                continue
             hashes[key] = digest
             # Persist each successful key so a failed batch can safely resume.
+            manifest.parent.mkdir(parents=True, exist_ok=True)
             manifest.write_text(json.dumps({'namespace': namespace, 'hashes': hashes}, indent=2) + '\n', encoding='utf-8')
 
-    return 0
+    print(f'architecture KV: {changed} changed keys, {failed} failed')
+    return 1 if failed else 0
 
 
 def main():
@@ -85,8 +98,9 @@ def main():
     parser.add_argument('--site', required=True, help='site config')
     parser.add_argument('--data', required=True, help='tracker data used for the render')
     parser.add_argument('--dry-run', action='store_true')
+    parser.add_argument('--manifest', type=Path, help='persistent architecture KV hash manifest')
     args = parser.parse_args()
-    return upload(args.source, args.dist, args.site, args.data, args.dry_run)
+    return upload(args.source, args.dist, args.site, args.data, args.dry_run, args.manifest)
 
 
 if __name__ == '__main__':

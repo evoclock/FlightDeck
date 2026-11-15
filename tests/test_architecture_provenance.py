@@ -87,12 +87,12 @@ class ProvenanceTests(unittest.TestCase):
             with patch.dict('os.environ', {'CLOUDFLARE_API_TOKEN': 'test-token'}), \
                     patch('scripts.upload_architecture_kv.urlopen', side_effect=send), \
                     contextlib.redirect_stderr(io.StringIO()) as stderr:
-                self.assertEqual(upload(source, root / 'dist', config, data), 0)
+                self.assertEqual(upload(source, root / 'dist', config, data, manifest=root / 'cache/architecture-kv-hashes.json'), 0)
             self.assertEqual(len(requests), 4)
             self.assertTrue(all('/good/' in url or '/legacy/' in url for url in requests))
             for name in ('hand', 'partial', 'legacy'):
                 self.assertIn(f'{name}.html', stderr.getvalue())
-            self.assertTrue((root / 'dist/architecture-kv-manifest.json').exists())
+            self.assertTrue((root / 'cache/architecture-kv-hashes.json').exists())
 
 
 if __name__ == '__main__':
